@@ -1,0 +1,13 @@
+{
+    "src": [
+        "pages/MainPage",
+        "pages/PodcastDetailPage",
+        "pages/EpisodeDetailPage",
+        "pages/PlayerPage",
+        "pages/SubscriptionPage",
+        "pages/DownloadPage",
+        "pages/QueuePage",
+        "pages/SettingsPage",
+        "pages/SearchPage"
+    ]
+}

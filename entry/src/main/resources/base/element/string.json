@@ -1,0 +1,160 @@
+{
+    "string": [
+        {
+            "name": "module_desc",
+            "value": "AntennaPod entry module"
+        },
+        {
+            "name": "EntryAbility_desc",
+            "value": "Entry ability"
+        },
+        {
+            "name": "EntryAbility_label",
+            "value": "AntennaPod"
+        },
+        {
+            "name": "permission_internet_reason",
+            "value": "用于获取播客内容和更新"
+        },
+        {
+            "name": "permission_network_info_reason",
+            "value": "用于检测网络状态，优化下载策略"
+        },
+        {
+            "name": "permission_write_media_reason",
+            "value": "用于下载和保存播客音频文件"
+        },
+        {
+            "name": "permission_read_media_reason",
+            "value": "用于读取已下载的播客音频文件"
+        },
+        {
+            "name": "tab_subscription",
+            "value": "订阅"
+        },
+        {
+            "name": "tab_episodes",
+            "value": "单集"
+        },
+        {
+            "name": "tab_queue",
+            "value": "队列"
+        },
+        {
+            "name": "tab_downloads",
+            "value": "下载"
+        },
+        {
+            "name": "search_podcast",
+            "value": "搜索播客"
+        },
+        {
+            "name": "add_podcast",
+            "value": "添加播客"
+        },
+        {
+            "name": "add_by_url",
+            "value": "通过URL添加"
+        },
+        {
+            "name": "search_by_keyword",
+            "value": "搜索播客"
+        },
+        {
+            "name": "subscribe",
+            "value": "订阅"
+        },
+        {
+            "name": "unsubscribe",
+            "value": "取消订阅"
+        },
+        {
+            "name": "download",
+            "value": "下载"
+        },
+        {
+            "name": "play",
+            "value": "播放"
+        },
+        {
+            "name": "pause",
+            "value": "暂停"
+        },
+        {
+            "name": "delete",
+            "value": "删除"
+        },
+        {
+            "name": "settings",
+            "value": "设置"
+        },
+        {
+            "name": "theme_settings",
+            "value": "主题设置"
+        },
+        {
+            "name": "theme_light",
+            "value": "浅色"
+        },
+        {
+            "name": "theme_dark",
+            "value": "深色"
+        },
+        {
+            "name": "theme_auto",
+            "value": "跟随系统"
+        },
+        {
+            "name": "storage_settings",
+            "value": "存储设置"
+        },
+        {
+            "name": "network_settings",
+            "value": "网络设置"
+        },
+        {
+            "name": "download_wifi_only",
+            "value": "仅WiFi下载"
+        },
+        {
+            "name": "playback_speed",
+            "value": "播放速度"
+        },
+        {
+            "name": "sleep_timer",
+            "value": "睡眠定时"
+        },
+        {
+            "name": "episode_downloaded",
+            "value": "已下载"
+        },
+        {
+            "name": "episode_downloading",
+            "value": "下载中"
+        },
+        {
+            "name": "episode_not_downloaded",
+            "value": "未下载"
+        },
+        {
+            "name": "mark_as_played",
+            "value": "标记为已播放"
+        },
+        {
+            "name": "mark_as_unplayed",
+            "value": "标记为未播放"
+        },
+        {
+            "name": "add_to_queue",
+            "value": "添加到队列"
+        },
+        {
+            "name": "remove_from_queue",
+            "value": "从队列移除"
+        },
+        {
+            "name": "clear_queue",
+            "value": "清空队列"
+        }
+    ]
+}

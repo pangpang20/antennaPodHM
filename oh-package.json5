@@ -1,0 +1,13 @@
+{
+  "name": "antennapod",
+  "version": "1.0.0",
+  "description": "AntennaPod - Open source podcast manager for HarmonyOS",
+  "main": "",
+  "author": "",
+  "license": "GPL-3.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hvigor-ohos-plugin": "5.0.8",
+    "@ohos/hvigor": "5.0.8"
+  }
+}

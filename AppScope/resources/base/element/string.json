@@ -1,0 +1,12 @@
+{
+    "string": [
+        {
+            "name": "app_name",
+            "value": "AntennaPod"
+        },
+        {
+            "name": "app_description",
+            "value": "Open source podcast manager"
+        }
+    ]
+}
