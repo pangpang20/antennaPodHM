@@ -5,11 +5,13 @@
       {
         "name": "default",
         "signingConfig": "default",
+        "targetSdkVersion": "5.0.0(17)",
         "compatibleSdkVersion": "5.0.0(17)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
           "strictMode": {
-            "caseSensitiveCheck": true
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
           }
         }
       }
