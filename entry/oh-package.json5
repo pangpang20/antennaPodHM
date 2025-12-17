@@ -1,6 +1,7 @@
 {
   "name": "entry",
   "version": "1.0.0",
+  "modelVersion": "5.0.0",
   "description": "Please describe the basic information.",
   "main": "",
   "author": "",

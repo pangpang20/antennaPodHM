@@ -1,6 +1,7 @@
 {
   "name": "antennapod",
   "version": "1.0.0",
+  "modelVersion": "5.0.0",
   "description": "AntennaPod - Open source podcast manager for HarmonyOS",
   "main": "",
   "author": "",
