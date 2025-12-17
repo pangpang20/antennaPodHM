@@ -2,6 +2,7 @@ import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { PodcastService } from '../service/PodcastService';
 import { DatabaseService } from '../service/DatabaseService';
+import { router } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -78,30 +79,32 @@ struct MainPage {
 
       // 搜索按钮
       Button() {
-        Image($r('app.media.ic_search'))
-          .width(24)
-          .height(24)
+        Text('🔍')
+          .fontSize(20)
       }
       .width(40)
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         // 跳转到搜索页面
-        router.pushUrl({ url: 'pages/SearchPage' });
+        router.pushUrl({ url: 'pages/SearchPage' }).catch((err: Error) => {
+          console.error('Navigation failed:', err);
+        });
       })
 
       // 设置按钮
       Button() {
-        Image($r('app.media.ic_settings'))
-          .width(24)
-          .height(24)
+        Text('⚙️')
+          .fontSize(20)
       }
       .width(40)
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         // 跳转到设置页面
-        router.pushUrl({ url: 'pages/SettingsPage' });
+        router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+          console.error('Navigation failed:', err);
+        });
       })
     }
     .width('100%')
@@ -142,7 +145,9 @@ struct MainPage {
         .height(48)
         .margin({ bottom: 20 })
         .onClick(() => {
-          router.pushUrl({ url: 'pages/SearchPage' });
+          router.pushUrl({ url: 'pages/SearchPage' }).catch((err: Error) => {
+            console.error('Navigation failed:', err);
+          });
         })
     }
     .width('100%')
@@ -192,11 +197,12 @@ struct MainPage {
   buildPodcastItem(podcast: Podcast) {
     Row() {
       // 播客封面
-      Image(podcast.imageUrl || $r('app.media.ic_default_podcast'))
+      Image(podcast.imageUrl)
         .width(80)
         .height(80)
         .borderRadius(8)
         .objectFit(ImageFit.Cover)
+        .alt($r('app.media.app_icon'))
 
       // 播客信息
       Column() {
@@ -229,6 +235,8 @@ struct MainPage {
       router.pushUrl({
         url: 'pages/PodcastDetailPage',
         params: { podcastId: podcast.id }
+      }).catch((err: Error) => {
+        console.error('Navigation failed:', err);
       });
     })
   }
@@ -239,9 +247,8 @@ struct MainPage {
   @Builder
   buildEmptyView(title: string, message: string) {
     Column() {
-      Image($r('app.media.ic_empty'))
-        .width(120)
-        .height(120)
+      Text('🎧')
+        .fontSize(80)
         .opacity(0.3)
 
       Text(title)

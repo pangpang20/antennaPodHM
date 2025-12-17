@@ -156,21 +156,23 @@ export class PodcastService {
    */
   private parseSearchResults(response: string): Podcast[] {
     try {
-      const data = JSON.parse(response);
+      const data: Record<string, Object> = JSON.parse(response) as Record<string, Object>;
       const podcasts: Podcast[] = [];
       
-      if (data.results && Array.isArray(data.results)) {
-        data.results.forEach((item: ESObject) => {
-          const podcast = new Podcast({
-            id: item.collectionId?.toString() || this.generateId(),
-            title: item.collectionName || '',
-            author: item.artistName || '',
-            imageUrl: item.artworkUrl600 || item.artworkUrl100 || '',
-            feedUrl: item.feedUrl || '',
-            description: item.description || ''
-          });
+      const results = data['results'] as Array<Record<string, Object>>;
+      if (results && Array.isArray(results)) {
+        for (let i = 0; i < results.length; i++) {
+          const item = results[i];
+          let podcast = new Podcast();
+          const collectionId = item['collectionId'];
+          podcast.id = collectionId ? String(collectionId) : this.generateId();
+          podcast.title = (item['collectionName'] as string) || '';
+          podcast.author = (item['artistName'] as string) || '';
+          podcast.imageUrl = (item['artworkUrl600'] as string) || (item['artworkUrl100'] as string) || '';
+          podcast.feedUrl = (item['feedUrl'] as string) || '';
+          podcast.description = (item['description'] as string) || '';
           podcasts.push(podcast);
-        });
+        }
       }
       
       return podcasts;

@@ -1,4 +1,4 @@
-import router from '@ohos.router';
+import { router } from '@kit.ArkUI';
 import { Episode } from '../model/Episode';
 import { PlayerService, PlayerState } from '../service/PlayerService';
 import { Constants } from '../common/Constants';
@@ -82,9 +82,8 @@ struct PlayerPage {
   buildNavigationBar() {
     Row() {
       Button() {
-        Image($r('app.media.ic_back'))
-          .width(24)
-          .height(24)
+        Text('←')
+          .fontSize(20)
       }
       .width(40)
       .height(40)
@@ -170,9 +169,8 @@ struct PlayerPage {
     Row() {
       // 后退15秒
       Button() {
-        Image($r('app.media.ic_rewind'))
-          .width(32)
-          .height(32)
+        Text('⏪')
+          .fontSize(28)
       }
       .width(60)
       .height(60)
@@ -186,10 +184,9 @@ struct PlayerPage {
 
       // 播放/暂停按钮
       Button() {
-        Image(this.playerState === PlayerState.PLAYING ? 
-          $r('app.media.ic_pause') : $r('app.media.ic_play'))
-          .width(48)
-          .height(48)
+        Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
+          .fontSize(36)
+          .fontColor(Color.White)
       }
       .width(80)
       .height(80)
@@ -209,9 +206,8 @@ struct PlayerPage {
 
       // 前进30秒
       Button() {
-        Image($r('app.media.ic_forward'))
-          .width(32)
-          .height(32)
+        Text('⏩')
+          .fontSize(28)
       }
       .width(60)
       .height(60)
@@ -241,9 +237,8 @@ struct PlayerPage {
 
       // 睡眠定时器
       Button() {
-        Image($r('app.media.ic_timer'))
-          .width(24)
-          .height(24)
+        Text('⏰')
+          .fontSize(20)
       }
       .backgroundColor(Color.Transparent)
 
@@ -251,9 +246,8 @@ struct PlayerPage {
 
       // 添加到队列
       Button() {
-        Image($r('app.media.ic_queue'))
-          .width(24)
-          .height(24)
+        Text('☰')
+          .fontSize(20)
       }
       .backgroundColor(Color.Transparent)
     }

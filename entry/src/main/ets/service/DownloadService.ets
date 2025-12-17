@@ -100,9 +100,13 @@ export class DownloadService {
    * 暂停下载
    */
   async pauseDownload(episodeId: string): Promise<void> {
-    const task = this.downloadTasks.get(episodeId);
-    if (task) {
-      await task.downloadTask.suspend();
+    try {
+      const task = this.downloadTasks.get(episodeId);
+      if (task) {
+        await task.downloadTask.suspend();
+      }
+    } catch (error) {
+      console.error('Failed to pause download:', error);
     }
   }
 
@@ -110,9 +114,13 @@ export class DownloadService {
    * 恢复下载
    */
   async resumeDownload(episodeId: string): Promise<void> {
-    const task = this.downloadTasks.get(episodeId);
-    if (task) {
-      await task.downloadTask.restore();
+    try {
+      const task = this.downloadTasks.get(episodeId);
+      if (task) {
+        await task.downloadTask.restore();
+      }
+    } catch (error) {
+      console.error('Failed to resume download:', error);
     }
   }
 
@@ -120,17 +128,21 @@ export class DownloadService {
    * 取消下载
    */
   async cancelDownload(episodeId: string): Promise<void> {
-    const task = this.downloadTasks.get(episodeId);
-    if (task) {
-      await task.downloadTask.delete();
-      this.downloadTasks.delete(episodeId);
-      
-      // 更新数据库状态
-      await this.dbService.updateEpisodeDownloadStatus(
-        episodeId,
-        DownloadStatus.NOT_DOWNLOADED,
-        0
-      );
+    try {
+      const task = this.downloadTasks.get(episodeId);
+      if (task) {
+        await task.downloadTask.delete();
+        this.downloadTasks.delete(episodeId);
+        
+        // 更新数据库状态
+        await this.dbService.updateEpisodeDownloadStatus(
+          episodeId,
+          DownloadStatus.NOT_DOWNLOADED,
+          0
+        );
+      }
+    } catch (error) {
+      console.error('Failed to cancel download:', error);
     }
   }
 

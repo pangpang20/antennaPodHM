@@ -45,9 +45,8 @@ struct QueuePage {
   @Builder
   buildEmptyView() {
     Column() {
-      Image($r('app.media.ic_empty'))
-        .width(120)
-        .height(120)
+      Text('🎧')
+        .fontSize(80)
         .opacity(0.3)
 
       Text('播放队列为空')

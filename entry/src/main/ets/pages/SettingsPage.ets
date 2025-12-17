@@ -1,4 +1,4 @@
-import router from '@ohos.router';
+import { router } from '@kit.ArkUI';
 import { AppSettings, ThemeMode } from '../model/AppSettings';
 import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
@@ -109,7 +109,7 @@ struct SettingsPage {
           }
 
           ListItem() {
-            this.buildSettingItem('开源许可', 'GPL-3.0', () => {});
+            this.buildSettingItem('开源许可', 'MIT', () => {});
           }
         }
       }
@@ -124,9 +124,8 @@ struct SettingsPage {
   buildNavigationBar() {
     Row() {
       Button() {
-        Image($r('app.media.ic_back'))
-          .width(24)
-          .height(24)
+        Text('←')
+          .fontSize(20)
       }
       .width(40)
       .height(40)
@@ -168,9 +167,8 @@ struct SettingsPage {
         .fontSize(14)
         .fontColor($r('app.color.text_secondary_light'))
 
-      Image($r('app.media.ic_arrow_right'))
-        .width(16)
-        .height(16)
+      Text('›')
+        .fontSize(20)
         .margin({ left: 8 })
     }
     .width('100%')

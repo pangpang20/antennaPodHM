@@ -27,12 +27,6 @@ export class Episode {
   isFavorite: boolean = false; // 是否收藏
   addedToQueueDate: number = 0; // 添加到队列的时间
 
-  constructor(data?: Partial<Episode>) {
-    if (data) {
-      Object.assign(this, data);
-    }
-  }
-
   /**
    * 格式化时长显示
    */

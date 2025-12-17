@@ -16,9 +16,11 @@ export class Podcast {
   episodeCount: number = 0;
   isSubscribed: boolean = false;
 
-  constructor(data?: Partial<Podcast>) {
-    if (data) {
-      Object.assign(this, data);
-    }
+  static create(id: string, title: string, feedUrl: string): Podcast {
+    let podcast = new Podcast();
+    podcast.id = id;
+    podcast.title = title;
+    podcast.feedUrl = feedUrl;
+    return podcast;
   }
 }

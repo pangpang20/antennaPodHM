@@ -29,10 +29,4 @@ export class AppSettings {
   // 通知设置
   enableNotifications: boolean = true;
   notifyNewEpisodes: boolean = true;
-
-  constructor(data?: Partial<AppSettings>) {
-    if (data) {
-      Object.assign(this, data);
-    }
-  }
 }

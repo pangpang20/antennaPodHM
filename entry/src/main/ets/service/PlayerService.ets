@@ -40,8 +40,12 @@ export class PlayerService {
       return;
     }
 
-    this.avPlayer = await media.createAVPlayer();
-    this.setupPlayerCallbacks();
+    try {
+      this.avPlayer = await media.createAVPlayer();
+      this.setupPlayerCallbacks();
+    } catch (error) {
+      console.error('Failed to initialize player:', error);
+    }
   }
 
   /**
@@ -73,48 +77,58 @@ export class PlayerService {
    * 播放Episode
    */
   async playEpisode(episode: Episode): Promise<void> {
-    if (!this.avPlayer) {
-      await this.init();
+    try {
+      if (!this.avPlayer) {
+        await this.init();
+      }
+
+      if (!this.avPlayer) {
+        throw new Error('Failed to initialize player');
+      }
+
+      // 如果正在播放其他Episode,先停止
+      if (this.currentEpisode && this.currentEpisode.id !== episode.id) {
+        await this.stop();
+      }
+
+      this.currentEpisode = episode;
+
+      // 设置音频源
+      const audioUrl = episode.localPath || episode.audioUrl;
+      this.avPlayer.url = audioUrl;
+
+      // 等待播放器准备就绪
+      await this.waitForState('prepared');
+
+      // 如果有保存的播放进度,跳转到该位置
+      if (episode.playbackPosition > 0) {
+        await this.seek(episode.playbackPosition);
+      }
+
+      // 设置播放速度
+      if (this.playbackSpeed !== 1.0) {
+        await this.setPlaybackSpeed(this.playbackSpeed);
+      }
+
+      // 开始播放
+      await this.avPlayer.play();
+    } catch (error) {
+      console.error('Failed to play episode:', error);
+      this.state = PlayerState.ERROR;
+      this.notifyListeners('error', error);
     }
-
-    if (!this.avPlayer) {
-      throw new Error('Failed to initialize player');
-    }
-
-    // 如果正在播放其他Episode,先停止
-    if (this.currentEpisode && this.currentEpisode.id !== episode.id) {
-      await this.stop();
-    }
-
-    this.currentEpisode = episode;
-
-    // 设置音频源
-    const audioUrl = episode.localPath || episode.audioUrl;
-    this.avPlayer.url = audioUrl;
-
-    // 等待播放器准备就绪
-    await this.waitForState('prepared');
-
-    // 如果有保存的播放进度,跳转到该位置
-    if (episode.playbackPosition > 0) {
-      await this.seek(episode.playbackPosition);
-    }
-
-    // 设置播放速度
-    if (this.playbackSpeed !== 1.0) {
-      await this.setPlaybackSpeed(this.playbackSpeed);
-    }
-
-    // 开始播放
-    await this.avPlayer.play();
   }
 
   /**
    * 暂停播放
    */
   async pause(): Promise<void> {
-    if (this.avPlayer && this.state === PlayerState.PLAYING) {
-      await this.avPlayer.pause();
+    try {
+      if (this.avPlayer && this.state === PlayerState.PLAYING) {
+        await this.avPlayer.pause();
+      }
+    } catch (error) {
+      console.error('Failed to pause:', error);
     }
   }
 
@@ -122,8 +136,12 @@ export class PlayerService {
    * 继续播放
    */
   async resume(): Promise<void> {
-    if (this.avPlayer && this.state === PlayerState.PAUSED) {
-      await this.avPlayer.play();
+    try {
+      if (this.avPlayer && this.state === PlayerState.PAUSED) {
+        await this.avPlayer.play();
+      }
+    } catch (error) {
+      console.error('Failed to resume:', error);
     }
   }
 
@@ -131,9 +149,13 @@ export class PlayerService {
    * 停止播放
    */
   async stop(): Promise<void> {
-    if (this.avPlayer) {
-      await this.avPlayer.stop();
-      this.currentEpisode = null;
+    try {
+      if (this.avPlayer) {
+        await this.avPlayer.stop();
+        this.currentEpisode = null;
+      }
+    } catch (error) {
+      console.error('Failed to stop:', error);
     }
   }
 
@@ -213,7 +235,7 @@ export class PlayerService {
   private notifyListeners(event: string, data?: ESObject): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
-      callbacks.forEach(callback => callback(data));
+      callbacks.forEach((callback: Function): void => { callback(data); });
     }
   }
 
@@ -244,8 +266,8 @@ export class PlayerService {
    * 等待播放器到达指定状态
    */
   private waitForState(targetState: string): Promise<void> {
-    return new Promise((resolve) => {
-      const checkState = () => {
+    return new Promise<void>((resolve: () => void) => {
+      const checkState = (): void => {
         if (this.avPlayer?.state === targetState) {
           resolve();
         } else {
@@ -260,11 +282,15 @@ export class PlayerService {
    * 释放资源
    */
   async release(): Promise<void> {
-    if (this.avPlayer) {
-      await this.avPlayer.release();
-      this.avPlayer = null;
-      this.currentEpisode = null;
-      this.state = PlayerState.IDLE;
+    try {
+      if (this.avPlayer) {
+        await this.avPlayer.release();
+        this.avPlayer = null;
+        this.currentEpisode = null;
+        this.state = PlayerState.IDLE;
+      }
+    } catch (error) {
+      console.error('Failed to release player:', error);
     }
   }
 }

@@ -1,4 +1,4 @@
-import router from '@ohos.router';
+import { router } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { DatabaseService } from '../service/DatabaseService';
@@ -58,9 +58,8 @@ struct PodcastDetailPage {
   buildNavigationBar() {
     Row() {
       Button() {
-        Image($r('app.media.ic_back'))
-          .width(24)
-          .height(24)
+        Text('←')
+          .fontSize(20)
       }
       .width(40)
       .height(40)
@@ -163,6 +162,8 @@ struct PodcastDetailPage {
           router.pushUrl({
             url: 'pages/PlayerPage',
             params: { episodeId: episode.id }
+          }).catch((err: Error) => {
+            console.error('Navigation failed:', err);
           });
         })
     }
