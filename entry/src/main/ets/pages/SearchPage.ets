@@ -1,6 +1,7 @@
 import { router } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { PodcastService } from '../service/PodcastService';
+import { promptAction } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -10,6 +11,8 @@ struct SearchPage {
   @State isSearching: boolean = false;
   @State showAddByUrl: boolean = false;
   @State feedUrl: string = '';
+  @State isSubscribing: boolean = false;
+  @State subscribingId: string = '';
 
   build() {
     Column() {
@@ -141,8 +144,9 @@ struct SearchPage {
       .margin({ left: 12 })
       .layoutWeight(1)
 
-      Button('订阅')
+      Button(this.subscribingId === podcast.id ? '订阅中...' : '订阅')
         .height(36)
+        .enabled(!this.isSubscribing)
         .onClick(() => {
           this.subscribePodcast(podcast);
         })
@@ -187,13 +191,37 @@ struct SearchPage {
    * 订阅播客
    */
   async subscribePodcast(podcast: Podcast) {
+    if (this.isSubscribing) {
+      return;
+    }
+
+    if (!podcast.feedUrl) {
+      promptAction.showToast({
+        message: '该播客没有有效的 RSS 地址',
+        duration: 2000
+      });
+      return;
+    }
+
+    this.isSubscribing = true;
+    this.subscribingId = podcast.id;
+
     try {
-      if (podcast.feedUrl) {
-        await PodcastService.getInstance().addPodcastByUrl(podcast.feedUrl);
-        router.back();
-      }
+      await PodcastService.getInstance().addPodcastByUrl(podcast.feedUrl);
+      promptAction.showToast({
+        message: '订阅成功',
+        duration: 2000
+      });
+      router.back();
     } catch (error) {
       console.error('Subscribe failed:', error);
+      promptAction.showToast({
+        message: '订阅失败，请重试',
+        duration: 2000
+      });
+    } finally {
+      this.isSubscribing = false;
+      this.subscribingId = '';
     }
   }
 }
