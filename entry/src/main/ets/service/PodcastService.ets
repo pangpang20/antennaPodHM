@@ -46,11 +46,15 @@ export class PodcastService {
 
   /**
    * 搜索播客
+   * @param keyword 搜索关键词
+   * @param offset 偏移量，用于分页（默认0）
+   * @param limit 每页数量（默认20，最大200）
    */
-  async searchPodcasts(keyword: string): Promise<Podcast[]> {
-    // 这里可以集成iTunes API或其他播客搜索API
-    // 示例实现
-    const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(keyword)}&media=podcast&limit=20`;
+  async searchPodcasts(keyword: string, offset: number = 0, limit: number = 20): Promise<Podcast[]> {
+    // 使用 iTunes Search API
+    // offset: 跳过前N条结果，用于分页
+    // limit: 返回结果数量，最大200
+    const searchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(keyword)}&media=podcast&limit=${limit}&offset=${offset}`;
     
     try {
       const response = await this.httpRequest(searchUrl);
