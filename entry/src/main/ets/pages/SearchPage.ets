@@ -13,6 +13,7 @@ struct SearchPage {
   @State feedUrl: string = '';
   @State isSubscribing: boolean = false;
   @State subscribingId: string = '';
+  @State isAddingByUrl: boolean = false;
 
   build() {
     Column() {
@@ -24,6 +25,11 @@ struct SearchPage {
 
       // 添加方式选择
       this.buildAddOptions();
+
+      // RSS URL 输入区域
+      if (this.showAddByUrl) {
+        this.buildRssUrlInput();
+      }
 
       // 搜索结果列表
       if (this.isSearching) {
@@ -94,15 +100,44 @@ struct SearchPage {
   @Builder
   buildAddOptions() {
     Column() {
-      Button('通过 RSS URL 添加')
+      Button(this.showAddByUrl ? '取消' : '通过 RSS URL 添加')
         .width('100%')
         .type(ButtonType.Normal)
         .onClick(() => {
-          this.showAddByUrl = true;
+          this.showAddByUrl = !this.showAddByUrl;
+          if (!this.showAddByUrl) {
+            this.feedUrl = '';
+          }
         })
     }
     .width('100%')
     .padding({ left: 16, right: 16, bottom: 16 })
+  }
+
+  @Builder
+  buildRssUrlInput() {
+    Column() {
+      TextInput({ placeholder: '输入 RSS Feed URL', text: this.feedUrl })
+        .width('100%')
+        .onChange((value: string) => {
+          this.feedUrl = value;
+        })
+        .onSubmit(() => {
+          this.addByRssUrl();
+        })
+
+      Button(this.isAddingByUrl ? '添加中...' : '添加播客')
+        .width('100%')
+        .margin({ top: 12 })
+        .enabled(!this.isAddingByUrl && this.feedUrl.length > 0)
+        .onClick(() => {
+          this.addByRssUrl();
+        })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, bottom: 16 })
+    .backgroundColor(Color.White)
+    .borderRadius(8)
   }
 
   @Builder
@@ -184,6 +219,46 @@ struct SearchPage {
       console.error('Search failed:', error);
     } finally {
       this.isSearching = false;
+    }
+  }
+
+  /**
+   * 通过 RSS URL 添加播客
+   */
+  async addByRssUrl() {
+    if (this.isAddingByUrl || this.feedUrl.trim().length === 0) {
+      return;
+    }
+
+    // 简单验证 URL 格式
+    const url = this.feedUrl.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      promptAction.showToast({
+        message: '请输入有效的 URL（以 http:// 或 https:// 开头）',
+        duration: 2000
+      });
+      return;
+    }
+
+    this.isAddingByUrl = true;
+
+    try {
+      await PodcastService.getInstance().addPodcastByUrl(url);
+      promptAction.showToast({
+        message: '播客添加成功',
+        duration: 2000
+      });
+      this.feedUrl = '';
+      this.showAddByUrl = false;
+      router.back();
+    } catch (error) {
+      console.error('Add by RSS URL failed:', error);
+      promptAction.showToast({
+        message: '添加失败，请检查 URL 是否正确',
+        duration: 2000
+      });
+    } finally {
+      this.isAddingByUrl = false;
     }
   }
 

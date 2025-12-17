@@ -29,6 +29,10 @@
             "value": "用于读取已下载的播客音频文件"
         },
         {
+            "name": "permission_background_reason",
+            "value": "用于后台播放播客音频"
+        },
+        {
             "name": "tab_subscription",
             "value": "订阅"
         },

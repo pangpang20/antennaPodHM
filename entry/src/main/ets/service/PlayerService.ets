@@ -1,4 +1,7 @@
 import media from '@ohos.multimedia.media';
+import avSession from '@ohos.multimedia.avsession';
+import wantAgent from '@ohos.app.ability.wantAgent';
+import backgroundTaskManager from '@ohos.resourceschedule.backgroundTaskManager';
 import { Episode } from '../model/Episode';
 
 /**
@@ -13,15 +16,18 @@ export enum PlayerState {
 }
 
 /**
- * 播放器服务
+ * 播放器服务 - 支持后台播放
  */
 export class PlayerService {
   private static instance: PlayerService;
   private avPlayer: media.AVPlayer | null = null;
+  private session: avSession.AVSession | null = null;
   private currentEpisode: Episode | null = null;
   private state: PlayerState = PlayerState.IDLE;
   private playbackSpeed: number = 1.0;
   private listeners: Map<string, Function[]> = new Map();
+  private context: Context | null = null;
+  private isBackgroundRunning: boolean = false;
 
   private constructor() {}
 
@@ -30,6 +36,13 @@ export class PlayerService {
       PlayerService.instance = new PlayerService();
     }
     return PlayerService.instance;
+  }
+
+  /**
+   * 设置上下文
+   */
+  setContext(context: Context): void {
+    this.context = context;
   }
 
   /**
@@ -43,8 +56,157 @@ export class PlayerService {
     try {
       this.avPlayer = await media.createAVPlayer();
       this.setupPlayerCallbacks();
+      await this.initAVSession();
     } catch (error) {
       console.error('Failed to initialize player:', error);
+    }
+  }
+
+  /**
+   * 初始化 AVSession 支持后台播放和媒体控制中心
+   */
+  private async initAVSession(): Promise<void> {
+    if (!this.context) {
+      console.warn('Context not set, AVSession will not be initialized');
+      return;
+    }
+
+    try {
+      // 创建 AVSession
+      this.session = await avSession.createAVSession(this.context, 'AntennaPod', 'audio');
+      
+      // 设置播放命令回调
+      this.session.on('play', () => {
+        this.resume();
+      });
+      
+      this.session.on('pause', () => {
+        this.pause();
+      });
+      
+      this.session.on('stop', () => {
+        this.stop();
+      });
+      
+      this.session.on('seek', (time: number) => {
+        this.seek(time);
+      });
+
+      // 激活 session
+      await this.session.activate();
+      console.info('AVSession initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize AVSession:', error);
+    }
+  }
+
+  /**
+   * 更新 AVSession 媒体信息
+   */
+  private async updateSessionMetadata(): Promise<void> {
+    if (!this.session || !this.currentEpisode) {
+      return;
+    }
+
+    try {
+      const metadata: avSession.AVMetadata = {
+        assetId: this.currentEpisode.id,
+        title: this.currentEpisode.title,
+        artist: 'Podcast',
+        duration: this.currentEpisode.duration
+      };
+      await this.session.setAVMetadata(metadata);
+    } catch (error) {
+      console.error('Failed to update session metadata:', error);
+    }
+  }
+
+  /**
+   * 更新 AVSession 播放状态
+   */
+  private async updateSessionPlaybackState(): Promise<void> {
+    if (!this.session) {
+      return;
+    }
+
+    try {
+      let sessionState: avSession.PlaybackState = avSession.PlaybackState.PLAYBACK_STATE_STOP;
+      switch (this.state) {
+        case PlayerState.PLAYING:
+          sessionState = avSession.PlaybackState.PLAYBACK_STATE_PLAY;
+          break;
+        case PlayerState.PAUSED:
+          sessionState = avSession.PlaybackState.PLAYBACK_STATE_PAUSE;
+          break;
+        case PlayerState.STOPPED:
+          sessionState = avSession.PlaybackState.PLAYBACK_STATE_STOP;
+          break;
+      }
+
+      const playbackState: avSession.AVPlaybackState = {
+        state: sessionState,
+        position: {
+          elapsedTime: this.currentEpisode?.playbackPosition || 0,
+          updateTime: Date.now()
+        },
+        speed: this.playbackSpeed
+      };
+      await this.session.setAVPlaybackState(playbackState);
+    } catch (error) {
+      console.error('Failed to update session playback state:', error);
+    }
+  }
+
+  /**
+   * 开始后台任务
+   */
+  private async startBackgroundTask(): Promise<void> {
+    if (this.isBackgroundRunning || !this.context) {
+      return;
+    }
+
+    try {
+      const wantAgentInfo: wantAgent.WantAgentInfo = {
+        wants: [
+          {
+            bundleName: 'com.antennapod.harmonyos',
+            abilityName: 'EntryAbility'
+          }
+        ],
+        operationType: wantAgent.OperationType.START_ABILITY,
+        requestCode: 0,
+        wantAgentFlags: [wantAgent.WantAgentFlags.UPDATE_PRESENT_FLAG]
+      };
+
+      const agent = await wantAgent.getWantAgent(wantAgentInfo);
+
+      await backgroundTaskManager.startBackgroundRunning(
+        this.context,
+        backgroundTaskManager.BackgroundMode.AUDIO_PLAYBACK,
+        agent
+      );
+
+      this.isBackgroundRunning = true;
+      console.info('Background task started');
+    } catch (error) {
+      console.error('Failed to start background task:', error);
+    }
+  }
+
+  /**
+   * 停止后台任务
+   */
+  private async stopBackgroundTask(): Promise<void> {
+    if (!this.isBackgroundRunning || !this.context) {
+      return;
+    }
+
+    try {
+      await backgroundTaskManager.stopBackgroundRunning(this.context);
+      this.isBackgroundRunning = false;
+      console.info('Background task stopped');
+    } catch (error) {
+      console.error('Failed to stop background task:', error);
     }
   }
 
@@ -110,6 +272,12 @@ export class PlayerService {
         await this.setPlaybackSpeed(this.playbackSpeed);
       }
 
+      // 开始后台任务
+      await this.startBackgroundTask();
+
+      // 更新媒体信息
+      await this.updateSessionMetadata();
+
       // 开始播放
       await this.avPlayer.play();
     } catch (error) {
@@ -154,6 +322,8 @@ export class PlayerService {
         await this.avPlayer.stop();
         this.currentEpisode = null;
       }
+      // 停止后台任务
+      await this.stopBackgroundTask();
     } catch (error) {
       console.error('Failed to stop:', error);
     }
@@ -260,6 +430,8 @@ export class PlayerService {
         this.state = PlayerState.IDLE;
     }
     this.notifyListeners('stateChange', this.state);
+    // 更新 AVSession 播放状态
+    this.updateSessionPlaybackState();
   }
 
   /**
@@ -283,6 +455,17 @@ export class PlayerService {
    */
   async release(): Promise<void> {
     try {
+      // 停止后台任务
+      await this.stopBackgroundTask();
+
+      // 释放 AVSession
+      if (this.session) {
+        await this.session.deactivate();
+        await this.session.destroy();
+        this.session = null;
+      }
+
+      // 释放播放器
       if (this.avPlayer) {
         await this.avPlayer.release();
         this.avPlayer = null;

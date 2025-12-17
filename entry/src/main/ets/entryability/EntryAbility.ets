@@ -56,7 +56,8 @@ export default class EntryAbility extends UIAbility {
       // 初始化设置
       await SettingsService.getInstance().init(this.context);
       
-      // 初始化播放器
+      // 初始化播放器（设置 Context 以支持后台播放）
+      PlayerService.getInstance().setContext(this.context);
       await PlayerService.getInstance().init();
       
       console.info('All services initialized successfully');
