@@ -6,8 +6,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {},
-  "devDependencies": {
-    "@ohos/hvigor-ohos-plugin": "5.0.8",
-    "@ohos/hvigor": "5.0.8"
-  }
+  "devDependencies": {}
+
 }
