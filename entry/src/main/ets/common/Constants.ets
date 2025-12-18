@@ -23,7 +23,7 @@ export class Constants {
   static readonly SLEEP_TIMER_OPTIONS: number[] = [5, 10, 15, 30, 45, 60, 90, 120];
   
   // 网络超时设置
-  static readonly HTTP_TIMEOUT: number = 30000; // 30秒
+  static readonly HTTP_TIMEOUT: number = 15000; // 15秒 - RSS获取超时
   static readonly DOWNLOAD_TIMEOUT: number = 300000; // 5分钟
   
   // 分页设置

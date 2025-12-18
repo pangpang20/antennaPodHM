@@ -35,15 +35,54 @@ struct PodcastDetailPage {
       const service = PodcastService.getInstance();
       // 加载播客基本信息
       this.podcast = await db.getPodcastById(this.podcastId);
-      // 如果还没有单集，则尝试从 RSS 更新
-      await service.updatePodcastEpisodes(this.podcastId);
+      
+      try {
+        // 如果还没有单集，则尝试从 RSS 更新
+        await service.updatePodcastEpisodes(this.podcastId);
+      } catch (error) {
+        // RSS获取失败，显示友好提示
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error('[PodcastDetailPage] Failed to update episodes:', errMsg);
+        
+        // 判断是否是网络超时或连接错误
+        const isNetworkError = errMsg.includes('timeout') || 
+                              errMsg.includes('connect') || 
+                              errMsg.includes('network') ||
+                              errMsg.includes('Failed to update');
+        
+        if (isNetworkError) {
+          promptAction.showDialog({
+            title: '网络连接失败',
+            message: `无法连接到播客RSS地址，可能原因：
+
+1. 该播客服务器在国外，需要科学上网访问
+2. 网络连接不稳定或超时
+3. RSS地址不可用
+
+建议：
+\u2022 开启科学上网工具后重试
+\u2022 检查网络连接
+\u2022 稍后再试`,
+            buttons: [
+              { text: '知道了', color: '#007AFF' }
+            ]
+          }).catch((err: Error) => {
+            console.error('[PodcastDetailPage] Failed to show error dialog:', err);
+          });
+        }
+      }
+      
       // 加载所有Episodes
       this.allEpisodes = await db.queryEpisodesByPodcastId(this.podcastId);
       // 初始化分页数据
       this.currentPage = 1;
       this.updateDisplayedEpisodes();
     } catch (error) {
-      console.error('Failed to load podcast detail:', error);
+      console.error('[PodcastDetailPage] Failed to load podcast detail:', error);
+      promptAction.showToast({
+        message: '加载播客详情失败',
+        duration: 2000
+      });
     } finally {
       this.isLoading = false;
     }
