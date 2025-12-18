@@ -52,6 +52,21 @@ export class SettingsService {
       const skipSilence = await this.preferences.get('skip_silence', false);
       this.settings.skipSilence = skipSilence as boolean;
 
+      const keepEpisodes = await this.preferences.get('keep_last_n_episodes', 20);
+      this.settings.keepLastNEpisodes = keepEpisodes as number;
+
+      const continuePlayback = await this.preferences.get('continue_playback', true);
+      this.settings.continuePlayback = continuePlayback as boolean;
+
+      const autoDeletePlayed = await this.preferences.get('auto_delete_played', false);
+      this.settings.autoDeletePlayed = autoDeletePlayed as boolean;
+
+      const enableNotifications = await this.preferences.get('enable_notifications', true);
+      this.settings.enableNotifications = enableNotifications as boolean;
+
+      const notifyNewEpisodes = await this.preferences.get('notify_new_episodes', true);
+      this.settings.notifyNewEpisodes = notifyNewEpisodes as boolean;
+
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -69,6 +84,11 @@ export class SettingsService {
       await this.preferences.put('wifi_only_download', this.settings.wifiOnlyDownload);
       await this.preferences.put('auto_download', this.settings.autoDownloadNewEpisodes);
       await this.preferences.put('skip_silence', this.settings.skipSilence);
+      await this.preferences.put('keep_last_n_episodes', this.settings.keepLastNEpisodes);
+      await this.preferences.put('continue_playback', this.settings.continuePlayback);
+      await this.preferences.put('auto_delete_played', this.settings.autoDeletePlayed);
+      await this.preferences.put('enable_notifications', this.settings.enableNotifications);
+      await this.preferences.put('notify_new_episodes', this.settings.notifyNewEpisodes);
       
       await this.preferences.flush();
     } catch (error) {
@@ -142,6 +162,46 @@ export class SettingsService {
    */
   async setSleepTimer(minutes: number): Promise<void> {
     this.settings.sleepTimerMinutes = minutes;
+    await this.saveSettings();
+  }
+
+  /**
+   * 设置保留最近单集数
+   */
+  async setKeepLastNEpisodes(count: number): Promise<void> {
+    this.settings.keepLastNEpisodes = count;
+    await this.saveSettings();
+  }
+
+  /**
+   * 设置自动续播
+   */
+  async setContinuePlayback(enabled: boolean): Promise<void> {
+    this.settings.continuePlayback = enabled;
+    await this.saveSettings();
+  }
+
+  /**
+   * 设置自动删除已播放
+   */
+  async setAutoDeletePlayed(enabled: boolean): Promise<void> {
+    this.settings.autoDeletePlayed = enabled;
+    await this.saveSettings();
+  }
+
+  /**
+   * 设置启用通知
+   */
+  async setEnableNotifications(enabled: boolean): Promise<void> {
+    this.settings.enableNotifications = enabled;
+    await this.saveSettings();
+  }
+
+  /**
+   * 设置新单集通知
+   */
+  async setNotifyNewEpisodes(enabled: boolean): Promise<void> {
+    this.settings.notifyNewEpisodes = enabled;
     await this.saveSettings();
   }
 }

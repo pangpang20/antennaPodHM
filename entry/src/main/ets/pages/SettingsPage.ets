@@ -67,6 +67,7 @@ struct SettingsPage {
           ListItem() {
             this.buildSwitchItem('自动续播', this.settings.continuePlayback, (value: boolean) => {
               this.settings.continuePlayback = value;
+              this.settingsService.setContinuePlayback(value);
             });
           }
         }
@@ -82,6 +83,7 @@ struct SettingsPage {
           ListItem() {
             this.buildSwitchItem('自动删除已播放', this.settings.autoDeletePlayed, (value: boolean) => {
               this.settings.autoDeletePlayed = value;
+              this.settingsService.setAutoDeletePlayed(value);
             });
           }
 
@@ -97,12 +99,14 @@ struct SettingsPage {
           ListItem() {
             this.buildSwitchItem('启用通知', this.settings.enableNotifications, (value: boolean) => {
               this.settings.enableNotifications = value;
+              this.settingsService.setEnableNotifications(value);
             });
           }
 
           ListItem() {
             this.buildSwitchItem('新单集通知', this.settings.notifyNewEpisodes, (value: boolean) => {
               this.settings.notifyNewEpisodes = value;
+              this.settingsService.setNotifyNewEpisodes(value);
             });
           }
         }
@@ -295,6 +299,7 @@ struct SettingsPage {
       const counts: number[] = [5, 10, 20, 50, 100];
       const selectedCount = counts[result.index];
       this.settings.keepLastNEpisodes = selectedCount;
+      this.settingsService.setKeepLastNEpisodes(selectedCount);
     }).catch((err: Error) => {
       console.info('Keep episodes selection cancelled');
     });
