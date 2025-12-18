@@ -147,7 +147,8 @@ export default class EntryAbility extends UIAbility {
       }
     } catch (error) {
       console.error('Failed to request permissions:', error);
-      throw error;
+      // ArkTS 不允许抛出任意类型，这里直接返回，让应用继续启动
+      this.permissionsGranted = false;
     }
   }
 }
