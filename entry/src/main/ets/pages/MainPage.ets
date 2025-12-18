@@ -992,6 +992,10 @@ struct MainPage {
             .objectFit(ImageFit.Cover)
         }
         .margin({ left: 12 })
+        .onClick(() => {
+          console.info('======>>> Click: Mini player cover image');
+          this.openPlayerPage();
+        })
 
         // 标题和描述
         Column() {

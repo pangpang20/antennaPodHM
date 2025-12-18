@@ -7,12 +7,7 @@ import { Constants } from '../common/Constants';
 @Component
 struct SettingsPage {
   @State settings: AppSettings = new AppSettings();
-  @State showThemeDialog: boolean = false;
-  @State showSpeedDialog: boolean = false;
-  @State showKeepEpisodesDialog: boolean = false;
   private settingsService: SettingsService = SettingsService.getInstance();
-  private speedOptions: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
-  private keepEpisodesOptions: number[] = [5, 10, 20, 50, 100];
 
   aboutToAppear() {
     this.settings = this.settingsService.getSettings();
@@ -25,13 +20,6 @@ struct SettingsPage {
 
       // 设置列表
       List() {
-        // 主题设置
-        ListItem() {
-          this.buildSettingItem('主题', this.getThemeText(), () => {
-            this.showThemeSelector();
-          });
-        }
-
         // 网络设置
         ListItemGroup({ header: this.buildGroupHeader('网络设置') }) {
           ListItem() {
@@ -52,12 +40,6 @@ struct SettingsPage {
         // 播放设置
         ListItemGroup({ header: this.buildGroupHeader('播放设置') }) {
           ListItem() {
-            this.buildSettingItem('默认播放速度', `${this.settings.playbackSpeed}x`, () => {
-              this.showSpeedSelector();
-            });
-          }
-
-          ListItem() {
             this.buildSwitchItem('跳过静音片段', this.settings.skipSilence, (value: boolean) => {
               this.settingsService.setSkipSilence(value);
               this.settings.skipSilence = value;
@@ -75,21 +57,9 @@ struct SettingsPage {
         // 存储设置
         ListItemGroup({ header: this.buildGroupHeader('存储设置') }) {
           ListItem() {
-            this.buildSettingItem('存储位置', this.settings.storagePath || '默认', () => {
-              this.showStorageInfo();
-            });
-          }
-
-          ListItem() {
             this.buildSwitchItem('自动删除已播放', this.settings.autoDeletePlayed, (value: boolean) => {
               this.settings.autoDeletePlayed = value;
               this.settingsService.setAutoDeletePlayed(value);
-            });
-          }
-
-          ListItem() {
-            this.buildSettingItem('保留最近单集数', `${this.settings.keepLastNEpisodes}`, () => {
-              this.showKeepEpisodesSelector();
             });
           }
         }
@@ -114,8 +84,8 @@ struct SettingsPage {
         // 关于
         ListItemGroup({ header: this.buildGroupHeader('关于') }) {
           ListItem() {
-            this.buildSettingItem('应用名称', 'AntennaPodHM', () => {
-              this.showAppNameInfo();
+            this.buildSettingItem('应用详情', 'AntennaPodHM', () => {
+              this.showAppDetailInfo();
             });
           }
 
@@ -209,117 +179,13 @@ struct SettingsPage {
     .backgroundColor(Color.White)
   }
 
-  getThemeText(): string {
-    switch (this.settings.themeMode) {
-      case ThemeMode.LIGHT:
-        return '浅色';
-      case ThemeMode.DARK:
-        return '深色';
-      case ThemeMode.AUTO:
-        return '跟随系统';
-      default:
-        return '跟随系统';
-    }
-  }
-
   /**
-   * 显示主题选择器
+   * 显示应用详情
    */
-  showThemeSelector(): void {
-    promptAction.showActionMenu({
-      title: '选择主题',
-      buttons: [
-        { text: '跟随系统', color: '#000000' },
-        { text: '浅色模式', color: '#000000' },
-        { text: '深色模式', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      let newMode: ThemeMode = ThemeMode.AUTO;
-      switch (result.index) {
-        case 0:
-          newMode = ThemeMode.AUTO;
-          break;
-        case 1:
-          newMode = ThemeMode.LIGHT;
-          break;
-        case 2:
-          newMode = ThemeMode.DARK;
-          break;
-      }
-      this.settings.themeMode = newMode;
-      this.settingsService.setThemeMode(newMode);
-    }).catch((err: Error) => {
-      console.info('Theme selection cancelled');
-    });
-  }
-
-  /**
-   * 显示播放速度选择器
-   */
-  showSpeedSelector(): void {
-    promptAction.showActionMenu({
-      title: '选择播放速度',
-      buttons: [
-        { text: '0.75x', color: '#000000' },
-        { text: '1.0x', color: '#000000' },
-        { text: '1.25x', color: '#000000' },
-        { text: '1.5x', color: '#000000' },
-        { text: '2.0x', color: '#000000' },
-        { text: '2.5x', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 2.5];
-      const selectedSpeed = speeds[result.index];
-      this.settings.playbackSpeed = selectedSpeed;
-      this.settingsService.setPlaybackSpeed(selectedSpeed);
-    }).catch((err: Error) => {
-      console.info('Speed selection cancelled');
-    });
-  }
-
-  /**
-   * 显示保留单集数选择器
-   */
-  showKeepEpisodesSelector(): void {
-    promptAction.showActionMenu({
-      title: '保留最近单集数',
-      buttons: [
-        { text: '5 集', color: '#000000' },
-        { text: '10 集', color: '#000000' },
-        { text: '20 集', color: '#000000' },
-        { text: '50 集', color: '#000000' },
-        { text: '100 集', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const counts: number[] = [5, 10, 20, 50, 100];
-      const selectedCount = counts[result.index];
-      this.settings.keepLastNEpisodes = selectedCount;
-      this.settingsService.setKeepLastNEpisodes(selectedCount);
-    }).catch((err: Error) => {
-      console.info('Keep episodes selection cancelled');
-    });
-  }
-
-  /**
-   * 显示存储位置信息
-   */
-  showStorageInfo(): void {
-    promptAction.showDialog({
-      title: '存储位置',
-      message: '当前使用默认存储位置\n\n下载的单集将保存在应用私有目录中',
-      buttons: [
-        { text: '确定', color: '#007AFF' }
-      ]
-    });
-  }
-
-  /**
-   * 显示应用名称说明
-   */
-  showAppNameInfo(): void {
+  showAppDetailInfo(): void {
     promptAction.showDialog({
       title: 'AntennaPodHM',
-      message: 'AntennaPod for HarmonyOS\n\n名称来源：\n\u2022 AntennaPod - 知名的开源播客应用\n• HM - HarmonyOS（鸿蒙）的缩写\n\n这是一款基于 HarmonyOS ArkTS 开发的播客应用，致敬经典的 AntennaPod。',
+      message: 'AntennaPod for HarmonyOS\n\n名称来源：\n• AntennaPod - 知名的开源播客应用\n• HM - HarmonyOS（鸿蒙）的缩写\n\n这是一款基于 HarmonyOS ArkTS 开发的播客应用，致敬经典的 AntennaPod。\n\n作者：陈云亮\n邮箱：676814828@qq.com',
       buttons: [
         { text: '确定', color: '#007AFF' }
       ]
