@@ -222,6 +222,18 @@ struct PodcastDetailPage {
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
+      .onClick(() => {
+        // 非选择模式下，点击标题区域跳转到单集详情
+        if (!this.isSelectionMode) {
+          console.info(`======>>> Click: Episode detail - ${episode.title}`);
+          router.pushUrl({
+            url: 'pages/EpisodeDetailPage',
+            params: { episodeId: episode.id }
+          }).catch((err: Error) => {
+            console.error('Navigation failed:', err);
+          });
+        }
+      })
 
       if (!this.isSelectionMode) {
         // 下载按钮
