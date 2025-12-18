@@ -508,7 +508,12 @@ struct MainPage {
     .borderRadius(8)
     .onClick(() => {
       console.info(`======>>> Click: Episode item - ${episode.title}`);
-      router.pushUrl({ url: 'pages/EpisodeDetailPage', params: { episode: episode } });
+      router.pushUrl({ 
+        url: 'pages/EpisodeDetailPage', 
+        params: { episodeId: episode.id } 
+      }).catch((err: Error) => {
+        console.error('Navigation failed:', err);
+      });
     })
   }
 

@@ -10,15 +10,40 @@ struct EpisodeDetailPage {
   @State episode: Episode | null = null;
   @State isDownloading: boolean = false;
   @State downloadProgress: number = 0;
+  @State isLoading: boolean = true;
+  private episodeId: string = '';
   private playerService: PlayerService = PlayerService.getInstance();
   private downloadService: DownloadService = DownloadService.getInstance();
   private dbService: DatabaseService = DatabaseService.getInstance();
 
-  aboutToAppear() {
+  async aboutToAppear() {
     const params = router.getParams() as Record<string, Object>;
-    if (params && params['episode']) {
-      this.episode = params['episode'] as Episode;
-      this.checkDownloadStatus();
+    if (params && params['episodeId']) {
+      this.episodeId = params['episodeId'] as string;
+      await this.loadEpisodeDetail();
+    } else {
+      this.isLoading = false;
+    }
+  }
+
+  /**
+   * 加载单集详情
+   */
+  async loadEpisodeDetail() {
+    this.isLoading = true;
+    try {
+      // 从数据库加载单集信息
+      this.episode = await this.dbService.getEpisodeById(this.episodeId);
+      if (this.episode) {
+        await this.checkDownloadStatus();
+        console.info(`[EpisodeDetailPage] Loaded episode: ${this.episode.title}`);
+      } else {
+        console.error(`[EpisodeDetailPage] Episode not found: ${this.episodeId}`);
+      }
+    } catch (error) {
+      console.error('[EpisodeDetailPage] Failed to load episode:', error);
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -99,7 +124,17 @@ struct EpisodeDetailPage {
       // 顶部导航栏
       this.buildNavigationBar();
 
-      if (this.episode) {
+      if (this.isLoading) {
+        // 加载中
+        Column() {
+          LoadingProgress()
+            .width(50)
+            .height(50)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else if (this.episode) {
         Scroll() {
           Column() {
             // 封面图

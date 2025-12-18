@@ -297,15 +297,19 @@ struct SearchPage {
 
     this.isSearching = true;
     this.currentOffset = 0;
-    this.hasMore = false;  // iTunes API 不支持分页
     
     try {
       const results = await PodcastService.getInstance().searchPodcasts(this.searchKeyword, 0, this.pageSize);
       this.searchResults = results;
       console.info(`[SearchPage] Search completed, got ${results.length} results`);
+      
+      // 如果返回的结果数等于 pageSize，说明可能还有更多
+      this.hasMore = results.length >= this.pageSize;
+      this.currentOffset = results.length;
     } catch (error) {
       console.error('Search failed:', error);
       this.searchResults = [];
+      this.hasMore = false;
     } finally {
       this.isSearching = false;
     }
