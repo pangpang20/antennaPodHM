@@ -16,6 +16,7 @@ struct PlayerPage {
   @State showSpeedSelector: boolean = false;
   @State sleepTimerMinutes: number = 0;
   @State sleepTimerRemaining: number = 0;  // 剩余秒数
+  @State marqueeText: string = '';  // 跑马灯文本
   
   private playerService: PlayerService = PlayerService.getInstance();
   private updateTimer: number = -1;
@@ -88,6 +89,9 @@ struct PlayerPage {
       this.currentEpisode = episode;
       this.currentPosition = episode.playbackPosition;
       this.duration = episode.duration;
+      
+      // 更新跑马灯文本
+      this.marqueeText = `${episode.title}     ◆     `;
 
       // 如果是新的 episode，自动开始播放
       if (needToPlay) {
@@ -126,21 +130,31 @@ struct PlayerPage {
       // 导航栏
       this.buildNavigationBar();
 
-      // Episode信息
-      this.buildEpisodeInfo();
+      Scroll() {
+        Column() {
+          // Episode信息
+          this.buildEpisodeInfo();
 
-      // 进度条
-      this.buildProgressBar();
+          // 进度条
+          this.buildProgressBar();
 
-      // 播放控制
-      this.buildPlaybackControls();
+          // 播放控制
+          this.buildPlaybackControls();
 
-      // 功能按钮
-      this.buildFunctionButtons();
+          // 功能按钮
+          this.buildFunctionButtons();
+        }
+        .width('100%')
+      }
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .linearGradient({
+      angle: 135,
+      colors: [['#f5f7fa', 0.0], ['#e8edf3', 0.5], ['#dce3ec', 1.0]]
+    })
   }
 
   @Builder
@@ -148,22 +162,33 @@ struct PlayerPage {
     Row() {
       Button() {
         Text('←')
-          .fontSize(20)
+          .fontSize(22)
+          .fontColor('#333333')
       }
-      .width(40)
-      .height(40)
-      .backgroundColor(Color.Transparent)
+      .width(44)
+      .height(44)
+      .backgroundColor('rgba(255, 255, 255, 0.9)')
+      .borderRadius(22)
       .onClick(() => {
         console.info('======>>> Click: Back button (Player)');
         router.back();
       })
 
-      Text('正在播放')
-        .fontSize(20)
-        .fontWeight(FontWeight.Medium)
-        .margin({ left: 12 })
-
       Blank()
+
+      // 更多操作按钮
+      Button() {
+        Text('⋮')
+          .fontSize(22)
+          .fontColor('#333333')
+      }
+      .width(44)
+      .height(44)
+      .backgroundColor('rgba(255, 255, 255, 0.9)')
+      .borderRadius(22)
+      .onClick(() => {
+        console.info('======>>> Click: More options');
+      })
     }
     .width('100%')
     .height(56)
@@ -173,26 +198,45 @@ struct PlayerPage {
   @Builder
   buildEpisodeInfo() {
     Column() {
+      // 封面图 - 更大，带阴影
       Image(this.currentEpisode?.imageUrl)
-        .width(240)
-        .height(240)
-        .borderRadius(12)
+        .width(280)
+        .height(280)
+        .borderRadius(16)
         .objectFit(ImageFit.Cover)
-        .margin({ top: 40 })
+        .margin({ top: 30 })
+        .shadow({
+          radius: 30,
+          color: 'rgba(0, 0, 0, 0.25)',
+          offsetX: 0,
+          offsetY: 10
+        })
 
-      Text(this.currentEpisode?.title || '')
+      // 标题 - 使用跑马灯
+      Marquee({
+        start: this.playerState === PlayerState.PLAYING,
+        step: 4,
+        loop: -1,
+        fromStart: true,
+        src: this.marqueeText || this.currentEpisode?.title || ''
+      })
+        .width('85%')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
-        .margin({ top: 24 })
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .fontColor('#1a1a1a')
+        .margin({ top: 28 })
+        .textAlign(TextAlign.Center)
+        .allowScale(false)
 
+      // 描述
       Text(this.currentEpisode?.description || '')
-        .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
-        .margin({ top: 12 })
+        .fontSize(13)
+        .fontColor('#666666')
+        .margin({ top: 8 })
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .width('85%')
+        .textAlign(TextAlign.Center)
     }
     .width('100%')
     .padding({ left: 20, right: 20 })
@@ -201,6 +245,24 @@ struct PlayerPage {
   @Builder
   buildProgressBar() {
     Column() {
+      // 时间显示
+      Row() {
+        Text(this.formatTime(this.currentPosition))
+          .fontSize(13)
+          .fontColor('#666666')
+          .fontWeight(FontWeight.Medium)
+
+        Blank()
+
+        Text(this.formatTime(this.duration))
+          .fontSize(13)
+          .fontColor('#666666')
+          .fontWeight(FontWeight.Medium)
+      }
+      .width('100%')
+      .margin({ bottom: 8 })
+      
+      // 进度条
       Slider({
         value: this.currentPosition,
         min: 0,
@@ -208,61 +270,65 @@ struct PlayerPage {
         style: SliderStyle.OutSet
       })
         .width('100%')
+        .trackColor('#E0E0E0')
+        .selectedColor('#5C6BC0')
+        .trackThickness(4)
         .onChange((value: number) => {
           this.playerService.seek(value);
         })
-
-      Row() {
-        Text(this.formatTime(this.currentPosition))
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
-
-        Blank()
-
-        Text(this.formatTime(this.duration))
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
-      }
-      .width('100%')
-      .margin({ top: 8 })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 40 })
+    .padding({ left: 32, right: 32, top: 35 })
   }
 
   @Builder
   buildPlaybackControls() {
     Row() {
       // 后退15秒
-      Button() {
-        Text('⏪')
-          .fontSize(28)
+      Column() {
+        Button() {
+          Text('⏪')
+            .fontSize(24)
+            .fontColor('#5C6BC0')
+        }
+        .width(56)
+        .height(56)
+        .backgroundColor('rgba(92, 107, 192, 0.1)')
+        .borderRadius(28)
+        .onClick(() => {
+          console.info('======>>> Click: Rewind 15s');
+          const newPosition = Math.max(0, this.currentPosition - 15);
+          this.playerService.seek(newPosition);
+          promptAction.showToast({
+            message: '快退 15 秒',
+            duration: 1000
+          });
+        })
+        
+        Text('15秒')
+          .fontSize(11)
+          .fontColor('#999999')
+          .margin({ top: 4 })
       }
-      .width(60)
-      .height(60)
-      .backgroundColor(Color.Transparent)
-      .onClick(() => {
-        console.info('======>>> Click: Rewind 15s');
-        const newPosition = Math.max(0, this.currentPosition - 15);
-        this.playerService.seek(newPosition);
-        promptAction.showToast({
-          message: '快退 15 秒',
-          duration: 1000
-        });
-      })
   
       Blank()
   
-      // 播放/暂停按钮
+      // 播放/暂停按钮 - 更大、更突出
       Button() {
         Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
-          .fontSize(36)
+          .fontSize(38)
           .fontColor(Color.White)
       }
-      .width(80)
-      .height(80)
-      .backgroundColor($r('app.color.primary'))
-      .borderRadius(40)
+      .width(72)
+      .height(72)
+      .backgroundColor('#5C6BC0')
+      .borderRadius(36)
+      .shadow({
+        radius: 12,
+        color: 'rgba(92, 107, 192, 0.4)',
+        offsetX: 0,
+        offsetY: 4
+      })
       .onClick(() => {
         console.info(`======>>> Click: Play/Pause - state: ${this.playerState}`);
         if (this.playerState === PlayerState.PLAYING) {
@@ -277,80 +343,118 @@ struct PlayerPage {
       Blank()
   
       // 前进30秒
-      Button() {
-        Text('⏩')
-          .fontSize(28)
+      Column() {
+        Button() {
+          Text('⏩')
+            .fontSize(24)
+            .fontColor('#5C6BC0')
+        }
+        .width(56)
+        .height(56)
+        .backgroundColor('rgba(92, 107, 192, 0.1)')
+        .borderRadius(28)
+        .onClick(() => {
+          console.info('======>>> Click: Forward 30s');
+          const newPosition = Math.min(this.duration, this.currentPosition + 30);
+          this.playerService.seek(newPosition);
+          promptAction.showToast({
+            message: '快进 30 秒',
+            duration: 1000
+          });
+        })
+        
+        Text('30秒')
+          .fontSize(11)
+          .fontColor('#999999')
+          .margin({ top: 4 })
       }
-      .width(60)
-      .height(60)
-      .backgroundColor(Color.Transparent)
-      .onClick(() => {
-        console.info('======>>> Click: Forward 30s');
-        const newPosition = Math.min(this.duration, this.currentPosition + 30);
-        this.playerService.seek(newPosition);
-        promptAction.showToast({
-          message: '快进 30 秒',
-          duration: 1000
-        });
-      })
     }
     .width('100%')
-    .padding({ left: 40, right: 40, top: 40 })
+    .padding({ left: 50, right: 50, top: 30 })
+    .justifyContent(FlexAlign.Center)
   }
 
   @Builder
   buildFunctionButtons() {
-    Row() {
-      // 播放速度
-      Button() {
-        Text(`${this.playbackSpeed}x`)
-          .fontSize(14)
-          .fontColor('#666666')
-      }
-      .height(36)
-      .padding({ left: 16, right: 16 })
-      .backgroundColor('#E8F4FF')
-      .borderRadius(18)
-      .onClick(() => {
-        console.info('======>>> Click: Playback speed selector');
-        this.showSpeedSelectorMenu();
-      })
+    Column() {
+      // 第一行：播放速度、定时关闭
+      Row() {
+        // 播放速度
+        Button() {
+          Row() {
+            Text('🚀')
+              .fontSize(16)
+              .margin({ right: 6 })
+            Text(`${this.playbackSpeed}x`)
+              .fontSize(14)
+              .fontColor('#5C6BC0')
+              .fontWeight(FontWeight.Medium)
+          }
+        }
+        .height(40)
+        .padding({ left: 16, right: 16 })
+        .backgroundColor('rgba(92, 107, 192, 0.08)')
+        .borderRadius(20)
+        .border({ width: 1, color: 'rgba(92, 107, 192, 0.2)', radius: 20 })
+        .onClick(() => {
+          console.info('======>>> Click: Playback speed selector');
+          this.showSpeedSelectorMenu();
+        })
 
-      Blank()
+        Blank()
 
-      // 睡眠定时器（显示倒计时）
-      Column() {
+        // 睡眠定时器
         Button() {
           Row() {
             Text('⏰')
-              .fontSize(20)
+              .fontSize(16)
+              .margin({ right: 6 })
             if (this.sleepTimerRemaining > 0) {
               Text(this.formatSleepTimer(this.sleepTimerRemaining))
-                .fontSize(12)
-                .fontColor('#5C6BC0')
+                .fontSize(14)
+                .fontColor('#FF6B6B')
                 .fontWeight(FontWeight.Medium)
-                .margin({ left: 4 })
+            } else {
+              Text('定时')
+                .fontSize(14)
+                .fontColor('#666666')
             }
           }
         }
-        .height(36)
-        .padding({ left: 12, right: 12 })
-        .backgroundColor(this.sleepTimerRemaining > 0 ? '#FFF0F5' : Color.Transparent)
-        .borderRadius(18)
+        .height(40)
+        .padding({ left: 16, right: 16 })
+        .backgroundColor(this.sleepTimerRemaining > 0 ? 'rgba(255, 107, 107, 0.08)' : 'rgba(0, 0, 0, 0.05)')
+        .borderRadius(20)
+        .border({ 
+          width: 1, 
+          color: this.sleepTimerRemaining > 0 ? 'rgba(255, 107, 107, 0.3)' : 'rgba(0, 0, 0, 0.1)', 
+          radius: 20 
+        })
         .onClick(() => {
           console.info('======>>> Click: Sleep timer');
           this.showSleepTimerMenu();
         })
       }
+      .width('100%')
+      .margin({ top: 28 })
 
-      Blank()
-
-      // 添加到队列
+      // 第二行：添加到队列
       Button() {
-        Text('☰')
-          .fontSize(20)
+        Row() {
+          Text('➕')
+            .fontSize(16)
+            .margin({ right: 6 })
+          Text('添加到队列')
+            .fontSize(14)
+            .fontColor('#666666')
+        }
       }
-      .backgroundColor(Color.Transparent)
+      .width('100%')
+      .height(44)
+      .backgroundColor('rgba(0, 0, 0, 0.05)')
+      .borderRadius(22)
+      .border({ width: 1, color: 'rgba(0, 0, 0, 0.1)', radius: 22 })
+      .margin({ top: 12 })
       .onClick(() => {
         console.info(`======>>> Click: Add to queue - ${this.currentEpisode?.title || 'no episode'}`);
         if (!this.currentEpisode) {
@@ -362,7 +466,7 @@ struct PlayerPage {
       })
     }
     .width('100%')
-    .padding({ left: 40, right: 40, top: 40 })
+    .padding({ left: 32, right: 32, bottom: 20 })
   }
 
   /**

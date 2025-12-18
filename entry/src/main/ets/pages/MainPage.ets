@@ -874,31 +874,39 @@ struct MainPage {
       .margin({ left: 8, right: 8 })
 
       // 操作按钮
-      Button('▶')
-        .width(34)
-        .height(34)
-        .fontSize(12)
+      Row() {
+        // 播放按钮
+        Button() {
+          Text('▶')
+            .fontSize(14)
+            .fontColor(Color.White)
+        }
+        .width(36)
+        .height(36)
         .backgroundColor('#5C6BC0')
-        .fontColor(Color.White)
-        .borderRadius(17)
+        .borderRadius(18)
         .flexShrink(0)
         .onClick(() => {
           console.info(`======>>> Click: Play from queue - ${episode.title}`);
           this.playerService.playEpisode(episode);
         })
 
-      Button('×')
-        .width(28)
-        .height(28)
-        .fontSize(14)
+        // 删除按钮
+        Button() {
+          Text('🗑')
+            .fontSize(16)
+        }
+        .width(36)
+        .height(36)
         .backgroundColor(Color.Transparent)
-        .fontColor('#999999')
-        .margin({ left: 4, right: 4 })
+        .border({ width: 1, color: '#FF5252', radius: 18 })
+        .margin({ left: 8 })
         .flexShrink(0)
         .onClick(() => {
           console.info(`======>>> Click: Remove from queue - ${episode.title}`);
           this.removeFromQueue(episode);
         })
+      }
     }
     .width('100%')
     .padding(8)
