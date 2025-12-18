@@ -176,32 +176,40 @@ struct SearchPage {
         }
       }, (podcast: Podcast) => podcast.id)
 
-      // 加载更多指示器
+      // 加载更多按钮
       if (this.hasMore) {
         ListItem() {
-          Row() {
-            if (this.isLoadingMore) {
-              LoadingProgress()
-                .width(30)
-                .height(30)
-              Text('加载中...')
-                .fontSize(14)
-                .fontColor($r('app.color.text_secondary_light'))
-                .margin({ left: 8 })
-            } else {
-              Text('上拉加载更多')
-                .fontSize(14)
-                .fontColor($r('app.color.text_secondary_light'))
+          Button() {
+            Row() {
+              if (this.isLoadingMore) {
+                LoadingProgress()
+                  .width(20)
+                  .height(20)
+                  .color(Color.White)
+                Text('加载中...')
+                  .fontSize(14)
+                  .fontColor(Color.White)
+                  .margin({ left: 8 })
+              } else {
+                Text('点击加载更多')
+                  .fontSize(14)
+                  .fontColor(Color.White)
+              }
             }
           }
-          .width('100%')
-          .height(60)
-          .justifyContent(FlexAlign.Center)
+          .width('80%')
+          .height(40)
+          .backgroundColor('#007AFF')
+          .borderRadius(20)
+          .enabled(!this.isLoadingMore)
+          .onClick(() => {
+            console.info('======>>> Click: Load more');
+            this.loadMore();
+          })
         }
-        .onAppear(() => {
-          // 当滚动到底部时，自动加载更多
-          this.loadMore();
-        })
+        .width('100%')
+        .padding({ top: 12, bottom: 12 })
+        .justifyContent(FlexAlign.Center)
       } else if (this.searchResults.length > 0) {
         ListItem() {
           Text('没有更多了')

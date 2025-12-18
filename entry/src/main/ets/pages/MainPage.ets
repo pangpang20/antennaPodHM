@@ -1,8 +1,9 @@
 import { Podcast } from '../model/Podcast';
-import { Episode } from '../model/Episode';
+import { Episode, DownloadStatus } from '../model/Episode';
 import { PodcastService } from '../service/PodcastService';
 import { DatabaseService } from '../service/DatabaseService';
 import { PlayerService } from '../service/PlayerService';
+import { DownloadService } from '../service/DownloadService';
 import { router } from '@kit.ArkUI';
 
 @Entry
@@ -12,17 +13,74 @@ struct MainPage {
   @State podcasts: Podcast[] = [];
   @State isLoading: boolean = false;
   @State hasCurrentEpisode: boolean = false;
+  @State downloadingEpisodes: Episode[] = [];
+  @State downloadedEpisodes: Episode[] = [];
   private playerService: PlayerService = PlayerService.getInstance();
+  private downloadUpdateTimer: number = -1;
 
   aboutToAppear() {
     this.loadSubscriptions();
     this.checkCurrentEpisode();
+    this.loadDownloads();
+  }
+
+  aboutToDisappear() {
+    if (this.downloadUpdateTimer !== -1) {
+      clearInterval(this.downloadUpdateTimer);
+      this.downloadUpdateTimer = -1;
+    }
   }
 
   onPageShow() {
     // 页面通过路由返回时刷新订阅列表
     this.loadSubscriptions();
     this.checkCurrentEpisode();
+    this.loadDownloads();
+  }
+
+  /**
+   * 加载下载列表
+   */
+  async loadDownloads() {
+    try {
+      const db = DatabaseService.getInstance();
+      const allEpisodes = await db.getAllEpisodes();
+      
+      this.downloadingEpisodes = allEpisodes.filter(e => {
+        const status = Number(e.downloadStatus);
+        return status === DownloadStatus.DOWNLOADING;
+      });
+      
+      this.downloadedEpisodes = allEpisodes.filter(e => {
+        const status = Number(e.downloadStatus);
+        return status === DownloadStatus.DOWNLOADED;
+      });
+      
+      console.info(`[MainPage] Downloads - Downloading: ${this.downloadingEpisodes.length}, Downloaded: ${this.downloadedEpisodes.length}`);
+    } catch (error) {
+      console.error('[MainPage] Failed to load downloads:', error);
+    }
+  }
+
+  /**
+   * 开始下载更新定时器
+   */
+  startDownloadUpdateTimer() {
+    if (this.downloadUpdateTimer === -1) {
+      this.downloadUpdateTimer = setInterval(() => {
+        this.loadDownloads();
+      }, 1000);
+    }
+  }
+
+  /**
+   * 停止下载更新定时器
+   */
+  stopDownloadUpdateTimer() {
+    if (this.downloadUpdateTimer !== -1) {
+      clearInterval(this.downloadUpdateTimer);
+      this.downloadUpdateTimer = -1;
+    }
   }
 
   /**
@@ -89,6 +147,13 @@ struct MainPage {
       .barHeight(56)
       .onChange((index: number) => {
         this.currentTabIndex = index;
+        // 切换到下载 tab 时启动定时刷新
+        if (index === 3) {
+          this.loadDownloads();
+          this.startDownloadUpdateTimer();
+        } else {
+          this.stopDownloadUpdateTimer();
+        }
       })
       .layoutWeight(1)
     }
@@ -231,7 +296,97 @@ struct MainPage {
   @Builder
   buildDownloadsTab() {
     Column() {
-      this.buildEmptyView('暂无下载', '下载单集以便离线收听');
+      // 下载中部分
+      if (this.downloadingEpisodes.length > 0) {
+        Text('下载中')
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .width('100%')
+          .padding({ left: 16, top: 12, bottom: 8 })
+        
+        List({ space: 8 }) {
+          ForEach(this.downloadingEpisodes, (episode: Episode) => {
+            ListItem() {
+              Column() {
+                Row() {
+                  Text(episode.title)
+                    .fontSize(14)
+                    .layoutWeight(1)
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                  Text(`${episode.downloadProgress}%`)
+                    .fontSize(12)
+                    .fontColor($r('app.color.text_secondary_light'))
+                }
+                .width('100%')
+
+                Progress({ value: episode.downloadProgress, total: 100, type: ProgressType.Linear })
+                  .width('100%')
+                  .margin({ top: 8 })
+              }
+              .width('100%')
+              .padding(12)
+              .backgroundColor(Color.White)
+              .borderRadius(8)
+            }
+          }, (episode: Episode) => episode.id)
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16 })
+      }
+
+      // 已下载部分
+      if (this.downloadedEpisodes.length > 0) {
+        Text('已下载')
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .width('100%')
+          .padding({ left: 16, top: 12, bottom: 8 })
+        
+        List({ space: 8 }) {
+          ForEach(this.downloadedEpisodes, (episode: Episode) => {
+            ListItem() {
+              Row() {
+                Column() {
+                  Text(episode.title)
+                    .fontSize(14)
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                  Text(episode.getFormattedFileSize())
+                    .fontSize(12)
+                    .fontColor($r('app.color.text_secondary_light'))
+                    .margin({ top: 4 })
+                }
+                .alignItems(HorizontalAlign.Start)
+                .layoutWeight(1)
+
+                Button('删除')
+                  .height(32)
+                  .fontSize(12)
+                  .onClick(() => {
+                    console.info(`======>>> Click: Delete downloaded - ${episode.title}`);
+                    DownloadService.getInstance().deleteDownloadedFile(episode);
+                    this.loadDownloads();
+                  })
+              }
+              .width('100%')
+              .padding(12)
+              .backgroundColor(Color.White)
+              .borderRadius(8)
+            }
+          }, (episode: Episode) => episode.id)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .padding({ left: 16, right: 16 })
+      }
+
+      // 空状态
+      if (this.downloadingEpisodes.length === 0 && this.downloadedEpisodes.length === 0) {
+        this.buildEmptyView('暂无下载', '下载单集以便离线收听');
+      }
     }
     .width('100%')
     .height('100%')
