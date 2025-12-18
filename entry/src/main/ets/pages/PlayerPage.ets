@@ -255,6 +255,7 @@ struct PlayerPage {
           .fontColor('#666666')
       }
       .height(36)
+      .padding({ left: 16, right: 16 })
       .backgroundColor('#E8F4FF')
       .borderRadius(18)
       .onClick(() => {
