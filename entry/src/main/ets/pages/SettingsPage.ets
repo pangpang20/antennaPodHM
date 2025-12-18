@@ -126,6 +126,12 @@ struct SettingsPage {
           }
 
           ListItem() {
+            this.buildSettingItem('开发者', '陈云亮', () => {
+              this.showDeveloperInfo();
+            });
+          }
+
+          ListItem() {
             this.buildSettingItem('开源许可', 'MIT License', () => {
               this.showLicenseInfo();
             });
@@ -324,7 +330,20 @@ struct SettingsPage {
   showVersionInfo(): void {
     promptAction.showDialog({
       title: 'AntennaPodHM',
-      message: '版本: 1.0.0\n\n基于 HarmonyOS ArkTS 开发的播客应用',
+      message: '版本: 1.0.0\n\n基于 HarmonyOS ArkTS 开发的播客应用\n\n开发者：陈云亮\n邮箱：676814828@qq.com',
+      buttons: [
+        { text: '确定', color: '#007AFF' }
+      ]
+    });
+  }
+
+  /**
+   * 显示开发者信息
+   */
+  showDeveloperInfo(): void {
+    promptAction.showDialog({
+      title: '开发者信息',
+      message: '开发者：陈云亮\n\n邮箱：676814828@qq.com\n\n感谢使用 AntennaPodHM！',
       buttons: [
         { text: '确定', color: '#007AFF' }
       ]

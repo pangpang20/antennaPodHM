@@ -266,10 +266,22 @@ export class PlayerService {
         throw new Error('Failed to initialize player');
       }
 
+      // 如果播放器处于错误状态，先重置
+      const currentState = this.avPlayer.state;
+      console.info(`[PlayerService] Current AVPlayer state: ${currentState}`);
+      
+      if (currentState === 'error') {
+        console.info('[PlayerService] Player is in error state, resetting...');
+        await this.avPlayer.reset();
+        await this.waitForState('idle', 3000);
+      }
+
       // 如果正在播放其他Episode,先停止
       if (this.currentEpisode && this.currentEpisode.id !== episode.id) {
         console.info('[PlayerService] Stopping previous episode...');
         await this.stop();
+        // 等待进入 idle 状态
+        await this.waitForState('idle', 3000);
       }
 
       this.currentEpisode = episode;

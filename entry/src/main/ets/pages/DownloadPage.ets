@@ -29,10 +29,20 @@ struct DownloadPage {
       const db = DatabaseService.getInstance();
       const allEpisodes = await db.getAllEpisodes();
       
-      this.downloadingEpisodes = allEpisodes.filter(e => e.downloadStatus === 1);
-      this.downloadedEpisodes = allEpisodes.filter(e => e.downloadStatus === 2);
+      console.info(`[DownloadPage] Total episodes: ${allEpisodes.length}`);
+      
+      // 使用数字比较，因为数据库返回的是 number 类型
+      this.downloadingEpisodes = allEpisodes.filter(e => Number(e.downloadStatus) === 1);
+      this.downloadedEpisodes = allEpisodes.filter(e => Number(e.downloadStatus) === 2);
+      
+      console.info(`[DownloadPage] Downloading: ${this.downloadingEpisodes.length}, Downloaded: ${this.downloadedEpisodes.length}`);
+      
+      // 打印前几个单集的下载状态
+      allEpisodes.slice(0, 5).forEach(e => {
+        console.info(`[DownloadPage] Episode: ${e.title}, status: ${e.downloadStatus}, progress: ${e.downloadProgress}`);
+      });
     } catch (error) {
-      console.error('Failed to load downloads:', error);
+      console.error('[DownloadPage] Failed to load downloads:', error);
     }
   }
 
