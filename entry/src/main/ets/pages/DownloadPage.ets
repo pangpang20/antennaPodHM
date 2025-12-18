@@ -11,6 +11,7 @@ struct DownloadPage {
   private updateTimer: number = -1;
 
   aboutToAppear() {
+    console.info('[DownloadPage] aboutToAppear');
     this.loadDownloads();
     // 每秒更新一次下载进度
     this.updateTimer = setInterval(() => {
@@ -18,9 +19,17 @@ struct DownloadPage {
     }, 1000);
   }
 
+  onPageShow() {
+    console.info('[DownloadPage] onPageShow');
+    // 页面显示时立即刷新
+    this.loadDownloads();
+  }
+
   aboutToDisappear() {
+    console.info('[DownloadPage] aboutToDisappear');
     if (this.updateTimer !== -1) {
       clearInterval(this.updateTimer);
+      this.updateTimer = -1;
     }
   }
 
@@ -32,15 +41,36 @@ struct DownloadPage {
       console.info(`[DownloadPage] Total episodes: ${allEpisodes.length}`);
       
       // 使用数字比较，因为数据库返回的是 number 类型
-      this.downloadingEpisodes = allEpisodes.filter(e => Number(e.downloadStatus) === 1);
-      this.downloadedEpisodes = allEpisodes.filter(e => Number(e.downloadStatus) === 2);
+      const downloading = allEpisodes.filter(e => {
+        const status = Number(e.downloadStatus);
+        console.info(`[DownloadPage] Episode ${e.title}: downloadStatus=${e.downloadStatus}, Number=${status}`);
+        return status === DownloadStatus.DOWNLOADING;
+      });
+      
+      const downloaded = allEpisodes.filter(e => {
+        const status = Number(e.downloadStatus);
+        return status === DownloadStatus.DOWNLOADED;
+      });
+      
+      this.downloadingEpisodes = downloading;
+      this.downloadedEpisodes = downloaded;
       
       console.info(`[DownloadPage] Downloading: ${this.downloadingEpisodes.length}, Downloaded: ${this.downloadedEpisodes.length}`);
       
       // 打印前几个单集的下载状态
-      allEpisodes.slice(0, 5).forEach(e => {
-        console.info(`[DownloadPage] Episode: ${e.title}, status: ${e.downloadStatus}, progress: ${e.downloadProgress}`);
-      });
+      if (downloading.length > 0) {
+        console.info('[DownloadPage] Downloading episodes:');
+        downloading.forEach(e => {
+          console.info(`  - ${e.title}: status=${e.downloadStatus}, progress=${e.downloadProgress}%`);
+        });
+      }
+      
+      if (downloaded.length > 0) {
+        console.info('[DownloadPage] Downloaded episodes:');
+        downloaded.forEach(e => {
+          console.info(`  - ${e.title}: status=${e.downloadStatus}, localPath=${e.localPath}`);
+        });
+      }
     } catch (error) {
       console.error('[DownloadPage] Failed to load downloads:', error);
     }
