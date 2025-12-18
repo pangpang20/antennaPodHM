@@ -25,11 +25,15 @@ export class SettingsService {
    * 初始化设置
    */
   async init(context: Context): Promise<void> {
-    this.context = context;
-    this.preferences = await preferences.getPreferences(context, Constants.PREF_SETTINGS);
-    await this.loadSettings();
-    // 初始化时应用主题
-    this.applyTheme(this.settings.themeMode);
+    try {
+      this.context = context;
+      this.preferences = await preferences.getPreferences(context, Constants.PREF_SETTINGS);
+      await this.loadSettings();
+      // 初始化时应用主题
+      this.applyTheme(this.settings.themeMode);
+    } catch (error) {
+      console.error('[SettingsService] Failed to initialize settings:', error);
+    }
   }
 
   /**

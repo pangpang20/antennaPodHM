@@ -531,41 +531,49 @@ export class DatabaseService {
 
   private parsePodcastFromResultSet(resultSet: relationalStore.ResultSet): Podcast {
     let podcast = new Podcast();
-    podcast.id = resultSet.getString(resultSet.getColumnIndex('id'));
-    podcast.title = resultSet.getString(resultSet.getColumnIndex('title'));
-    podcast.author = resultSet.getString(resultSet.getColumnIndex('author'));
-    podcast.description = resultSet.getString(resultSet.getColumnIndex('description'));
-    podcast.imageUrl = resultSet.getString(resultSet.getColumnIndex('imageUrl'));
-    podcast.feedUrl = resultSet.getString(resultSet.getColumnIndex('feedUrl'));
-    podcast.link = resultSet.getString(resultSet.getColumnIndex('link'));
-    podcast.language = resultSet.getString(resultSet.getColumnIndex('language'));
-    podcast.category = resultSet.getString(resultSet.getColumnIndex('category'));
-    podcast.subscribeDate = resultSet.getLong(resultSet.getColumnIndex('subscribeDate'));
-    podcast.lastUpdate = resultSet.getLong(resultSet.getColumnIndex('lastUpdate'));
-    podcast.episodeCount = resultSet.getLong(resultSet.getColumnIndex('episodeCount'));
-    podcast.isSubscribed = resultSet.getLong(resultSet.getColumnIndex('isSubscribed')) === 1;
+    try {
+      podcast.id = resultSet.getString(resultSet.getColumnIndex('id'));
+      podcast.title = resultSet.getString(resultSet.getColumnIndex('title'));
+      podcast.author = resultSet.getString(resultSet.getColumnIndex('author'));
+      podcast.description = resultSet.getString(resultSet.getColumnIndex('description'));
+      podcast.imageUrl = resultSet.getString(resultSet.getColumnIndex('imageUrl'));
+      podcast.feedUrl = resultSet.getString(resultSet.getColumnIndex('feedUrl'));
+      podcast.link = resultSet.getString(resultSet.getColumnIndex('link'));
+      podcast.language = resultSet.getString(resultSet.getColumnIndex('language'));
+      podcast.category = resultSet.getString(resultSet.getColumnIndex('category'));
+      podcast.subscribeDate = resultSet.getLong(resultSet.getColumnIndex('subscribeDate'));
+      podcast.lastUpdate = resultSet.getLong(resultSet.getColumnIndex('lastUpdate'));
+      podcast.episodeCount = resultSet.getLong(resultSet.getColumnIndex('episodeCount'));
+      podcast.isSubscribed = resultSet.getLong(resultSet.getColumnIndex('isSubscribed')) === 1;
+    } catch (error) {
+      console.error('[DatabaseService] Failed to parse podcast from result set:', error);
+    }
     return podcast;
   }
 
   private parseEpisodeFromResultSet(resultSet: relationalStore.ResultSet): Episode {
     let episode = new Episode();
-    episode.id = resultSet.getString(resultSet.getColumnIndex('id'));
-    episode.podcastId = resultSet.getString(resultSet.getColumnIndex('podcastId'));
-    episode.title = resultSet.getString(resultSet.getColumnIndex('title'));
-    episode.description = resultSet.getString(resultSet.getColumnIndex('description'));
-    episode.link = resultSet.getString(resultSet.getColumnIndex('link'));
-    episode.audioUrl = resultSet.getString(resultSet.getColumnIndex('audioUrl'));
-    episode.imageUrl = resultSet.getString(resultSet.getColumnIndex('imageUrl'));
-    episode.duration = resultSet.getLong(resultSet.getColumnIndex('duration'));
-    episode.fileSize = resultSet.getLong(resultSet.getColumnIndex('fileSize'));
-    episode.pubDate = resultSet.getLong(resultSet.getColumnIndex('pubDate'));
-    episode.downloadStatus = resultSet.getLong(resultSet.getColumnIndex('downloadStatus'));
-    episode.downloadProgress = resultSet.getLong(resultSet.getColumnIndex('downloadProgress'));
-    episode.localPath = resultSet.getString(resultSet.getColumnIndex('localPath'));
-    episode.playbackPosition = resultSet.getLong(resultSet.getColumnIndex('playbackPosition'));
-    episode.isPlayed = resultSet.getLong(resultSet.getColumnIndex('isPlayed')) === 1;
-    episode.isFavorite = resultSet.getLong(resultSet.getColumnIndex('isFavorite')) === 1;
-    episode.addedToQueueDate = resultSet.getLong(resultSet.getColumnIndex('addedToQueueDate'));
+    try {
+      episode.id = resultSet.getString(resultSet.getColumnIndex('id'));
+      episode.podcastId = resultSet.getString(resultSet.getColumnIndex('podcastId'));
+      episode.title = resultSet.getString(resultSet.getColumnIndex('title'));
+      episode.description = resultSet.getString(resultSet.getColumnIndex('description'));
+      episode.link = resultSet.getString(resultSet.getColumnIndex('link'));
+      episode.audioUrl = resultSet.getString(resultSet.getColumnIndex('audioUrl'));
+      episode.imageUrl = resultSet.getString(resultSet.getColumnIndex('imageUrl'));
+      episode.duration = resultSet.getLong(resultSet.getColumnIndex('duration'));
+      episode.fileSize = resultSet.getLong(resultSet.getColumnIndex('fileSize'));
+      episode.pubDate = resultSet.getLong(resultSet.getColumnIndex('pubDate'));
+      episode.downloadStatus = resultSet.getLong(resultSet.getColumnIndex('downloadStatus'));
+      episode.downloadProgress = resultSet.getLong(resultSet.getColumnIndex('downloadProgress'));
+      episode.localPath = resultSet.getString(resultSet.getColumnIndex('localPath'));
+      episode.playbackPosition = resultSet.getLong(resultSet.getColumnIndex('playbackPosition'));
+      episode.isPlayed = resultSet.getLong(resultSet.getColumnIndex('isPlayed')) === 1;
+      episode.isFavorite = resultSet.getLong(resultSet.getColumnIndex('isFavorite')) === 1;
+      episode.addedToQueueDate = resultSet.getLong(resultSet.getColumnIndex('addedToQueueDate'));
+    } catch (error) {
+      console.error('[DatabaseService] Failed to parse episode from result set:', error);
+    }
     return episode;
   }
 
