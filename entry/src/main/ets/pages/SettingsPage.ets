@@ -260,17 +260,15 @@ struct SettingsPage {
     promptAction.showActionMenu({
       title: '选择播放速度',
       buttons: [
-        { text: '0.5x', color: '#000000' },
         { text: '0.75x', color: '#000000' },
         { text: '1.0x', color: '#000000' },
         { text: '1.25x', color: '#000000' },
         { text: '1.5x', color: '#000000' },
         { text: '2.0x', color: '#000000' },
-        { text: '2.5x', color: '#000000' },
-        { text: '3.0x', color: '#000000' }
+        { text: '2.5x', color: '#000000' }
       ]
     }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const speeds: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0];
+      const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 2.5];
       const selectedSpeed = speeds[result.index];
       this.settings.playbackSpeed = selectedSpeed;
       this.settingsService.setPlaybackSpeed(selectedSpeed);
