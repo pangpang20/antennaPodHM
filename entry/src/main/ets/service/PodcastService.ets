@@ -201,13 +201,13 @@ export class PodcastService {
       }
 
       // 音频地址（enclosure url）
-      const enclosureMatch = item.match(/<enclosure[^>]*url=\"(.*?)\"/);
+      const enclosureMatch = item.match(/<enclosure[^>]*url="(.*?)"/);
       if (enclosureMatch) {
-        episode.audioUrl = enclosureMatch[1];
+        episode.audioUrl = this.decodeHtmlEntities(enclosureMatch[1]);
       } else if (episode.link) {
         episode.audioUrl = episode.link;
       }
-
+      
       // 单集图片
       const imageMatch = item.match(/<itunes:image[^>]*href="(.*?)"/);
       if (imageMatch) {
