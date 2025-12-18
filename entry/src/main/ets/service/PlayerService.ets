@@ -227,10 +227,12 @@ export class PlayerService {
       this.notifyListeners('error', err);
     });
 
-    this.avPlayer.on('timeUpdate', (time: number) => {
+    this.avPlayer.on('timeUpdate', (timeInMs: number) => {
       if (this.currentEpisode) {
-        this.currentEpisode.playbackPosition = time;
-        this.notifyListeners('timeUpdate', time);
+        // AVPlayer 返回的是毫秒，转换为秒
+        const timeInSeconds = Math.floor(timeInMs / 1000);
+        this.currentEpisode.playbackPosition = timeInSeconds;
+        this.notifyListeners('timeUpdate', timeInSeconds);
       }
     });
   }
@@ -358,11 +360,13 @@ export class PlayerService {
   }
 
   /**
-   * 跳转到指定位置
+   * 跳转到指定位置（参数为秒，转换为毫秒传给 AVPlayer）
    */
-  async seek(position: number): Promise<void> {
+  async seek(positionInSeconds: number): Promise<void> {
     if (this.avPlayer) {
-      await this.avPlayer.seek(position);
+      const positionInMs = Math.floor(positionInSeconds * 1000);
+      console.info(`[PlayerService] Seeking to ${positionInSeconds}s (${positionInMs}ms)`);
+      await this.avPlayer.seek(positionInMs);
     }
   }
 
