@@ -32,7 +32,7 @@ struct PlayerPage {
     });
 
     this.playerService.addEventListener('timeUpdate', (time: number) => {
-      console.info(`[PlayerPage] timeUpdate event received: ${time}s`);
+      // 移除频繁的日志输出
       this.currentPosition = time;
     });
 
@@ -83,7 +83,7 @@ struct PlayerPage {
       if (this.playerState === PlayerState.PLAYING) {
         const newPosition = this.playerService.getCurrentPosition();
         const newDuration = this.playerService.getDuration();
-        console.info(`[PlayerPage] Timer update - position: ${newPosition}s, duration: ${newDuration}s`);
+        // 移除频繁的日志输出
         this.currentPosition = newPosition;
         this.duration = newDuration;
       }
@@ -123,6 +123,7 @@ struct PlayerPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Back button (Player)');
         router.back();
       })
 
@@ -210,6 +211,7 @@ struct PlayerPage {
       .height(60)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Rewind 15s');
         const newPosition = Math.max(0, this.currentPosition - 15);
         this.playerService.seek(newPosition);
       })
@@ -227,6 +229,7 @@ struct PlayerPage {
       .backgroundColor($r('app.color.primary'))
       .borderRadius(40)
       .onClick(() => {
+        console.info(`======>>> Click: Play/Pause - state: ${this.playerState}`);
         if (this.playerState === PlayerState.PLAYING) {
           this.playerService.pause();
         } else if (this.playerState === PlayerState.PAUSED) {
@@ -247,6 +250,7 @@ struct PlayerPage {
       .height(60)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Forward 30s');
         const newPosition = Math.min(this.duration, this.currentPosition + 30);
         this.playerService.seek(newPosition);
       })
@@ -269,6 +273,7 @@ struct PlayerPage {
       .backgroundColor('#E8F4FF')
       .borderRadius(18)
       .onClick(() => {
+        console.info('======>>> Click: Playback speed selector');
         this.showSpeedSelectorMenu();
       })
 
@@ -281,6 +286,7 @@ struct PlayerPage {
       }
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Sleep timer');
         this.showSleepTimerMenu();
       })
 
@@ -293,6 +299,7 @@ struct PlayerPage {
       }
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info(`======>>> Click: Add to queue - ${this.currentEpisode?.title || 'no episode'}`);
         if (!this.currentEpisode) {
           console.warn('No current episode to add to queue');
           return;

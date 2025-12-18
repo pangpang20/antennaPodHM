@@ -115,19 +115,7 @@ struct SettingsPage {
         ListItemGroup({ header: this.buildGroupHeader('关于') }) {
           ListItem() {
             this.buildSettingItem('应用名称', 'AntennaPodHM', () => {
-              this.showVersionInfo();
-            });
-          }
-
-          ListItem() {
-            this.buildSettingItem('版本号', '1.0.0', () => {
-              this.showVersionInfo();
-            });
-          }
-
-          ListItem() {
-            this.buildSettingItem('开发者', '陈云亮', () => {
-              this.showDeveloperInfo();
+              this.showAppNameInfo();
             });
           }
 
@@ -156,6 +144,7 @@ struct SettingsPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Back button (Settings)');
         router.back();
       })
 
@@ -325,25 +314,12 @@ struct SettingsPage {
   }
 
   /**
-   * 显示版本信息
+   * 显示应用名称说明
    */
-  showVersionInfo(): void {
+  showAppNameInfo(): void {
     promptAction.showDialog({
       title: 'AntennaPodHM',
-      message: '版本: 1.0.0\n\n基于 HarmonyOS ArkTS 开发的播客应用\n\n开发者：陈云亮\n邮箱：676814828@qq.com',
-      buttons: [
-        { text: '确定', color: '#007AFF' }
-      ]
-    });
-  }
-
-  /**
-   * 显示开发者信息
-   */
-  showDeveloperInfo(): void {
-    promptAction.showDialog({
-      title: '开发者信息',
-      message: '开发者：陈云亮\n\n邮箱：676814828@qq.com\n\n感谢使用 AntennaPodHM！',
+      message: 'AntennaPod for HarmonyOS\n\n名称来源：\n\u2022 AntennaPod - 知名的开源播客应用\n• HM - HarmonyOS（鸿蒙）的缩写\n\n这是一款基于 HarmonyOS ArkTS 开发的播客应用，致敬经典的 AntennaPod。',
       buttons: [
         { text: '确定', color: '#007AFF' }
       ]

@@ -43,6 +43,7 @@ struct QueuePage {
 
       Button('清空')
         .onClick(() => {
+          console.info('======>>> Click: Clear queue');
           this.playerService.clearQueue();
           this.queueItems = [];
         })
@@ -115,6 +116,7 @@ struct QueuePage {
       Button('移除')
         .height(36)
         .onClick(() => {
+          console.info(`======>>> Click: Remove from queue - ${episode.title} (index: ${index})`);
           this.playerService.removeFromQueue(index);
           this.queueItems = this.playerService.getQueue();
         })

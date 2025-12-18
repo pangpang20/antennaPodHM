@@ -232,7 +232,7 @@ export class PlayerService {
         // AVPlayer 返回的是毫秒，转换为秒
         const timeInSeconds = Math.floor(timeInMs / 1000);
         this.currentEpisode.playbackPosition = timeInSeconds;
-        console.info(`[PlayerService] Time update: ${timeInSeconds}s (${timeInMs}ms)`);
+        // 移除频繁的日志输出
         this.notifyListeners('timeUpdate', timeInSeconds);
       }
     });

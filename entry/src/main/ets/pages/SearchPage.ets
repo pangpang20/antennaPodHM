@@ -82,6 +82,7 @@ struct SearchPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Back button (Search)');
         router.back();
       })
 
@@ -113,6 +114,7 @@ struct SearchPage {
       Button('搜索')
         .margin({ left: 8 })
         .onClick(() => {
+          console.info(`======>>> Click: Search button - keyword: ${this.searchKeyword}`);
           this.performSearch();
         })
     }
@@ -127,6 +129,7 @@ struct SearchPage {
         .width('100%')
         .type(ButtonType.Normal)
         .onClick(() => {
+          console.info(`======>>> Click: Toggle RSS URL input - ${this.showAddByUrl ? 'Hide' : 'Show'}`);
           this.showAddByUrl = !this.showAddByUrl;
           if (!this.showAddByUrl) {
             this.feedUrl = '';
@@ -154,6 +157,7 @@ struct SearchPage {
         .margin({ top: 12 })
         .enabled(!this.isAddingByUrl && this.feedUrl.length > 0)
         .onClick(() => {
+          console.info(`======>>> Click: Add podcast by RSS URL - ${this.feedUrl}`);
           this.addByRssUrl();
         })
     }
@@ -250,6 +254,7 @@ struct SearchPage {
           .height(36)
           .enabled(!this.isSubscribing)
           .onClick(() => {
+            console.info(`======>>> Click: Subscribe podcast - ${podcast.title}`);
             this.subscribePodcast(podcast);
           })
       }

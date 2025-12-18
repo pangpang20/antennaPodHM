@@ -2,6 +2,7 @@ import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { PodcastService } from '../service/PodcastService';
 import { DatabaseService } from '../service/DatabaseService';
+import { PlayerService } from '../service/PlayerService';
 import { router } from '@kit.ArkUI';
 
 @Entry
@@ -10,14 +11,18 @@ struct MainPage {
   @State currentTabIndex: number = 0;
   @State podcasts: Podcast[] = [];
   @State isLoading: boolean = false;
+  @State hasCurrentEpisode: boolean = false;
+  private playerService: PlayerService = PlayerService.getInstance();
 
   aboutToAppear() {
     this.loadSubscriptions();
+    this.checkCurrentEpisode();
   }
 
   onPageShow() {
     // 页面通过路由返回时刷新订阅列表
     this.loadSubscriptions();
+    this.checkCurrentEpisode();
   }
 
   /**
@@ -31,6 +36,29 @@ struct MainPage {
       console.error('Failed to load subscriptions:', error);
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  /**
+   * 检查是否有正在播放的单集
+   */
+  checkCurrentEpisode() {
+    const currentEpisode = this.playerService.getCurrentEpisode();
+    this.hasCurrentEpisode = currentEpisode !== null;
+  }
+
+  /**
+   * 打开播放页面
+   */
+  openPlayerPage() {
+    const currentEpisode = this.playerService.getCurrentEpisode();
+    if (currentEpisode) {
+      router.pushUrl({
+        url: 'pages/PlayerPage',
+        params: { episodeId: currentEpisode.id }
+      }).catch((err: Error) => {
+        console.error('Navigation failed:', err);
+      });
     }
   }
 
@@ -91,6 +119,7 @@ struct MainPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Search button');
         // 跳转到搜索页面
         router.pushUrl({ url: 'pages/SearchPage' }).catch((err: Error) => {
           console.error('Navigation failed:', err);
@@ -106,6 +135,7 @@ struct MainPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Settings button');
         // 跳转到设置页面
         router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
           console.error('Navigation failed:', err);
@@ -144,16 +174,28 @@ struct MainPage {
         .padding(16)
       }
 
-      // 添加播客按钮
-      Button('添加播客')
+      // 正在播放按钮
+      if (this.hasCurrentEpisode) {
+        Button() {
+          Row() {
+            Text('▶')
+              .fontSize(20)
+              .margin({ right: 8 })
+            Text('正在播放')
+              .fontSize(16)
+          }
+        }
         .width('90%')
         .height(48)
+        .type(ButtonType.Normal)
+        .borderRadius(24)
+        .backgroundColor('#007AFF')
         .margin({ bottom: 20 })
         .onClick(() => {
-          router.pushUrl({ url: 'pages/SearchPage' }).catch((err: Error) => {
-            console.error('Navigation failed:', err);
-          });
+          console.info('======>>> Click: Now playing button (Main)');
+          this.openPlayerPage();
         })
+      }
     }
     .width('100%')
     .height('100%')
@@ -236,6 +278,7 @@ struct MainPage {
     .backgroundColor(Color.White)
     .borderRadius(8)
     .onClick(() => {
+      console.info(`======>>> Click: Podcast item - ${podcast.title}`);
       // 跳转到播客详情页
       router.pushUrl({
         url: 'pages/PodcastDetailPage',

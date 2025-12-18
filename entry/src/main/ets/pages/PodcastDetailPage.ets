@@ -75,6 +75,7 @@ struct PodcastDetailPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Back/Cancel button (PodcastDetail)');
         if (this.isSelectionMode) {
           this.isSelectionMode = false;
           this.selectedEpisodes.clear();
@@ -96,6 +97,7 @@ struct PodcastDetailPage {
           .backgroundColor(Color.Transparent)
           .fontColor($r('app.color.primary'))
           .onClick(() => {
+            console.info('======>>> Click: Enable multi-selection mode');
             this.isSelectionMode = true;
           })
       } else {
@@ -103,6 +105,7 @@ struct PodcastDetailPage {
           .height(36)
           .enabled(this.selectedEpisodes.size > 0)
           .onClick(() => {
+            console.info(`======>>> Click: Download selected episodes - ${this.selectedEpisodes.size} episodes`);
             this.downloadSelectedEpisodes();
           })
       }
@@ -242,6 +245,7 @@ struct PodcastDetailPage {
         .backgroundColor(Color.Transparent)
         .enabled(episode.downloadStatus === 0)
         .onClick(() => {
+          console.info(`======>>> Click: Download episode - ${episode.title}`);
           this.downloadEpisode(episode);
         })
         .margin({ left: 8 })
@@ -250,6 +254,7 @@ struct PodcastDetailPage {
         Button('播放')
           .height(36)
           .onClick(() => {
+            console.info(`======>>> Click: Play episode - ${episode.title}`);
             router.pushUrl({
               url: 'pages/PlayerPage',
               params: { episodeId: episode.id }

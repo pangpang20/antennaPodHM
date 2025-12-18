@@ -144,6 +144,7 @@ struct SubscriptionPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
+        console.info('======>>> Click: Back button (Subscription)');
         router.back();
       })
 
@@ -188,6 +189,7 @@ struct SubscriptionPage {
     .height('100%')
     .backgroundColor('#FF3B30')
     .onClick(async () => {
+      console.info(`======>>> Click: Unsubscribe podcast - ${podcast.title}`);
       await this.unsubscribePodcast(podcast);
     })
   }
@@ -245,6 +247,7 @@ struct SubscriptionPage {
     .backgroundColor(Color.White)
     .borderRadius(8)
     .onClick(() => {
+      console.info(`======>>> Click: Podcast item (Subscription) - ${podcast.title}`);
       router.pushUrl({
         url: 'pages/PodcastDetailPage',
         params: { podcastId: podcast.id }
