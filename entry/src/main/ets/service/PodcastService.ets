@@ -45,6 +45,29 @@ export class PodcastService {
   }
 
   /**
+   * 从搜索结果中直接添加播客（不立刻抓取 RSS）
+   */
+  async addPodcastFromSearchResult(source: Podcast): Promise<Podcast> {
+    const podcast = new Podcast();
+    podcast.id = source.id || this.generateId();
+    podcast.title = source.title;
+    podcast.author = source.author;
+    podcast.description = source.description;
+    podcast.imageUrl = source.imageUrl;
+    podcast.feedUrl = source.feedUrl;
+    podcast.link = source.link;
+    podcast.language = source.language;
+    podcast.category = source.category;
+    podcast.subscribeDate = Date.now();
+    podcast.lastUpdate = Date.now();
+    podcast.episodeCount = source.episodeCount;
+    podcast.isSubscribed = true;
+
+    await this.dbService.insertPodcast(podcast);
+    return podcast;
+  }
+
+  /**
    * 搜索播客
    * @param keyword 搜索关键词
    * @param offset 偏移量，用于分页（默认0）

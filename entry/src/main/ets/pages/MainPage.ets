@@ -15,6 +15,11 @@ struct MainPage {
     this.loadSubscriptions();
   }
 
+  onPageShow() {
+    // 页面通过路由返回时刷新订阅列表
+    this.loadSubscriptions();
+  }
+
   /**
    * 加载订阅列表
    */

@@ -282,7 +282,7 @@ struct SearchPage {
     this.subscribingId = podcast.id;
 
     try {
-      await PodcastService.getInstance().addPodcastByUrl(podcast.feedUrl);
+      await PodcastService.getInstance().addPodcastFromSearchResult(podcast);
       promptAction.showToast({
         message: '订阅成功',
         duration: 2000
