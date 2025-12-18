@@ -4,7 +4,7 @@ import { PodcastService } from '../service/PodcastService';
 import { DatabaseService } from '../service/DatabaseService';
 import { PlayerService } from '../service/PlayerService';
 import { DownloadService } from '../service/DownloadService';
-import { router } from '@kit.ArkUI';
+import { router, promptAction } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -20,6 +20,9 @@ struct MainPage {
   @State downloadingEpisodes: Episode[] = [];
   @State downloadedEpisodes: Episode[] = [];
   @State allEpisodes: Episode[] = [];  // 所有单集
+  @State episodesPage: number = 1;  // 单集当前页
+  @State episodesPageSize: number = 20;  // 每页数量
+  @State episodesHasMore: boolean = false;  // 是否还有更多
   @State queueEpisodes: Episode[] = [];  // 待听队列
   private playerService: PlayerService = PlayerService.getInstance();
   private dbService: DatabaseService = DatabaseService.getInstance();
@@ -85,12 +88,24 @@ struct MainPage {
   async loadDownloads() {
     try {
       const db = DatabaseService.getInstance();
+      const downloadService = DownloadService.getInstance();
       const allEpisodes = await db.getAllEpisodes();
       
-      this.downloadingEpisodes = allEpisodes.filter(e => {
-        const status = Number(e.downloadStatus);
-        return status === DownloadStatus.DOWNLOADING;
-      });
+      // 获取正在下载的任务（从内存中获取实时进度）
+      const activeTasks = downloadService.getAllDownloadTasks();
+      const activeTaskMap = new Map(activeTasks.map(t => [t.episode.id, t.episode]));
+      
+      // 对于正在下载的，优先使用内存中的实时进度
+      this.downloadingEpisodes = allEpisodes
+        .filter(e => Number(e.downloadStatus) === DownloadStatus.DOWNLOADING)
+        .map(e => {
+          // 如果在活动下载中，使用内存中的进度
+          const activeEpisode = activeTaskMap.get(e.id);
+          if (activeEpisode) {
+            e.downloadProgress = activeEpisode.downloadProgress;
+          }
+          return e;
+        });
       
       this.downloadedEpisodes = allEpisodes.filter(e => {
         const status = Number(e.downloadStatus);
@@ -147,15 +162,29 @@ struct MainPage {
   }
 
   /**
-   * 加载所有单集
+   * 加载所有单集（倒序排列，分页）
    */
   async loadAllEpisodes() {
     try {
-      this.allEpisodes = await this.dbService.getAllEpisodes();
-      console.info(`[MainPage] Loaded ${this.allEpisodes.length} episodes`);
+      const allEps = await this.dbService.getAllEpisodes();
+      // 按pubDate倒序排列（最新在前）
+      allEps.sort((a, b) => (b.pubDate || 0) - (a.pubDate || 0));
+      // 分页显示
+      const showCount = this.episodesPage * this.episodesPageSize;
+      this.allEpisodes = allEps.slice(0, showCount);
+      this.episodesHasMore = allEps.length > showCount;
+      console.info(`[MainPage] Loaded ${this.allEpisodes.length}/${allEps.length} episodes (page ${this.episodesPage})`);
     } catch (error) {
       console.error('[MainPage] Failed to load episodes:', error);
     }
+  }
+
+  /**
+   * 加载更多单集
+   */
+  async loadMoreEpisodes() {
+    this.episodesPage++;
+    await this.loadAllEpisodes();
   }
 
   /**
@@ -178,8 +207,16 @@ struct MainPage {
       await this.dbService.addToQueue(episode.id);
       await this.loadQueue();
       console.info(`[MainPage] Added to queue: ${episode.title}`);
+      promptAction.showToast({
+        message: '已添加到队列',
+        duration: 2000
+      });
     } catch (error) {
       console.error('[MainPage] Failed to add to queue:', error);
+      promptAction.showToast({
+        message: '添加失败',
+        duration: 2000
+      });
     }
   }
 
@@ -390,9 +427,29 @@ struct MainPage {
         List({ space: 8 }) {
           ForEach(this.allEpisodes, (episode: Episode) => {
             ListItem() {
-              this.buildEpisodeItem(episode);
+              this.buildEpisodeItemWithDate(episode);
             }
           }, (episode: Episode) => episode.id)
+
+          // 加载更多按钮
+          if (this.episodesHasMore) {
+            ListItem() {
+              Row() {
+                Button('加载更多')
+                  .width('100%')
+                  .height(44)
+                  .fontSize(14)
+                  .backgroundColor('#FF6B9D')
+                  .fontColor(Color.White)
+                  .onClick(() => {
+                    console.info('======>>> Click: Load more episodes');
+                    this.loadMoreEpisodes();
+                  })
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.Center)
+            }
+          }
         }
         .width('100%')
         .layoutWeight(1)
@@ -406,6 +463,53 @@ struct MainPage {
     }
     .width('100%')
     .height('100%')
+  }
+
+  /**
+   * 单集项（带日期）
+   */
+  @Builder
+  buildEpisodeItemWithDate(episode: Episode) {
+    Row() {
+      // 封面图
+      Image(episode.imageUrl)
+        .width(56)
+        .height(56)
+        .borderRadius(8)
+        .objectFit(ImageFit.Cover)
+        .alt($r('app.media.app_icon'))
+
+      // 单集信息
+      Column() {
+        Text(episode.title)
+          .fontSize(14)
+          .fontWeight(FontWeight.Medium)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Row() {
+          Text(episode.getFormattedPubDate())
+            .fontSize(12)
+            .fontColor('#FF6B9D')
+
+          Text(` · ${episode.getFormattedDuration()}`)
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary_light'))
+        }
+        .margin({ top: 4 })
+      }
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .margin({ left: 12 })
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor(Color.White)
+    .borderRadius(8)
+    .onClick(() => {
+      console.info(`======>>> Click: Episode item - ${episode.title}`);
+      router.pushUrl({ url: 'pages/EpisodeDetailPage', params: { episode: episode } });
+    })
   }
 
   /**
@@ -732,60 +836,63 @@ struct MainPage {
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
         .fontColor('#FF6B9D')
-        .width(32)
+        .width(28)
         .textAlign(TextAlign.Center)
 
       // 封面图
       Image(episode.imageUrl)
-        .width(50)
-        .height(50)
+        .width(46)
+        .height(46)
         .borderRadius(6)
         .objectFit(ImageFit.Cover)
         .alt($r('app.media.app_icon'))
+        .margin({ left: 4 })
 
       // 单集信息
       Column() {
         Text(episode.title)
-          .fontSize(14)
+          .fontSize(13)
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(episode.getFormattedDuration())
-          .fontSize(12)
+          .fontSize(11)
           .fontColor($r('app.color.text_secondary_light'))
-          .margin({ top: 4 })
+          .margin({ top: 2 })
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
-      .margin({ left: 10 })
+      .margin({ left: 8, right: 8 })
 
       // 操作按钮
       Button('▶')
-        .width(36)
-        .height(36)
-        .fontSize(14)
+        .width(34)
+        .height(34)
+        .fontSize(12)
         .backgroundColor('#FF6B9D')
         .fontColor(Color.White)
-        .borderRadius(18)
+        .borderRadius(17)
+        .flexShrink(0)
         .onClick(() => {
           console.info(`======>>> Click: Play from queue - ${episode.title}`);
           this.playerService.playEpisode(episode);
         })
 
       Button('×')
-        .width(32)
-        .height(32)
-        .fontSize(16)
+        .width(28)
+        .height(28)
+        .fontSize(14)
         .backgroundColor(Color.Transparent)
         .fontColor('#999999')
-        .margin({ left: 4 })
+        .margin({ left: 4, right: 4 })
+        .flexShrink(0)
         .onClick(() => {
           console.info(`======>>> Click: Remove from queue - ${episode.title}`);
           this.removeFromQueue(episode);
         })
     }
     .width('100%')
-    .padding(10)
+    .padding(8)
     .backgroundColor(Color.White)
     .borderRadius(8)
   }
@@ -829,7 +936,7 @@ struct MainPage {
         Column() {
           Marquee({
             start: this.isPlaying,
-            step: 6,
+            step: 3,
             loop: -1,
             fromStart: true,
             src: this.currentEpisode?.title || ''

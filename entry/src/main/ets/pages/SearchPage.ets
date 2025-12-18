@@ -16,9 +16,9 @@ struct SearchPage {
   @State isAddingByUrl: boolean = false;
   @State subscribedPodcastIds: Set<string> = new Set();
   @State isLoadingMore: boolean = false;
-  @State hasMore: boolean = true;
+  @State hasMore: boolean = false;  // iTunes API 不支持分页，默认无更多
   private currentOffset: number = 0;
-  private pageSize: number = 20;
+  private pageSize: number = 50;  // iTunes API 一次性返回较多结果
 
   async aboutToAppear() {
     await this.loadSubscribedIds();
@@ -297,24 +297,15 @@ struct SearchPage {
 
     this.isSearching = true;
     this.currentOffset = 0;
-    this.hasMore = true;
+    this.hasMore = false;  // iTunes API 不支持分页
     
     try {
       const results = await PodcastService.getInstance().searchPodcasts(this.searchKeyword, 0, this.pageSize);
       this.searchResults = results;
-      
-      // 如果返回结果少于 pageSize，说明没有更多了
-      if (results.length < this.pageSize) {
-        this.hasMore = false;
-      } else {
-        this.currentOffset = this.pageSize;
-      }
-      
       console.info(`[SearchPage] Search completed, got ${results.length} results`);
     } catch (error) {
       console.error('Search failed:', error);
       this.searchResults = [];
-      this.hasMore = false;
     } finally {
       this.isSearching = false;
     }

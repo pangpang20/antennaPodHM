@@ -56,4 +56,18 @@ export class Episode {
       return `${(this.fileSize / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     }
   }
+
+  /**
+   * 格式化发布日期
+   */
+  getFormattedPubDate(): string {
+    if (!this.pubDate) {
+      return '';
+    }
+    const date = new Date(this.pubDate);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 }

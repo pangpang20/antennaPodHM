@@ -2,7 +2,9 @@ import media from '@ohos.multimedia.media';
 import avSession from '@ohos.multimedia.avsession';
 import wantAgent from '@ohos.app.ability.wantAgent';
 import backgroundTaskManager from '@ohos.resourceschedule.backgroundTaskManager';
+import fs from '@ohos.file.fs';
 import { Episode } from '../model/Episode';
+import { SettingsService } from './SettingsService';
 
 /**
  * 播放器状态
@@ -57,6 +59,11 @@ export class PlayerService {
     }
 
     try {
+      // 从设置中加载默认播放速度
+      const settingsService = SettingsService.getInstance();
+      this.playbackSpeed = settingsService.getPlaybackSpeed();
+      console.info(`[PlayerService] Default playback speed: ${this.playbackSpeed}`);
+
       this.avPlayer = await media.createAVPlayer();
       this.setupPlayerCallbacks();
       await this.initAVSession();
@@ -284,18 +291,37 @@ export class PlayerService {
 
       this.currentEpisode = episode;
 
-      // 设置音频源
-      const audioUrl = episode.localPath || episode.audioUrl;
-      if (!audioUrl || audioUrl.trim().length === 0) {
+      // 确定音频源
+      const isLocalFile = episode.localPath && episode.localPath.length > 0;
+      const audioSource = isLocalFile ? episode.localPath : episode.audioUrl;
+      
+      if (!audioSource || audioSource.trim().length === 0) {
         throw new Error('No valid audio URL found for episode');
       }
 
-      console.info('[PlayerService] Setting audio URL:', audioUrl);
-      this.avPlayer.url = audioUrl;
+      console.info(`[PlayerService] Audio source: ${audioSource}, isLocal: ${isLocalFile}`);
+
+      // 根据源类型设置播放器
+      if (isLocalFile) {
+        // 本地文件使用 fdSrc
+        console.info('[PlayerService] Opening local file...');
+        const file = await fs.open(audioSource, fs.OpenMode.READ_ONLY);
+        const avFileDescriptor: media.AVFileDescriptor = {
+          fd: file.fd,
+          offset: 0,
+          length: -1  // -1 表示整个文件
+        };
+        this.avPlayer.fdSrc = avFileDescriptor;
+        console.info('[PlayerService] Local file fd set:', file.fd);
+      } else {
+        // 网络 URL 直接设置 url
+        console.info('[PlayerService] Setting network URL...');
+        this.avPlayer.url = audioSource;
+      }
 
       // 等待播放器进入 initialized 状态
       console.info('[PlayerService] Waiting for initialized state...');
-      await this.waitForState('initialized', 5000);
+      await this.waitForState('initialized', 10000);
       console.info('[PlayerService] Player initialized');
 
       // 调用 prepare 让播放器准备资源
@@ -304,7 +330,7 @@ export class PlayerService {
 
       // 等待播放器准备就绪
       console.info('[PlayerService] Waiting for prepared state...');
-      await this.waitForState('prepared', 10000);
+      await this.waitForState('prepared', 15000);
       console.info('[PlayerService] Player prepared successfully');
 
       // 如果有保存的播放进度,跳转到该位置

@@ -1,4 +1,5 @@
 import preferences from '@ohos.data.preferences';
+import { ConfigurationConstant } from '@kit.AbilityKit';
 import { AppSettings, ThemeMode } from '../model/AppSettings';
 import { Constants } from '../common/Constants';
 
@@ -9,6 +10,7 @@ export class SettingsService {
   private static instance: SettingsService;
   private preferences: preferences.Preferences | null = null;
   private settings: AppSettings = new AppSettings();
+  private context: Context | null = null;
 
   private constructor() {}
 
@@ -23,8 +25,11 @@ export class SettingsService {
    * 初始化设置
    */
   async init(context: Context): Promise<void> {
+    this.context = context;
     this.preferences = await preferences.getPreferences(context, Constants.PREF_SETTINGS);
     await this.loadSettings();
+    // 初始化时应用主题
+    this.applyTheme(this.settings.themeMode);
   }
 
   /**
@@ -109,6 +114,36 @@ export class SettingsService {
   async setThemeMode(mode: ThemeMode): Promise<void> {
     this.settings.themeMode = mode;
     await this.saveSettings();
+    this.applyTheme(mode);
+  }
+
+  /**
+   * 应用主题到系统
+   */
+  private applyTheme(mode: ThemeMode): void {
+    if (!this.context) {
+      console.error('[SettingsService] Context not initialized');
+      return;
+    }
+    try {
+      let colorMode: ConfigurationConstant.ColorMode;
+      switch (mode) {
+        case ThemeMode.LIGHT:
+          colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+          break;
+        case ThemeMode.DARK:
+          colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+          break;
+        case ThemeMode.AUTO:
+        default:
+          colorMode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
+          break;
+      }
+      this.context.getApplicationContext().setColorMode(colorMode);
+      console.info(`[SettingsService] Theme applied: ${mode}`);
+    } catch (error) {
+      console.error('[SettingsService] Failed to apply theme:', error);
+    }
   }
 
   /**

@@ -1,6 +1,7 @@
 import { router, promptAction } from '@kit.ArkUI';
 import { Episode } from '../model/Episode';
 import { PlayerService, PlayerState } from '../service/PlayerService';
+import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
 import { DatabaseService } from '../service/DatabaseService';
 
@@ -25,6 +26,10 @@ struct PlayerPage {
       const episodeId = params['episodeId'] as string;
       this.loadEpisode(episodeId);
     }
+
+    // 加载默认播放速度
+    const settingsService = SettingsService.getInstance();
+    this.playbackSpeed = settingsService.getPlaybackSpeed();
 
     // 监听播放器状态
     this.playerService.addEventListener('stateChange', (state: PlayerState) => {
@@ -345,7 +350,7 @@ struct PlayerPage {
           return;
         }
         this.playerService.addToQueue(this.currentEpisode);
-        promptAction.showToast({ message: '已添加到待听列表', duration: 2000 });
+        promptAction.showToast({ message: '已添加到队列', duration: 2000 });
       })
     }
     .width('100%')
