@@ -5,7 +5,18 @@ import { QueueItem } from '../model/QueueItem';
 import { Constants } from '../common/Constants';
 
 /**
- * 数据库服务
+ * 数据库版本历史
+ * 每次修改数据库结构时，需要：
+ * 1. 在 Constants.DB_VERSION 中增加版本号
+ * 2. 在 migrateDatabase() 中添加对应的迁移逻辑
+ * 
+ * 版本历史:
+ * - v1: 初始版本，创建 podcast, episode, queue 表
+ */
+
+/**
+ * 数据库服务 - 基于 SQLite (relationalStore)
+ * 支持版本管理和数据迁移
  */
 export class DatabaseService {
   private static instance: DatabaseService;
@@ -31,9 +42,126 @@ export class DatabaseService {
       };
 
       this.rdbStore = await relationalStore.getRdbStore(context, config);
-      await this.createTables();
+      
+      // 检查并执行数据库迁移
+      await this.checkAndMigrateDatabase();
+      
+      console.info(`[DatabaseService] Database initialized, version: ${Constants.DB_VERSION}`);
     } catch (error) {
       console.error('Failed to initialize database:', error);
+    }
+  }
+
+  /**
+   * 检查并执行数据库迁移
+   */
+  private async checkAndMigrateDatabase(): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      // 获取当前数据库版本
+      const currentVersion = await this.getDatabaseVersion();
+      const targetVersion = Constants.DB_VERSION;
+
+      console.info(`[DatabaseService] Current DB version: ${currentVersion}, Target version: ${targetVersion}`);
+
+      if (currentVersion === 0) {
+        // 新安装，创建所有表
+        await this.createTables();
+        await this.setDatabaseVersion(targetVersion);
+        console.info('[DatabaseService] Fresh install, tables created');
+      } else if (currentVersion < targetVersion) {
+        // 需要升级
+        await this.migrateDatabase(currentVersion, targetVersion);
+        await this.setDatabaseVersion(targetVersion);
+        console.info(`[DatabaseService] Migration completed: v${currentVersion} -> v${targetVersion}`);
+      } else {
+        console.info('[DatabaseService] Database is up to date');
+      }
+    } catch (error) {
+      console.error('[DatabaseService] Migration failed:', error);
+      // 迁移失败时尝试创建表（容错处理）
+      await this.createTables();
+    }
+  }
+
+  /**
+   * 获取数据库版本
+   */
+  private async getDatabaseVersion(): Promise<number> {
+    if (!this.rdbStore) return 0;
+
+    try {
+      // 使用 PRAGMA user_version 存储版本号
+      const resultSet = await this.rdbStore.querySql('PRAGMA user_version');
+      let version = 0;
+      if (resultSet.goToFirstRow()) {
+        version = resultSet.getLong(0);
+      }
+      resultSet.close();
+      return version;
+    } catch (error) {
+      console.error('[DatabaseService] Failed to get database version:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 设置数据库版本
+   */
+  private async setDatabaseVersion(version: number): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      await this.rdbStore.executeSql(`PRAGMA user_version = ${version}`);
+      console.info(`[DatabaseService] Database version set to ${version}`);
+    } catch (error) {
+      console.error('[DatabaseService] Failed to set database version:', error);
+    }
+  }
+
+  /**
+   * 执行数据库迁移
+   * 每次升级版本时，在这里添加对应的迁移逻辑
+   */
+  private async migrateDatabase(fromVersion: number, toVersion: number): Promise<void> {
+    if (!this.rdbStore) return;
+
+    console.info(`[DatabaseService] Migrating from v${fromVersion} to v${toVersion}`);
+
+    // 逐版本升级
+    for (let version = fromVersion; version < toVersion; version++) {
+      await this.migrateToVersion(version + 1);
+    }
+  }
+
+  /**
+   * 迁移到指定版本
+   * 在这里添加每个版本的迁移逻辑
+   */
+  private async migrateToVersion(version: number): Promise<void> {
+    if (!this.rdbStore) return;
+
+    console.info(`[DatabaseService] Migrating to v${version}`);
+
+    switch (version) {
+      case 1:
+        // v1: 初始版本，创建基础表
+        await this.createTables();
+        break;
+
+      // 未来版本示例:
+      // case 2:
+      //   // v2: 添加新字段
+      //   await this.rdbStore.executeSql('ALTER TABLE episode ADD COLUMN newField TEXT');
+      //   break;
+      // case 3:
+      //   // v3: 创建新表
+      //   await this.rdbStore.executeSql('CREATE TABLE IF NOT EXISTS newTable (id TEXT PRIMARY KEY)');
+      //   break;
+
+      default:
+        console.warn(`[DatabaseService] Unknown migration version: ${version}`);
     }
   }
 
