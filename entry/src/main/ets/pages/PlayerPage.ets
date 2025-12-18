@@ -76,9 +76,24 @@ struct PlayerPage {
       console.info('[PlayerPage] localPath:', episode.localPath);
       console.info('[PlayerPage] duration:', episode.duration);
 
+      // 检查是否需要切换播放
+      const currentPlaying = this.playerService.getCurrentEpisode();
+      const needToPlay = !currentPlaying || currentPlaying.id !== episode.id;
+
       this.currentEpisode = episode;
       this.currentPosition = episode.playbackPosition;
       this.duration = episode.duration;
+
+      // 如果是新的 episode，自动开始播放
+      if (needToPlay) {
+        console.info('[PlayerPage] Starting playback for new episode');
+        await this.playerService.playEpisode(episode);
+      } else {
+        // 同步当前播放状态
+        this.playerState = this.playerService.getState();
+        this.currentPosition = this.playerService.getCurrentPosition();
+        this.duration = this.playerService.getDuration();
+      }
     } catch (error) {
       console.error('Failed to load episode:', error);
     }

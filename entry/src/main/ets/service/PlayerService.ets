@@ -270,24 +270,16 @@ export class PlayerService {
         throw new Error('Failed to initialize player');
       }
 
-      // 如果播放器处于错误状态，先重置
+      // 检查当前状态，如果不是 idle 状态，需要重置
       const currentState = this.avPlayer.state;
       console.info(`[PlayerService] Current AVPlayer state: ${currentState}`);
       
-      if (currentState === 'error') {
-        console.info('[PlayerService] Player is in error state, resetting...');
+      // 如果不是 idle 状态，需要重置播放器
+      if (currentState !== 'idle') {
+        console.info(`[PlayerService] Player is in ${currentState} state, resetting to idle...`);
         await this.avPlayer.reset();
         await this.waitForState('idle', 3000);
-        // 重置后需要重新注册回调
-        this.setupPlayerCallbacks();
-      }
-
-      // 如果正在播放其他Episode,先停止
-      if (this.currentEpisode && this.currentEpisode.id !== episode.id) {
-        console.info('[PlayerService] Stopping previous episode...');
-        await this.stop();
-        // 等待进入 idle 状态
-        await this.waitForState('idle', 3000);
+        console.info('[PlayerService] Player reset to idle state');
       }
 
       this.currentEpisode = episode;
@@ -343,13 +335,6 @@ export class PlayerService {
       // 打印 AVPlayer 信息
       console.info(`[PlayerService] AVPlayer duration: ${this.avPlayer.duration}ms`);
       console.info(`[PlayerService] AVPlayer currentTime: ${this.avPlayer.currentTime}ms`);
-      
-      // 测试：1秒后主动获取播放位置
-      setTimeout(() => {
-        if (this.avPlayer) {
-          console.info(`[PlayerService] Manual check - currentTime: ${this.avPlayer.currentTime}ms, duration: ${this.avPlayer.duration}ms`);
-        }
-      }, 1000);
     } catch (error) {
       console.error('[PlayerService] Failed to play episode:', error);
       this.state = PlayerState.ERROR;

@@ -16,6 +16,7 @@ struct MainPage {
   @State currentEpisode: Episode | null = null;
   @State isPlaying: boolean = false;
   @State playProgress: number = 0;
+  @State sleepTimerRemaining: number = 0;  // 睡眠定时器剩余秒数
   @State downloadingEpisodes: Episode[] = [];
   @State downloadedEpisodes: Episode[] = [];
   private playerService: PlayerService = PlayerService.getInstance();
@@ -133,6 +134,9 @@ struct MainPage {
       const duration = this.playerService.getDuration();
       this.playProgress = duration > 0 ? (position / duration) * 100 : 0;
     }
+    
+    // 更新睡眠定时器剩余时间
+    this.sleepTimerRemaining = this.playerService.getSleepTimerRemaining();
   }
 
   /**
@@ -500,10 +504,23 @@ struct MainPage {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          Text('正在播放')
-            .fontSize(11)
-            .fontColor('#AAAAAA')
-            .margin({ top: 2 })
+          Row() {
+            Text('正在播放')
+              .fontSize(11)
+              .fontColor('#AAAAAA')
+            
+            // 睡眠定时器倒计时
+            if (this.sleepTimerRemaining > 0) {
+              Text(' · ')
+                .fontSize(11)
+                .fontColor('#AAAAAA')
+              Text(`⏰ ${this.formatSleepTimer(this.sleepTimerRemaining)}`)
+                .fontSize(11)
+                .fontColor('#FF6B9D')
+                .fontWeight(FontWeight.Medium)
+            }
+          }
+          .margin({ top: 2 })
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
@@ -563,6 +580,19 @@ struct MainPage {
       offsetY: 4
     })
     .clip(true)
+  }
+
+  /**
+   * 格式化睡眠定时器剩余时间
+   */
+  formatSleepTimer(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) {
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    } else {
+      return `${secs}s`;
+    }
   }
 
   /**
