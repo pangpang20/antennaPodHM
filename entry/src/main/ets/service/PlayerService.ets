@@ -270,6 +270,10 @@ export class PlayerService {
       console.info('[PlayerService] Setting audio URL:', audioUrl);
       this.avPlayer.url = audioUrl;
 
+      // 调用 prepare 让播放器准备资源
+      console.info('[PlayerService] Calling prepare()...');
+      await this.avPlayer.prepare();
+
       // 等待播放器准备就绪
       console.info('[PlayerService] Waiting for prepared state...');
       await this.waitForState('prepared', 10000);

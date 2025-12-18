@@ -252,7 +252,11 @@ struct PlayerPage {
       Button() {
         Text(`${this.playbackSpeed}x`)
           .fontSize(14)
+          .fontColor('#666666')
       }
+      .height(36)
+      .backgroundColor('#E8F4FF')
+      .borderRadius(18)
       .onClick(() => {
         this.showSpeedSelectorMenu();
       })
