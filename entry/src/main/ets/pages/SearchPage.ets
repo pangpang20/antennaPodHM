@@ -339,15 +339,21 @@ struct SearchPage {
       );
       
       if (results.length > 0) {
-        this.searchResults = [...this.searchResults, ...results];
+        // 过滤掉已经存在的播客（根据 ID 去重）
+        const existingIds = new Set(this.searchResults.map(p => p.id));
+        const newResults = results.filter(p => !existingIds.has(p.id));
+        
+        if (newResults.length > 0) {
+          this.searchResults = [...this.searchResults, ...newResults];
+          console.info(`[SearchPage] Added ${newResults.length} new results (filtered ${results.length - newResults.length} duplicates), total: ${this.searchResults.length}`);
+        }
+        
         this.currentOffset += results.length;
         
         // 如果返回结果少于 pageSize，说明没有更多了
         if (results.length < this.pageSize) {
           this.hasMore = false;
         }
-        
-        console.info(`[SearchPage] Loaded ${results.length} more results, total: ${this.searchResults.length}`);
       } else {
         this.hasMore = false;
         console.info('[SearchPage] No more results');
