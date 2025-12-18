@@ -13,15 +13,25 @@ struct MainPage {
   @State podcasts: Podcast[] = [];
   @State isLoading: boolean = false;
   @State hasCurrentEpisode: boolean = false;
+  @State currentEpisode: Episode | null = null;
+  @State isPlaying: boolean = false;
+  @State playProgress: number = 0;
   @State downloadingEpisodes: Episode[] = [];
   @State downloadedEpisodes: Episode[] = [];
   private playerService: PlayerService = PlayerService.getInstance();
   private downloadUpdateTimer: number = -1;
+  private playUpdateTimer: number = -1;
 
   aboutToAppear() {
     this.loadSubscriptions();
     this.checkCurrentEpisode();
     this.loadDownloads();
+    this.startPlayUpdateTimer();
+    
+    // 监听播放状态变化
+    this.playerService.addEventListener('stateChange', () => {
+      this.checkCurrentEpisode();
+    });
   }
 
   aboutToDisappear() {
@@ -29,6 +39,19 @@ struct MainPage {
       clearInterval(this.downloadUpdateTimer);
       this.downloadUpdateTimer = -1;
     }
+    if (this.playUpdateTimer !== -1) {
+      clearInterval(this.playUpdateTimer);
+      this.playUpdateTimer = -1;
+    }
+  }
+
+  /**
+   * 启动播放状态更新定时器
+   */
+  startPlayUpdateTimer() {
+    this.playUpdateTimer = setInterval(() => {
+      this.checkCurrentEpisode();
+    }, 500);
   }
 
   onPageShow() {
@@ -101,8 +124,15 @@ struct MainPage {
    * 检查是否有正在播放的单集
    */
   checkCurrentEpisode() {
-    const currentEpisode = this.playerService.getCurrentEpisode();
-    this.hasCurrentEpisode = currentEpisode !== null;
+    this.currentEpisode = this.playerService.getCurrentEpisode();
+    this.hasCurrentEpisode = this.currentEpisode !== null;
+    this.isPlaying = this.playerService.getState() === 'playing';
+    
+    if (this.currentEpisode) {
+      const position = this.playerService.getCurrentPosition();
+      const duration = this.playerService.getDuration();
+      this.playProgress = duration > 0 ? (position / duration) * 100 : 0;
+    }
   }
 
   /**
@@ -239,27 +269,9 @@ struct MainPage {
         .padding(16)
       }
 
-      // 正在播放按钮
-      if (this.hasCurrentEpisode) {
-        Button() {
-          Row() {
-            Text('▶')
-              .fontSize(20)
-              .margin({ right: 8 })
-            Text('正在播放')
-              .fontSize(16)
-          }
-        }
-        .width('90%')
-        .height(48)
-        .type(ButtonType.Normal)
-        .borderRadius(24)
-        .backgroundColor('#007AFF')
-        .margin({ bottom: 20 })
-        .onClick(() => {
-          console.info('======>>> Click: Now playing button (Main)');
-          this.openPlayerPage();
-        })
+      // 正在播放迷你播放器
+      if (this.hasCurrentEpisode && this.currentEpisode) {
+        this.buildMiniPlayer();
       }
     }
     .width('100%')
@@ -442,6 +454,115 @@ struct MainPage {
         console.error('Navigation failed:', err);
       });
     })
+  }
+
+  /**
+   * 构建迷你播放器 - QQ音乐风格
+   */
+  @Builder
+  buildMiniPlayer() {
+    Column() {
+      // 进度条
+      Row() {
+        Progress({ value: this.playProgress, total: 100, type: ProgressType.Linear })
+          .width('100%')
+          .height(2)
+          .color('#FF6B9D')
+          .backgroundColor('#E0E0E0')
+      }
+      .width('100%')
+
+      // 播放器内容
+      Row() {
+        // 封面图（带旋转效果的设计）
+        Stack() {
+          // 圆形背景
+          Circle()
+            .width(50)
+            .height(50)
+            .fill('#1a1a2e')
+          
+          // 封面图
+          Image(this.currentEpisode?.imageUrl || '')
+            .width(44)
+            .height(44)
+            .borderRadius(22)
+            .objectFit(ImageFit.Cover)
+        }
+        .margin({ left: 12 })
+
+        // 标题和描述
+        Column() {
+          Text(this.currentEpisode?.title || '')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#FFFFFF')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          Text('正在播放')
+            .fontSize(11)
+            .fontColor('#AAAAAA')
+            .margin({ top: 2 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+        .margin({ left: 12, right: 12 })
+        .onClick(() => {
+          console.info('======>>> Click: Mini player content');
+          this.openPlayerPage();
+        })
+
+        // 播放/暂停按钮
+        Button() {
+          Text(this.isPlaying ? '❚❚' : '▶')
+            .fontSize(18)
+            .fontColor('#FFFFFF')
+        }
+        .width(40)
+        .height(40)
+        .backgroundColor('#FF6B9D')
+        .borderRadius(20)
+        .onClick(() => {
+          console.info(`======>>> Click: Mini player play/pause - isPlaying: ${this.isPlaying}`);
+          if (this.isPlaying) {
+            this.playerService.pause();
+          } else {
+            this.playerService.resume();
+          }
+          this.isPlaying = !this.isPlaying;
+        })
+
+        // 下一首/列表按钮
+        Button() {
+          Text('☰')
+            .fontSize(18)
+            .fontColor('#FFFFFF')
+        }
+        .width(40)
+        .height(40)
+        .backgroundColor(Color.Transparent)
+        .margin({ right: 8 })
+        .onClick(() => {
+          console.info('======>>> Click: Mini player open full player');
+          this.openPlayerPage();
+        })
+      }
+      .width('100%')
+      .height(64)
+      .alignItems(VerticalAlign.Center)
+    }
+    .width('94%')
+    .backgroundColor('#1a1a2e')
+    .borderRadius(12)
+    .margin({ bottom: 16 })
+    .shadow({
+      radius: 16,
+      color: 'rgba(0, 0, 0, 0.3)',
+      offsetX: 0,
+      offsetY: 4
+    })
+    .clip(true)
   }
 
   /**
