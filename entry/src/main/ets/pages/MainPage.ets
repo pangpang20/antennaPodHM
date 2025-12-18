@@ -939,12 +939,18 @@ struct MainPage {
             step: 3,
             loop: -1,
             fromStart: true,
-            src: this.currentEpisode?.title || ''
+            src: (this.currentEpisode?.title || '') + '          '
           })
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
+            .onStart(() => {
+              console.info('[MiniPlayer] Marquee started');
+            })
+            .onBounce(() => {
+              console.info('[MiniPlayer] Marquee bounced');
+            })
 
           Row() {
             Text('正在播放')
