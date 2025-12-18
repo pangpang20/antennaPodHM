@@ -212,6 +212,31 @@ struct SubscriptionPage {
     }
   }
 
+  /**
+   * 显示取消订阅确认对话框
+   */
+  showUnsubscribeDialog(podcast: Podcast): void {
+    promptAction.showDialog({
+      title: '取消订阅',
+      message: `确定要取消订阅《${podcast.title}》吗？\n\n取消订阅后，该播客的所有单集和下载内容都将被删除。`,
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '确定', color: '#FF3B30' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        // 用户点击"确定"，执行取消订阅
+        console.info(`======>>> Confirmed: Unsubscribe podcast - ${podcast.title}`);
+        this.unsubscribePodcast(podcast);
+      } else {
+        // 用户点击"取消"
+        console.info(`======>>> Cancelled: Unsubscribe podcast - ${podcast.title}`);
+      }
+    }).catch((err: Error) => {
+      console.error('Show unsubscribe dialog failed:', err);
+    });
+  }
+
   @Builder
   buildPodcastItem(podcast: Podcast) {
     Row() {
@@ -255,5 +280,12 @@ struct SubscriptionPage {
         console.error('Navigation failed:', err);
       });
     })
+    .gesture(
+      LongPressGesture({ repeat: false })
+        .onAction(() => {
+          console.info(`======>>> LongPress: Podcast item (Subscription) - ${podcast.title}`);
+          this.showUnsubscribeDialog(podcast);
+        })
+    )
   }
 }
