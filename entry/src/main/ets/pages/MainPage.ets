@@ -17,6 +17,7 @@ struct MainPage {
   @State isPlaying: boolean = false;
   @State playProgress: number = 0;
   @State sleepTimerRemaining: number = 0;  // 睡眠定时器剩余秒数
+  @State marqueeText: string = '';  // 跑马灯文本
   @State downloadingEpisodes: Episode[] = [];
   @State downloadedEpisodes: Episode[] = [];
   @State allEpisodes: Episode[] = [];  // 所有单集
@@ -941,25 +942,16 @@ struct MainPage {
         Column() {
           Marquee({
             start: true,  // 始终启用滚动
-            step: 5,  // 适中的滚动速度
+            step: 4,  // 适中的滚动速度
             loop: -1,  // 无限循环
             fromStart: true,
-            src: (this.currentEpisode?.title || '') + '                    '  // 添加更多空白间隔
+            src: `${this.currentEpisode?.title || ''}     ◆     `  // 使用菱形符号分隔，更清晰
           })
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
             .allowScale(false)  // 禁止缩放
-            .onStart(() => {
-              console.info('[MiniPlayer] Marquee started');
-            })
-            .onBounce(() => {
-              console.info('[MiniPlayer] Marquee bounced');
-            })
-            .onFinish(() => {
-              console.info('[MiniPlayer] Marquee finished');
-            })
 
           Row() {
             Text('正在播放')
