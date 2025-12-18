@@ -269,6 +269,31 @@ export class DatabaseService {
   }
 
   /**
+   * 查询所有Episodes
+   */
+  async getAllEpisodes(): Promise<Episode[]> {
+    if (!this.rdbStore) return [];
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_EPISODE);
+      predicates.orderByDesc('pubDate');
+
+      const resultSet = await this.rdbStore.query(predicates);
+      const episodes: Episode[] = [];
+
+      while (resultSet.goToNextRow()) {
+        episodes.push(this.parseEpisodeFromResultSet(resultSet));
+      }
+
+      resultSet.close();
+      return episodes;
+    } catch (error) {
+      console.error('Failed to query all episodes:', error);
+      return [];
+    }
+  }
+
+  /**
    * 删除指定播客的所有Episodes
    */
   async deleteEpisodesByPodcastId(podcastId: string): Promise<void> {

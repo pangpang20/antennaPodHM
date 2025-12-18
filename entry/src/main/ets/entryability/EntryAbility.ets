@@ -5,6 +5,7 @@ import window from '@ohos.window';
 import { DatabaseService } from '../service/DatabaseService';
 import { SettingsService } from '../service/SettingsService';
 import { PlayerService } from '../service/PlayerService';
+import { DownloadService } from '../service/DownloadService';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -59,6 +60,9 @@ export default class EntryAbility extends UIAbility {
       // 初始化播放器（设置 Context 以支持后台播放）
       PlayerService.getInstance().setContext(this.context);
       await PlayerService.getInstance().init();
+      
+      // 初始化下载服务
+      DownloadService.getInstance().setContext(this.context);
       
       console.info('All services initialized successfully');
     } catch (error) {

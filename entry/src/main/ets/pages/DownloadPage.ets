@@ -1,12 +1,40 @@
 import router from '@ohos.router';
 import { Episode, DownloadStatus } from '../model/Episode';
 import { DownloadService } from '../service/DownloadService';
+import { DatabaseService } from '../service/DatabaseService';
 
 @Entry
 @Component
 struct DownloadPage {
   @State downloadedEpisodes: Episode[] = [];
   @State downloadingEpisodes: Episode[] = [];
+  private updateTimer: number = -1;
+
+  aboutToAppear() {
+    this.loadDownloads();
+    // 每秒更新一次下载进度
+    this.updateTimer = setInterval(() => {
+      this.loadDownloads();
+    }, 1000);
+  }
+
+  aboutToDisappear() {
+    if (this.updateTimer !== -1) {
+      clearInterval(this.updateTimer);
+    }
+  }
+
+  async loadDownloads() {
+    try {
+      const db = DatabaseService.getInstance();
+      const allEpisodes = await db.getAllEpisodes();
+      
+      this.downloadingEpisodes = allEpisodes.filter(e => e.downloadStatus === 1);
+      this.downloadedEpisodes = allEpisodes.filter(e => e.downloadStatus === 2);
+    } catch (error) {
+      console.error('Failed to load downloads:', error);
+    }
+  }
 
   build() {
     Column() {

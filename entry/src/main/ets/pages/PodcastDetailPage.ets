@@ -1,8 +1,9 @@
-import { router } from '@kit.ArkUI';
+import { router, promptAction } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { DatabaseService } from '../service/DatabaseService';
 import { PodcastService } from '../service/PodcastService';
+import { DownloadService } from '../service/DownloadService';
 
 @Entry
 @Component
@@ -10,6 +11,8 @@ struct PodcastDetailPage {
   @State podcast: Podcast | null = null;
   @State episodes: Episode[] = [];
   @State isLoading: boolean = true;
+  @State isSelectionMode: boolean = false;
+  @State selectedEpisodes: Set<string> = new Set();
   private podcastId: string = '';
 
   aboutToAppear() {
@@ -65,22 +68,44 @@ struct PodcastDetailPage {
   buildNavigationBar() {
     Row() {
       Button() {
-        Text('←')
+        Text(this.isSelectionMode ? '取消' : '←')
           .fontSize(20)
       }
       .width(40)
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        router.back();
+        if (this.isSelectionMode) {
+          this.isSelectionMode = false;
+          this.selectedEpisodes.clear();
+        } else {
+          router.back();
+        }
       })
 
-      Text('播客详情')
+      Text(this.isSelectionMode ? `已选择 ${this.selectedEpisodes.size} 集` : '播客详情')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
         .margin({ left: 12 })
 
       Blank()
+
+      if (!this.isSelectionMode) {
+        Button('多选')
+          .height(36)
+          .backgroundColor(Color.Transparent)
+          .fontColor($r('app.color.primary'))
+          .onClick(() => {
+            this.isSelectionMode = true;
+          })
+      } else {
+        Button(`下载(${this.selectedEpisodes.size})`)
+          .height(36)
+          .enabled(this.selectedEpisodes.size > 0)
+          .onClick(() => {
+            this.downloadSelectedEpisodes();
+          })
+      }
     }
     .width('100%')
     .height(56)
@@ -136,6 +161,20 @@ struct PodcastDetailPage {
   @Builder
   buildEpisodeItem(episode: Episode) {
     Row() {
+      // 多选模式下显示复选框
+      if (this.isSelectionMode) {
+        Checkbox()
+          .select(this.selectedEpisodes.has(episode.id))
+          .onChange((isChecked: boolean) => {
+            if (isChecked) {
+              this.selectedEpisodes.add(episode.id);
+            } else {
+              this.selectedEpisodes.delete(episode.id);
+            }
+          })
+          .margin({ right: 12 })
+      }
+
       Column() {
         Text(episode.title)
           .fontSize(16)
@@ -156,27 +195,118 @@ struct PodcastDetailPage {
           Text(new Date(episode.pubDate).toLocaleDateString())
             .fontSize(12)
             .fontColor($r('app.color.text_secondary_light'))
+
+          // 显示下载状态
+          if (episode.downloadStatus === 1) {
+            Text('•')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary_light'))
+              .margin({ left: 8, right: 8 })
+            Text(`${episode.downloadProgress}%`)
+              .fontSize(12)
+              .fontColor($r('app.color.primary'))
+          } else if (episode.downloadStatus === 2) {
+            Text('•')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary_light'))
+              .margin({ left: 8, right: 8 })
+            Text('已下载')
+              .fontSize(12)
+              .fontColor('#4CAF50')
+          }
         }
         .margin({ top: 8 })
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Button('播放')
+      if (!this.isSelectionMode) {
+        // 下载按钮
+        Button() {
+          if (episode.downloadStatus === 0) {
+            Text('⬇️')
+              .fontSize(18)
+          } else if (episode.downloadStatus === 1) {
+            LoadingProgress()
+              .width(20)
+              .height(20)
+              .color($r('app.color.primary'))
+          } else {
+            Text('✓')
+              .fontSize(18)
+              .fontColor('#4CAF50')
+          }
+        }
+        .width(40)
         .height(36)
+        .backgroundColor(Color.Transparent)
+        .enabled(episode.downloadStatus === 0)
         .onClick(() => {
-          // 跳转到播放器页面
-          router.pushUrl({
-            url: 'pages/PlayerPage',
-            params: { episodeId: episode.id }
-          }).catch((err: Error) => {
-            console.error('Navigation failed:', err);
-          });
+          this.downloadEpisode(episode);
         })
+        .margin({ left: 8 })
+
+        // 播放按钮
+        Button('播放')
+          .height(36)
+          .onClick(() => {
+            router.pushUrl({
+              url: 'pages/PlayerPage',
+              params: { episodeId: episode.id }
+            }).catch((err: Error) => {
+              console.error('Navigation failed:', err);
+            });
+          })
+      }
     }
     .width('100%')
     .padding(12)
     .backgroundColor(Color.White)
     .borderRadius(8)
+  }
+
+  async downloadEpisode(episode: Episode) {
+    try {
+      await DownloadService.getInstance().downloadEpisode(episode);
+      promptAction.showToast({
+        message: '已加入下载队列',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      promptAction.showToast({
+        message: '下载失败',
+        duration: 2000
+      });
+    }
+  }
+
+  async downloadSelectedEpisodes() {
+    if (this.selectedEpisodes.size === 0) {
+      return;
+    }
+
+    const downloadService = DownloadService.getInstance();
+    let count = 0;
+
+    for (const episodeId of this.selectedEpisodes) {
+      const episode = this.episodes.find(e => e.id === episodeId);
+      if (episode && episode.downloadStatus === 0) {
+        try {
+          await downloadService.downloadEpisode(episode);
+          count++;
+        } catch (error) {
+          console.error('Download failed for episode:', episode.title, error);
+        }
+      }
+    }
+
+    promptAction.showToast({
+      message: `已加入 ${count} 个下载任务`,
+      duration: 2000
+    });
+
+    this.isSelectionMode = false;
+    this.selectedEpisodes.clear();
   }
 }

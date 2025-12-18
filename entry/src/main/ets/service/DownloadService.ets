@@ -3,6 +3,7 @@ import { Episode, DownloadStatus } from '../model/Episode';
 import { DatabaseService } from './DatabaseService';
 import { Constants } from '../common/Constants';
 import fs from '@ohos.file.fs';
+import { common } from '@kit.AbilityKit';
 
 /**
  * 下载任务信息
@@ -19,7 +20,11 @@ interface DownloadTask {
 export class DownloadService {
   private static instance: DownloadService;
   private downloadTasks: Map<string, DownloadTask> = new Map();
+  private downloadQueue: Episode[] = []; // 下载队列
   private dbService: DatabaseService;
+  private readonly MAX_CONCURRENT_DOWNLOADS = 5; // 最大并发下载数
+  private activeDownloads = 0;
+  private context: common.UIAbilityContext | null = null;
 
   private constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -32,27 +37,71 @@ export class DownloadService {
     return DownloadService.instance;
   }
 
+  setContext(context: common.UIAbilityContext): void {
+    this.context = context;
+  }
+
   /**
    * 下载Episode
    */
-  async downloadEpisode(episode: Episode, savePath: string): Promise<void> {
-    if (this.downloadTasks.has(episode.id)) {
-      console.warn('Episode is already downloading');
+  async downloadEpisode(episode: Episode): Promise<void> {
+    // 如果已经在下载或队列中，直接返回
+    if (this.downloadTasks.has(episode.id) || this.downloadQueue.find(e => e.id === episode.id)) {
+      console.warn('Episode is already downloading or in queue');
+      return;
+    }
+
+    // 如果已下载，直接返回
+    if (episode.downloadStatus === DownloadStatus.DOWNLOADED) {
+      return;
+    }
+
+    // 添加到队列
+    this.downloadQueue.push(episode);
+    console.info(`[DownloadService] Added to queue: ${episode.title}, queue size: ${this.downloadQueue.length}`);
+
+    // 尝试启动下载
+    this.processQueue();
+  }
+
+  /**
+   * 处理下载队列
+   */
+  private processQueue(): void {
+    // 如果正在下载的任务数已达到上限，就不启动新的
+    while (this.activeDownloads < this.MAX_CONCURRENT_DOWNLOADS && this.downloadQueue.length > 0) {
+      const episode = this.downloadQueue.shift();
+      if (episode) {
+        this.startDownload(episode);
+      }
+    }
+  }
+
+  /**
+   * 开始下载
+   */
+  private async startDownload(episode: Episode): Promise<void> {
+    if (!this.context) {
+      console.error('Context not set, cannot start download');
       return;
     }
 
     try {
+      // 生成保存路径
+      const fileName = `${episode.id}.m4a`;
+      const savePath = `${this.context.filesDir}/${fileName}`;
+
       const downloadConfig: request.DownloadConfig = {
         url: episode.audioUrl,
         filePath: savePath,
-        enableMetered: false, // 非计费网络下载
-        enableRoaming: false, // 不允许漫游下载
+        enableMetered: false,
+        enableRoaming: false,
         description: `Downloading ${episode.title}`,
         networkType: request.NETWORK_MOBILE | request.NETWORK_WIFI,
         title: episode.title
       };
 
-      const downloadTask = await request.downloadFile(getContext(), downloadConfig);
+      const downloadTask = await request.downloadFile(this.context, downloadConfig);
       const taskId = Date.now();
 
       this.downloadTasks.set(episode.id, {
@@ -60,6 +109,9 @@ export class DownloadService {
         taskId,
         downloadTask
       });
+
+      this.activeDownloads++;
+      console.info(`[DownloadService] Started download: ${episode.title}, active: ${this.activeDownloads}`);
 
       // 更新数据库状态
       episode.downloadStatus = DownloadStatus.DOWNLOADING;
@@ -69,16 +121,21 @@ export class DownloadService {
       downloadTask.on('progress', (receivedSize: number, totalSize: number) => {
         const progress = Math.floor((receivedSize / totalSize) * 100);
         episode.downloadProgress = progress;
+        episode.fileSize = totalSize;
         this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADING, progress);
       });
 
       // 监听下载完成
       downloadTask.on('complete', () => {
+        console.info(`[DownloadService] Download completed: ${episode.title}`);
         episode.downloadStatus = DownloadStatus.DOWNLOADED;
         episode.downloadProgress = 100;
         episode.localPath = savePath;
         this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADED, 100, savePath);
         this.downloadTasks.delete(episode.id);
+        this.activeDownloads--;
+        // 继续处理队列
+        this.processQueue();
       });
 
       // 监听下载失败
@@ -87,12 +144,18 @@ export class DownloadService {
         episode.downloadStatus = DownloadStatus.FAILED;
         this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.FAILED, episode.downloadProgress);
         this.downloadTasks.delete(episode.id);
+        this.activeDownloads--;
+        // 继续处理队列
+        this.processQueue();
       });
 
     } catch (error) {
       console.error('Failed to start download:', error);
       episode.downloadStatus = DownloadStatus.FAILED;
       await this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.FAILED, 0);
+      this.activeDownloads--;
+      // 继续处理队列
+      this.processQueue();
     }
   }
 

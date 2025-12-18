@@ -110,13 +110,19 @@ struct SettingsPage {
         // 关于
         ListItemGroup({ header: this.buildGroupHeader('关于') }) {
           ListItem() {
+            this.buildSettingItem('应用名称', 'AntennaPodHM', () => {
+              this.showVersionInfo();
+            });
+          }
+
+          ListItem() {
             this.buildSettingItem('版本号', '1.0.0', () => {
               this.showVersionInfo();
             });
           }
 
           ListItem() {
-            this.buildSettingItem('开源许可', 'MIT', () => {
+            this.buildSettingItem('开源许可', 'MIT License', () => {
               this.showLicenseInfo();
             });
           }
@@ -312,8 +318,8 @@ struct SettingsPage {
    */
   showVersionInfo(): void {
     promptAction.showDialog({
-      title: 'AntennaPod',
-      message: '版本: 1.0.0\n\n作者: 陈云亮\n邮箱: 676814828@qq.com\n\n基于 HarmonyOS ArkTS 开发',
+      title: 'AntennaPodHM',
+      message: '版本: 1.0.0\n\n基于 HarmonyOS ArkTS 开发的播客应用',
       buttons: [
         { text: '确定', color: '#007AFF' }
       ]
@@ -326,7 +332,7 @@ struct SettingsPage {
   showLicenseInfo(): void {
     promptAction.showDialog({
       title: 'MIT License',
-      message: 'Copyright (c) 2024 陈云亮\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.',
+      message: 'MIT License\n\nCopyright (c) 2024 AntennaPodHM\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.',
       buttons: [
         { text: '确定', color: '#007AFF' }
       ]
