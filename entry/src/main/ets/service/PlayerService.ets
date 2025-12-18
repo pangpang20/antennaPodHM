@@ -235,6 +235,17 @@ export class PlayerService {
         this.notifyListeners('timeUpdate', timeInSeconds);
       }
     });
+
+    // 监听时长更新（AVPlayer 加载后会触发）
+    this.avPlayer.on('durationUpdate', (durationInMs: number) => {
+      if (this.currentEpisode) {
+        // AVPlayer 返回的是毫秒，转换为秒
+        const durationInSeconds = Math.floor(durationInMs / 1000);
+        console.info(`[PlayerService] Duration updated: ${durationInSeconds}s (${durationInMs}ms)`);
+        this.currentEpisode.duration = durationInSeconds;
+        this.notifyListeners('durationUpdate', durationInSeconds);
+      }
+    });
   }
 
   /**

@@ -35,6 +35,11 @@ struct PlayerPage {
       this.currentPosition = time;
     });
 
+    // 监听时长更新
+    this.playerService.addEventListener('durationUpdate', (duration: number) => {
+      this.duration = duration;
+    });
+
     // 启动定时器更新进度
     this.startUpdateTimer();
   }
