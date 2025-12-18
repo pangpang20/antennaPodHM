@@ -185,13 +185,13 @@ export class PodcastService {
       // 标题
       const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/);
       if (titleMatch) {
-        episode.title = this.decodeHtmlEntities(titleMatch[1].trim());
+        episode.title = this.cleanText(titleMatch[1]);
       }
 
       // 描述
       const descMatch = item.match(/<description>([\s\S]*?)<\/description>/);
       if (descMatch) {
-        episode.description = this.decodeHtmlEntities(descMatch[1].trim());
+        episode.description = this.cleanText(descMatch[1]);
       }
 
       // 链接
@@ -293,19 +293,19 @@ export class PodcastService {
     // 解析标题
     const titleMatch = rssContent.match(/<title>(.*?)<\/title>/);
     if (titleMatch) {
-      podcast.title = this.decodeHtmlEntities(titleMatch[1]);
+      podcast.title = this.cleanText(titleMatch[1]);
     }
     
     // 解析描述
-    const descMatch = rssContent.match(/<description>(.*?)<\/description>/);
+    const descMatch = rssContent.match(/<description>([\s\S]*?)<\/description>/);
     if (descMatch) {
-      podcast.description = this.decodeHtmlEntities(descMatch[1]);
+      podcast.description = this.cleanText(descMatch[1]);
     }
     
     // 解析作者
-    const authorMatch = rssContent.match(/<itunes:author>(.*?)<\/itunes:author>/);
+    const authorMatch = rssContent.match(/<itunes:author>([\s\S]*?)<\/itunes:author>/);
     if (authorMatch) {
-      podcast.author = this.decodeHtmlEntities(authorMatch[1]);
+      podcast.author = this.cleanText(authorMatch[1]);
     }
     
     // 解析图片
@@ -355,6 +355,23 @@ export class PodcastService {
    */
   private generateId(): string {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * 解码并清洗文本（去掉 CDATA 和 HTML 标签）
+   */
+  private cleanText(text: string): string {
+    if (!text) {
+      return '';
+    }
+    let value = text;
+    // 去掉 CDATA 包裹
+    value = value.replace(/^<!\[CDATA\[/, '').replace(/]]>$/, '');
+    // 去掉简单 HTML 标签
+    value = value.replace(/<[^>]+>/g, '');
+    // 解码 HTML 实体
+    value = this.decodeHtmlEntities(value);
+    return value.trim();
   }
 
   /**
