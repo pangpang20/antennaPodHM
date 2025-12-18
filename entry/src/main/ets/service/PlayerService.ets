@@ -232,6 +232,7 @@ export class PlayerService {
         // AVPlayer 返回的是毫秒，转换为秒
         const timeInSeconds = Math.floor(timeInMs / 1000);
         this.currentEpisode.playbackPosition = timeInSeconds;
+        console.info(`[PlayerService] Time update: ${timeInSeconds}s (${timeInMs}ms)`);
         this.notifyListeners('timeUpdate', timeInSeconds);
       }
     });
@@ -414,6 +415,10 @@ export class PlayerService {
    * 获取总时长
    */
   getDuration(): number {
+    // 优先使用 AVPlayer 的时长，如果没有则使用 Episode 的
+    if (this.avPlayer && this.avPlayer.duration > 0) {
+      return Math.floor(this.avPlayer.duration / 1000); // 毫秒转秒
+    }
     return this.currentEpisode?.duration || 0;
   }
 
