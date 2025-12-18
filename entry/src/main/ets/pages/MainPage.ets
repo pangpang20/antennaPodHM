@@ -22,12 +22,18 @@ struct MainPage {
   private playerService: PlayerService = PlayerService.getInstance();
   private downloadUpdateTimer: number = -1;
   private playUpdateTimer: number = -1;
+  private subscriptionUpdateTimer: number = -1;
 
   aboutToAppear() {
     this.loadSubscriptions();
     this.checkCurrentEpisode();
     this.loadDownloads();
     this.startPlayUpdateTimer();
+    
+    // 默认在订阅 Tab，启动订阅刷新定时器
+    if (this.currentTabIndex === 0) {
+      this.startSubscriptionUpdateTimer();
+    }
     
     // 监听播放状态变化
     this.playerService.addEventListener('stateChange', () => {
@@ -43,6 +49,10 @@ struct MainPage {
     if (this.playUpdateTimer !== -1) {
       clearInterval(this.playUpdateTimer);
       this.playUpdateTimer = -1;
+    }
+    if (this.subscriptionUpdateTimer !== -1) {
+      clearInterval(this.subscriptionUpdateTimer);
+      this.subscriptionUpdateTimer = -1;
     }
   }
 
@@ -104,6 +114,28 @@ struct MainPage {
     if (this.downloadUpdateTimer !== -1) {
       clearInterval(this.downloadUpdateTimer);
       this.downloadUpdateTimer = -1;
+    }
+  }
+
+  /**
+   * 开始订阅更新定时器 - 每5秒刷新集数
+   */
+  startSubscriptionUpdateTimer() {
+    if (this.subscriptionUpdateTimer === -1) {
+      this.subscriptionUpdateTimer = setInterval(() => {
+        this.loadSubscriptions();
+        console.info('[MainPage] Subscription list refreshed');
+      }, 5000);
+    }
+  }
+
+  /**
+   * 停止订阅更新定时器
+   */
+  stopSubscriptionUpdateTimer() {
+    if (this.subscriptionUpdateTimer !== -1) {
+      clearInterval(this.subscriptionUpdateTimer);
+      this.subscriptionUpdateTimer = -1;
     }
   }
 
@@ -181,6 +213,13 @@ struct MainPage {
       .barHeight(56)
       .onChange((index: number) => {
         this.currentTabIndex = index;
+        // 切换到订阅 tab 时启动订阅刷新定时器
+        if (index === 0) {
+          this.loadSubscriptions();
+          this.startSubscriptionUpdateTimer();
+        } else {
+          this.stopSubscriptionUpdateTimer();
+        }
         // 切换到下载 tab 时启动定时刷新
         if (index === 3) {
           this.loadDownloads();
