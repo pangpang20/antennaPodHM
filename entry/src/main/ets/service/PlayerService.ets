@@ -179,7 +179,7 @@ export class PlayerService {
       const wantAgentInfo: wantAgent.WantAgentInfo = {
         wants: [
           {
-            bundleName: 'com.pangpang.antennapod',
+            bundleName: 'com.pangpang.antennapodhm',
             abilityName: 'EntryAbility'
           }
         ],
