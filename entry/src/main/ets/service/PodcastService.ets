@@ -209,11 +209,11 @@ export class PodcastService {
       }
 
       // 单集图片
-      const imageMatch = item.match(/<itunes:image[^>]*href=\"(.*?)\"/);
+      const imageMatch = item.match(/<itunes:image[^>]*href="(.*?)"/);
       if (imageMatch) {
-        episode.imageUrl = imageMatch[1];
+        episode.imageUrl = this.decodeHtmlEntities(imageMatch[1]);
       }
-
+      
       // 时长 itunes:duration
       const durationMatch = item.match(/<itunes:duration>(.*?)<\/itunes:duration>/);
       if (durationMatch) {
@@ -311,7 +311,7 @@ export class PodcastService {
     // 解析图片
     const imageMatch = rssContent.match(/<itunes:image href="(.*?)"/);
     if (imageMatch) {
-      podcast.imageUrl = imageMatch[1];
+      podcast.imageUrl = this.decodeHtmlEntities(imageMatch[1]);
     }
     
     podcast.lastUpdate = Date.now();
