@@ -2,6 +2,9 @@ import { router, promptAction } from '@kit.ArkUI';
 import { AppSettings, ThemeMode } from '../model/AppSettings';
 import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
+import { bundleManager } from '@kit.AbilityKit';
+import { notificationManager } from '@kit.NotificationKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 @Entry
 @Component
@@ -68,15 +71,27 @@ struct SettingsPage {
         ListItemGroup({ header: this.buildGroupHeader('通知设置') }) {
           ListItem() {
             this.buildSwitchItem('启用通知', this.settings.enableNotifications, (value: boolean) => {
-              this.settings.enableNotifications = value;
-              this.settingsService.setEnableNotifications(value);
+              if (value) {
+                // 打开通知时需要用户确认
+                this.confirmEnableNotification();
+              } else {
+                // 关闭通知直接执行
+                this.settings.enableNotifications = false;
+                this.settingsService.setEnableNotifications(false);
+              }
             });
           }
 
           ListItem() {
             this.buildSwitchItem('新单集通知', this.settings.notifyNewEpisodes, (value: boolean) => {
-              this.settings.notifyNewEpisodes = value;
-              this.settingsService.setNotifyNewEpisodes(value);
+              if (value) {
+                // 打开新单集通知时需要用户确认
+                this.confirmEnableNewEpisodeNotification();
+              } else {
+                // 关闭通知直接执行
+                this.settings.notifyNewEpisodes = false;
+                this.settingsService.setNotifyNewEpisodes(false);
+              }
             });
           }
         }
@@ -177,6 +192,162 @@ struct SettingsPage {
     .height(56)
     .padding({ left: 16, right: 16 })
     .backgroundColor(Color.White)
+  }
+
+  /**
+   * 确认启用通知
+   */
+  confirmEnableNotification(): void {
+    promptAction.showDialog({
+      title: '启用通知',
+      message: '开启通知后,应用将会在后台推送播客更新、下载完成等消息。\n\n是否允许启用通知功能?',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '允许', color: '#007AFF' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        // 用户点击"允许",申请通知权限
+        console.info('======>>> User confirmed: Enable notifications');
+        this.requestNotificationPermission();
+      } else {
+        // 用户点击"取消",保持关闭状态
+        console.info('======>>> User cancelled: Enable notifications');
+        this.settings.enableNotifications = false;
+      }
+    }).catch((error: Error) => {
+      console.error('Failed to show notification dialog:', error);
+    });
+  }
+  
+  /**
+   * 申请通知权限
+   */
+  async requestNotificationPermission(): Promise<void> {
+    try {
+      // 检查通知是否已启用
+      const isEnabled = await notificationManager.isNotificationEnabled();
+        
+      if (isEnabled) {
+        // 已有权限,直接启用
+        console.info('[SettingsPage] Notification permission already granted');
+        this.settings.enableNotifications = true;
+        this.settingsService.setEnableNotifications(true);
+        promptAction.showToast({
+          message: '通知已启用',
+          duration: 2000
+        });
+        return;
+      }
+  
+      // 请求通知权限
+      console.info('[SettingsPage] Requesting notification permission');
+      await notificationManager.requestEnableNotification();
+        
+      // 再次检查是否授权成功
+      const enabledAfterRequest = await notificationManager.isNotificationEnabled();
+        
+      if (enabledAfterRequest) {
+        console.info('[SettingsPage] Notification permission granted');
+        this.settings.enableNotifications = true;
+        this.settingsService.setEnableNotifications(true);
+        promptAction.showToast({
+          message: '通知已启用',
+          duration: 2000
+        });
+      } else {
+        console.warn('[SettingsPage] Notification permission denied by user');
+        this.settings.enableNotifications = false;
+        promptAction.showToast({
+          message: '用户拒绝了通知权限',
+          duration: 2000
+        });
+      }
+    } catch (error) {
+      const err = error as BusinessError;
+      console.error(`[SettingsPage] Failed to request notification permission: ${err.code}, ${err.message}`);
+      this.settings.enableNotifications = false;
+        
+      // 用户取消了权限请求
+      if (err.code === 1600004) {
+        promptAction.showToast({
+          message: '已取消通知权限申请',
+          duration: 2000
+        });
+      } else {
+        promptAction.showToast({
+          message: '通知权限申请失败',
+          duration: 2000
+        });
+      }
+    }
+  }
+
+  /**
+   * 确认启用新单集通知
+   */
+  confirmEnableNewEpisodeNotification(): void {
+    promptAction.showDialog({
+      title: '新单集通知',
+      message: '开启后,当订阅的播客发布新单集时,将会收到通知提醒。\n\n是否允许新单集通知?',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '允许', color: '#007AFF' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        // 用户点击"允许",检查并启用新单集通知
+        console.info('======>>> User confirmed: Enable new episode notifications');
+        this.checkAndEnableNewEpisodeNotification();
+      } else {
+        // 用户点击"取消",保持关闭状态
+        console.info('======>>> User cancelled: Enable new episode notifications');
+        this.settings.notifyNewEpisodes = false;
+      }
+    }).catch((error: Error) => {
+      console.error('Failed to show new episode notification dialog:', error);
+    });
+  }
+
+  /**
+   * 检查并启用新单集通知
+   */
+  async checkAndEnableNewEpisodeNotification(): Promise<void> {
+    try {
+      // 先检查主通知权限是否已启用
+      const isEnabled = await notificationManager.isNotificationEnabled();
+      
+      if (!isEnabled) {
+        // 主通知未启用,提示用户需要先启用主通知
+        promptAction.showDialog({
+          title: '需要启用通知',
+          message: '启用新单集通知需要先开启主通知功能。\n\n请先在"启用通知"选项中开启通知权限。',
+          buttons: [
+            { text: '知道了', color: '#007AFF' }
+          ]
+        }).then(() => {
+          this.settings.notifyNewEpisodes = false;
+        });
+        return;
+      }
+
+      // 主通知已启用,可以启用新单集通知
+      console.info('[SettingsPage] Enabling new episode notifications');
+      this.settings.notifyNewEpisodes = true;
+      this.settingsService.setNotifyNewEpisodes(true);
+      promptAction.showToast({
+        message: '新单集通知已启用',
+        duration: 2000
+      });
+    } catch (error) {
+      const err = error as BusinessError;
+      console.error(`[SettingsPage] Failed to check notification permission: ${err.code}, ${err.message}`);
+      this.settings.notifyNewEpisodes = false;
+      promptAction.showToast({
+        message: '检查通知权限失败',
+        duration: 2000
+      });
+    }
   }
 
   /**
