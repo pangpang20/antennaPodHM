@@ -4,6 +4,7 @@ import { PlayerService, PlayerState } from '../service/PlayerService';
 import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
 import { DatabaseService } from '../service/DatabaseService';
+import { DownloadService } from '../service/DownloadService';
 
 @Entry
 @Component
@@ -188,6 +189,7 @@ struct PlayerPage {
       .borderRadius(22)
       .onClick(() => {
         console.info('======>>> Click: More options');
+        this.showMoreOptionsMenu();
       })
     }
     .width('100%')
@@ -536,5 +538,61 @@ struct PlayerPage {
     } else {
       return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
+  }
+
+  /**
+   * 显示更多选项菜单
+   */
+  showMoreOptionsMenu(): void {
+    promptAction.showActionMenu({
+      title: '更多选项',
+      buttons: [
+        { text: '查看单集详情', color: '#000000' },
+        { text: '分享这一集', color: '#000000' },
+        { text: '下载到本地', color: '#000000' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      switch (result.index) {
+        case 0:
+          // 查看单集详情
+          if (this.currentEpisode) {
+            router.pushUrl({
+              url: 'pages/EpisodeDetailPage',
+              params: { episodeId: this.currentEpisode.id }
+            }).catch((err: Error) => {
+              console.error('Navigation failed:', err);
+            });
+          }
+          break;
+        case 1:
+          // 分享
+          promptAction.showToast({ 
+            message: '分享功能待实现', 
+            duration: 2000 
+          });
+          break;
+        case 2:
+          // 下载
+          if (this.currentEpisode) {
+            DownloadService.getInstance().downloadEpisode(this.currentEpisode)
+              .then(() => {
+                promptAction.showToast({ 
+                  message: '已添加到下载队列', 
+                  duration: 2000 
+                });
+              })
+              .catch((err: Error) => {
+                console.error('Download failed:', err);
+                promptAction.showToast({ 
+                  message: '下载失败', 
+                  duration: 2000 
+                });
+              });
+          }
+          break;
+      }
+    }).catch((err: Error) => {
+      console.info('More options menu cancelled');
+    });
   }
 }
