@@ -185,7 +185,7 @@ struct SearchPage {
                 .fontColor($r('app.color.text_secondary_light'))
                 .margin({ left: 8 })
             } else {
-              Text('下拉加载更多')
+              Text('上拉加载更多')
                 .fontSize(14)
                 .fontColor($r('app.color.text_secondary_light'))
             }
@@ -195,7 +195,7 @@ struct SearchPage {
           .justifyContent(FlexAlign.Center)
         }
         .onAppear(() => {
-          // 当加载更多项出现时，自动加载
+          // 当滚动到底部时，自动加载更多
           this.loadMore();
         })
       } else if (this.searchResults.length > 0) {
