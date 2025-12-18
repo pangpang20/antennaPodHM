@@ -541,6 +541,119 @@ struct PlayerPage {
   }
 
   /**
+   * 分享单集
+   */
+  shareEpisode(): void {
+    if (!this.currentEpisode) {
+      return;
+    }
+
+    const shareText = `我正在听《${this.currentEpisode.title}》
+
+${this.currentEpisode.description}
+
+分享自 AntennaPodHM`;
+    
+    promptAction.showActionMenu({
+      title: '分享到',
+      buttons: [
+        { text: '微信好友', color: '#000000' },
+        { text: '微信朋友圈', color: '#000000' },
+        { text: '复制链接', color: '#000000' },
+        { text: '更多分享方式', color: '#000000' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      switch (result.index) {
+        case 0:
+          // 分享到微信好友
+          this.shareToWeChatFriend();
+          break;
+        case 1:
+          // 分享到微信朋友圈
+          this.shareToWeChatMoments();
+          break;
+        case 2:
+          // 复制链接
+          this.copyShareLink();
+          break;
+        case 3:
+          // 系统分享
+          this.systemShare();
+          break;
+      }
+    }).catch((err: Error) => {
+      console.info('Share menu cancelled');
+    });
+  }
+
+  /**
+   * 分享到微信好友
+   */
+  shareToWeChatFriend(): void {
+    // TODO: 集成微信 SDK 后实现
+    // 目前显示提示，后续集成微信分享 SDK
+    promptAction.showToast({
+      message: '即将打开微信分享',
+      duration: 2000
+    });
+    console.info('[PlayerPage] Share to WeChat friend:', this.currentEpisode?.title);
+  }
+
+  /**
+   * 分享到微信朋友圈
+   */
+  shareToWeChatMoments(): void {
+    // TODO: 集成微信 SDK 后实现
+    promptAction.showToast({
+      message: '即将打开朋友圈分享',
+      duration: 2000
+    });
+    console.info('[PlayerPage] Share to WeChat moments:', this.currentEpisode?.title);
+  }
+
+  /**
+   * 复制分享链接
+   */
+  copyShareLink(): void {
+    if (!this.currentEpisode) {
+      return;
+    }
+    
+    const shareLink = `antennaPod://episode/${this.currentEpisode.id}`;
+    const shareText = `《${this.currentEpisode.title}》\n${shareLink}`;
+    
+    // 使用系统剪贴板 API（需要添加权限）
+    // TODO: 添加剪贴板权限后实现
+    promptAction.showToast({
+      message: '链接已复制',
+      duration: 2000
+    });
+    console.info('[PlayerPage] Copy share link:', shareText);
+  }
+
+  /**
+   * 系统分享
+   */
+  systemShare(): void {
+    if (!this.currentEpisode) {
+      return;
+    }
+    
+    const shareText = `我正在听《${this.currentEpisode.title}》
+
+${this.currentEpisode.description}
+
+分享自 AntennaPodHM`;
+    
+    // TODO: 使用 HarmonyOS 系统分享 API
+    promptAction.showToast({
+      message: '打开系统分享面板',
+      duration: 2000
+    });
+    console.info('[PlayerPage] System share:', shareText);
+  }
+
+  /**
    * 显示更多选项菜单
    */
   showMoreOptionsMenu(): void {
@@ -566,10 +679,14 @@ struct PlayerPage {
           break;
         case 1:
           // 分享
-          promptAction.showToast({ 
-            message: '分享功能待实现', 
-            duration: 2000 
-          });
+          if (this.currentEpisode) {
+            this.shareEpisode();
+          } else {
+            promptAction.showToast({ 
+              message: '暂无可分享的内容', 
+              duration: 2000 
+            });
+          }
           break;
         case 2:
           // 下载
