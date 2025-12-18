@@ -179,37 +179,39 @@ struct SearchPage {
       // 加载更多按钮
       if (this.hasMore) {
         ListItem() {
-          Button() {
-            Row() {
-              if (this.isLoadingMore) {
-                LoadingProgress()
-                  .width(20)
-                  .height(20)
-                  .color(Color.White)
-                Text('加载中...')
-                  .fontSize(14)
-                  .fontColor(Color.White)
-                  .margin({ left: 8 })
-              } else {
-                Text('点击加载更多')
-                  .fontSize(14)
-                  .fontColor(Color.White)
+          Row() {
+            Button() {
+              Row() {
+                if (this.isLoadingMore) {
+                  LoadingProgress()
+                    .width(20)
+                    .height(20)
+                    .color(Color.White)
+                  Text('加载中...')
+                    .fontSize(14)
+                    .fontColor(Color.White)
+                    .margin({ left: 8 })
+                } else {
+                  Text('点击加载更多')
+                    .fontSize(14)
+                    .fontColor(Color.White)
+                }
               }
             }
+            .width('80%')
+            .height(40)
+            .backgroundColor('#007AFF')
+            .borderRadius(20)
+            .enabled(!this.isLoadingMore)
+            .onClick(() => {
+              console.info('======>>> Click: Load more');
+              this.loadMore();
+            })
           }
-          .width('80%')
-          .height(40)
-          .backgroundColor('#007AFF')
-          .borderRadius(20)
-          .enabled(!this.isLoadingMore)
-          .onClick(() => {
-            console.info('======>>> Click: Load more');
-            this.loadMore();
-          })
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
         }
-        .width('100%')
         .padding({ top: 12, bottom: 12 })
-        .justifyContent(FlexAlign.Center)
       } else if (this.searchResults.length > 0) {
         ListItem() {
           Text('没有更多了')
