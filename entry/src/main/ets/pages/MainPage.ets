@@ -26,6 +26,8 @@ struct MainPage {
   @State episodesPage: number = 1;  // 单集当前页
   @State episodesPageSize: number = 20;  // 每页数量
   @State episodesHasMore: boolean = false;  // 是否还有更多
+  @State episodeSearchKeyword: string = '';  // 单集搜索关键词
+  @State filteredEpisodes: Episode[] = [];  // 过滤后的单集列表
   @State queueEpisodes: Episode[] = [];  // 待听队列
   private playerService: PlayerService = PlayerService.getInstance();
   private dbService: DatabaseService = DatabaseService.getInstance();
@@ -176,6 +178,10 @@ struct MainPage {
       const showCount = this.episodesPage * this.episodesPageSize;
       this.allEpisodes = allEps.slice(0, showCount);
       this.episodesHasMore = allEps.length > showCount;
+      
+      // 应用搜索过滤
+      this.filterEpisodes();
+      
       console.info(`[MainPage] Loaded ${this.allEpisodes.length}/${allEps.length} episodes (page ${this.episodesPage})`);
     } catch (error) {
       console.error('[MainPage] Failed to load episodes:', error);
@@ -188,6 +194,33 @@ struct MainPage {
   async loadMoreEpisodes() {
     this.episodesPage++;
     await this.loadAllEpisodes();
+  }
+
+  /**
+   * 过滤单集列表
+   */
+  filterEpisodes() {
+    if (!this.episodeSearchKeyword || this.episodeSearchKeyword.trim() === '') {
+      // 没有搜索关键词，显示所有单集
+      this.filteredEpisodes = this.allEpisodes;
+    } else {
+      // 模糊搜索：匹配标题或描述
+      const keyword = this.episodeSearchKeyword.toLowerCase();
+      this.filteredEpisodes = this.allEpisodes.filter(episode => {
+        const titleMatch = episode.title.toLowerCase().includes(keyword);
+        const descMatch = episode.description.toLowerCase().includes(keyword);
+        return titleMatch || descMatch;
+      });
+      console.info(`[MainPage] Filtered ${this.filteredEpisodes.length}/${this.allEpisodes.length} episodes with keyword: ${this.episodeSearchKeyword}`);
+    }
+  }
+
+  /**
+   * 处理搜索输入变化
+   */
+  onEpisodeSearchChange(value: string) {
+    this.episodeSearchKeyword = value;
+    this.filterEpisodes();
   }
 
   /**
@@ -468,18 +501,37 @@ struct MainPage {
   @Builder
   buildEpisodesTab() {
     Column() {
+      // 搜索框
+      Row() {
+        Search({ placeholder: '搜索单集标题或描述', value: this.episodeSearchKeyword })
+          .width('100%')
+          .height(40)
+          .backgroundColor(Color.White)
+          .onChange((value: string) => {
+            this.onEpisodeSearchChange(value);
+          })
+          .onSubmit((value: string) => {
+            this.onEpisodeSearchChange(value);
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 12, bottom: 8 })
+
       if (this.allEpisodes.length === 0) {
         this.buildEmptyView('暂无单集', '订阅播客后将显示在这里');
+      } else if (this.filteredEpisodes.length === 0 && this.episodeSearchKeyword) {
+        // 有搜索关键词但没有结果
+        this.buildEmptyView('未找到匹配的单集', '尝试使用其他关键词');
       } else {
         List({ space: 8 }) {
-          ForEach(this.allEpisodes, (episode: Episode) => {
+          ForEach(this.filteredEpisodes, (episode: Episode) => {
             ListItem() {
               this.buildEpisodeItemWithDate(episode);
             }
           }, (episode: Episode) => episode.id)
 
-          // 加载更多按钮
-          if (this.episodesHasMore) {
+          // 加载更多按钮（仅在没有搜索时显示）
+          if (this.episodesHasMore && !this.episodeSearchKeyword) {
             ListItem() {
               Row() {
                 Button('加载更多')
