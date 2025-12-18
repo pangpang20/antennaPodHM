@@ -14,6 +14,7 @@ struct PlayerPage {
   @State playbackSpeed: number = 1.0;
   @State showSpeedSelector: boolean = false;
   @State sleepTimerMinutes: number = 0;
+  @State sleepTimerRemaining: number = 0;  // 剩余秒数
   
   private playerService: PlayerService = PlayerService.getInstance();
   private updateTimer: number = -1;
@@ -88,9 +89,14 @@ struct PlayerPage {
       if (this.playerState === PlayerState.PLAYING) {
         const newPosition = this.playerService.getCurrentPosition();
         const newDuration = this.playerService.getDuration();
-        // 移除频繁的日志输出
         this.currentPosition = newPosition;
         this.duration = newDuration;
+      }
+      
+      // 更新睡眠定时器剩余时间
+      this.sleepTimerRemaining = this.playerService.getSleepTimerRemaining();
+      if (this.sleepTimerRemaining <= 0) {
+        this.sleepTimerMinutes = 0;
       }
     }, 1000);
   }
@@ -284,16 +290,30 @@ struct PlayerPage {
 
       Blank()
 
-      // 睡眠定时器
-      Button() {
-        Text('⏰')
-          .fontSize(20)
+      // 睡眠定时器（显示倒计时）
+      Column() {
+        Button() {
+          Row() {
+            Text('⏰')
+              .fontSize(20)
+            if (this.sleepTimerRemaining > 0) {
+              Text(this.formatSleepTimer(this.sleepTimerRemaining))
+                .fontSize(12)
+                .fontColor('#FF6B9D')
+                .fontWeight(FontWeight.Medium)
+                .margin({ left: 4 })
+            }
+          }
+        }
+        .height(36)
+        .padding({ left: 12, right: 12 })
+        .backgroundColor(this.sleepTimerRemaining > 0 ? '#FFF0F5' : Color.Transparent)
+        .borderRadius(18)
+        .onClick(() => {
+          console.info('======>>> Click: Sleep timer');
+          this.showSleepTimerMenu();
+        })
       }
-      .backgroundColor(Color.Transparent)
-      .onClick(() => {
-        console.info('======>>> Click: Sleep timer');
-        this.showSleepTimerMenu();
-      })
 
       Blank()
 
@@ -315,6 +335,19 @@ struct PlayerPage {
     }
     .width('100%')
     .padding({ left: 40, right: 40, top: 40 })
+  }
+
+  /**
+   * 格式化睡眠定时器剩余时间
+   */
+  formatSleepTimer(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) {
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    } else {
+      return `${secs}s`;
+    }
   }
 
   showSpeedSelectorMenu(): void {

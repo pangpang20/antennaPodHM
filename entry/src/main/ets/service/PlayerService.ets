@@ -30,6 +30,7 @@ export class PlayerService {
   private isBackgroundRunning: boolean = false;
   private sleepTimerId: number = -1;
   private sleepTimerMinutes: number = 0;
+  private sleepTimerStartTime: number = 0;  // 定时器开始时间戳
 
   private constructor() {}
 
@@ -566,6 +567,7 @@ export class PlayerService {
     }
 
     this.sleepTimerMinutes = minutes;
+    this.sleepTimerStartTime = minutes > 0 ? Date.now() : 0;
 
     if (minutes > 0) {
       this.sleepTimerId = setTimeout(() => {
@@ -573,6 +575,7 @@ export class PlayerService {
         this.pause();
         this.sleepTimerId = -1;
         this.sleepTimerMinutes = 0;
+        this.sleepTimerStartTime = 0;
         this.notifyListeners('sleepTimerEnd', null);
       }, minutes * 60 * 1000);
     }
@@ -586,6 +589,20 @@ export class PlayerService {
   }
 
   /**
+   * 获取睡眠定时器剩余秒数
+   */
+  getSleepTimerRemaining(): number {
+    if (this.sleepTimerMinutes <= 0 || this.sleepTimerStartTime <= 0) {
+      return 0;
+    }
+    
+    const elapsed = Date.now() - this.sleepTimerStartTime;
+    const totalMs = this.sleepTimerMinutes * 60 * 1000;
+    const remaining = Math.max(0, totalMs - elapsed);
+    return Math.ceil(remaining / 1000);  // 返回剩余秒数
+  }
+
+  /**
    * 清除睡眠定时器
    */
   clearSleepTimer(): void {
@@ -594,6 +611,7 @@ export class PlayerService {
       this.sleepTimerId = -1;
     }
     this.sleepTimerMinutes = 0;
+    this.sleepTimerStartTime = 0;
   }
 
   /**
