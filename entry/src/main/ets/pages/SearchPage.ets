@@ -15,6 +15,10 @@ struct SearchPage {
   @State subscribingId: string = '';
   @State isAddingByUrl: boolean = false;
   @State subscribedPodcastIds: Set<string> = new Set();
+  @State isLoadingMore: boolean = false;
+  @State hasMore: boolean = true;
+  private currentOffset: number = 0;
+  private pageSize: number = 20;
 
   async aboutToAppear() {
     await this.loadSubscribedIds();
@@ -167,6 +171,43 @@ struct SearchPage {
           this.buildPodcastItem(podcast);
         }
       }, (podcast: Podcast) => podcast.id)
+
+      // 加载更多指示器
+      if (this.hasMore) {
+        ListItem() {
+          Row() {
+            if (this.isLoadingMore) {
+              LoadingProgress()
+                .width(30)
+                .height(30)
+              Text('加载中...')
+                .fontSize(14)
+                .fontColor($r('app.color.text_secondary_light'))
+                .margin({ left: 8 })
+            } else {
+              Text('下拉加载更多')
+                .fontSize(14)
+                .fontColor($r('app.color.text_secondary_light'))
+            }
+          }
+          .width('100%')
+          .height(60)
+          .justifyContent(FlexAlign.Center)
+        }
+        .onAppear(() => {
+          // 当加载更多项出现时，自动加载
+          this.loadMore();
+        })
+      } else if (this.searchResults.length > 0) {
+        ListItem() {
+          Text('没有更多了')
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary_light'))
+            .width('100%')
+            .height(60)
+            .textAlign(TextAlign.Center)
+        }
+      }
     }
     .width('100%')
     .layoutWeight(1)
@@ -240,12 +281,67 @@ struct SearchPage {
     }
 
     this.isSearching = true;
+    this.currentOffset = 0;
+    this.hasMore = true;
+    
     try {
-      this.searchResults = await PodcastService.getInstance().searchPodcasts(this.searchKeyword);
+      const results = await PodcastService.getInstance().searchPodcasts(this.searchKeyword, 0, this.pageSize);
+      this.searchResults = results;
+      
+      // 如果返回结果少于 pageSize，说明没有更多了
+      if (results.length < this.pageSize) {
+        this.hasMore = false;
+      } else {
+        this.currentOffset = this.pageSize;
+      }
+      
+      console.info(`[SearchPage] Search completed, got ${results.length} results`);
     } catch (error) {
       console.error('Search failed:', error);
+      this.searchResults = [];
+      this.hasMore = false;
     } finally {
       this.isSearching = false;
+    }
+  }
+
+  /**
+   * 加载更多
+   */
+  async loadMore() {
+    if (this.isLoadingMore || !this.hasMore || this.searchKeyword.trim().length === 0) {
+      return;
+    }
+
+    this.isLoadingMore = true;
+    
+    try {
+      console.info(`[SearchPage] Loading more from offset ${this.currentOffset}`);
+      const results = await PodcastService.getInstance().searchPodcasts(
+        this.searchKeyword, 
+        this.currentOffset, 
+        this.pageSize
+      );
+      
+      if (results.length > 0) {
+        this.searchResults = [...this.searchResults, ...results];
+        this.currentOffset += results.length;
+        
+        // 如果返回结果少于 pageSize，说明没有更多了
+        if (results.length < this.pageSize) {
+          this.hasMore = false;
+        }
+        
+        console.info(`[SearchPage] Loaded ${results.length} more results, total: ${this.searchResults.length}`);
+      } else {
+        this.hasMore = false;
+        console.info('[SearchPage] No more results');
+      }
+    } catch (error) {
+      console.error('Load more failed:', error);
+      this.hasMore = false;
+    } finally {
+      this.isLoadingMore = false;
     }
   }
 
