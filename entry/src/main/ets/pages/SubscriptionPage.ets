@@ -2,30 +2,72 @@ import { router } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { PodcastService } from '../service/PodcastService';
 import { promptAction } from '@kit.ArkUI';
+import { PlayerService } from '../service/PlayerService';
 
 @Entry
 @Component
 struct SubscriptionPage {
   @State podcasts: Podcast[] = [];
   @State isLoading: boolean = false;
+  @State hasCurrentEpisode: boolean = false;
+  private refreshTimer: number = -1;
+  private playerService: PlayerService = PlayerService.getInstance();
 
   aboutToAppear() {
     this.loadSubscriptions();
+    // 检查是否有正在播放的单集
+    this.checkCurrentEpisode();
+    // 启动定时器，每5秒刷新一次（检测后台更新）
+    this.refreshTimer = setInterval(() => {
+      this.loadSubscriptions();
+      this.checkCurrentEpisode();
+    }, 5000);
+  }
+
+  aboutToDisappear() {
+    // 页面销毁时清除定时器
+    if (this.refreshTimer !== -1) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = -1;
+    }
   }
 
   onPageShow() {
     // 从其他页面返回时刷新订阅列表
     this.loadSubscriptions();
+    this.checkCurrentEpisode();
   }
 
   async loadSubscriptions() {
     this.isLoading = true;
     try {
-      this.podcasts = await PodcastService.getInstance().getSubscribedPodcasts();
+      const newPodcasts = await PodcastService.getInstance().getSubscribedPodcasts();
+      console.info(`[SubscriptionPage] Loaded ${newPodcasts.length} podcasts`);
+      newPodcasts.forEach(p => {
+        console.info(`[SubscriptionPage] - ${p.title}: ${p.episodeCount} 集`);
+      });
+      this.podcasts = newPodcasts;
     } catch (error) {
-      console.error('Failed to load subscriptions:', error);
+      console.error('[SubscriptionPage] Failed to load subscriptions:', error);
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  checkCurrentEpisode() {
+    const currentEpisode = this.playerService.getCurrentEpisode();
+    this.hasCurrentEpisode = currentEpisode !== null;
+  }
+
+  openPlayerPage() {
+    const currentEpisode = this.playerService.getCurrentEpisode();
+    if (currentEpisode) {
+      router.pushUrl({
+        url: 'pages/PlayerPage',
+        params: { episodeId: currentEpisode.id }
+      }).catch((err: Error) => {
+        console.error('Navigation failed:', err);
+      });
     }
   }
 
@@ -54,10 +96,41 @@ struct SubscriptionPage {
         .layoutWeight(1)
         .padding(16)
       }
+
+      // 快速打开播放页面按钮
+      if (this.hasCurrentEpisode) {
+        this.buildPlayerButton();
+      }
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.background_light'))
+  }
+
+  @Builder
+  buildPlayerButton() {
+    Row() {
+      Button() {
+        Row() {
+          Text('▶')
+            .fontSize(20)
+            .margin({ right: 8 })
+          Text('正在播放')
+            .fontSize(16)
+        }
+      }
+      .width('100%')
+      .height(56)
+      .type(ButtonType.Normal)
+      .borderRadius(28)
+      .backgroundColor('#007AFF')
+      .onClick(() => {
+        this.openPlayerPage();
+      })
+    }
+    .width('100%')
+    .padding({ left: 16, right: 16, bottom: 16 })
+    .backgroundColor(Color.White)
   }
 
   @Builder

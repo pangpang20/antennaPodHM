@@ -32,11 +32,13 @@ struct PlayerPage {
     });
 
     this.playerService.addEventListener('timeUpdate', (time: number) => {
+      console.info(`[PlayerPage] timeUpdate event received: ${time}s`);
       this.currentPosition = time;
     });
 
     // 监听时长更新
     this.playerService.addEventListener('durationUpdate', (duration: number) => {
+      console.info(`[PlayerPage] durationUpdate event received: ${duration}s`);
       this.duration = duration;
     });
 
@@ -79,8 +81,11 @@ struct PlayerPage {
   startUpdateTimer() {
     this.updateTimer = setInterval(() => {
       if (this.playerState === PlayerState.PLAYING) {
-        this.currentPosition = this.playerService.getCurrentPosition();
-        this.duration = this.playerService.getDuration();
+        const newPosition = this.playerService.getCurrentPosition();
+        const newDuration = this.playerService.getDuration();
+        console.info(`[PlayerPage] Timer update - position: ${newPosition}s, duration: ${newDuration}s`);
+        this.currentPosition = newPosition;
+        this.duration = newDuration;
       }
     }, 1000);
   }
