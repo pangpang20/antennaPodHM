@@ -233,7 +233,7 @@ struct PlayerPage {
   @Builder
   buildPlaybackControls() {
     Row() {
-      // 后逘15秒
+      // 后退15秒
       Button() {
         Text('⏪')
           .fontSize(28)
@@ -245,6 +245,10 @@ struct PlayerPage {
         console.info('======>>> Click: Rewind 15s');
         const newPosition = Math.max(0, this.currentPosition - 15);
         this.playerService.seek(newPosition);
+        promptAction.showToast({
+          message: '快退 15 秒',
+          duration: 1000
+        });
       })
   
       Blank()
@@ -284,6 +288,10 @@ struct PlayerPage {
         console.info('======>>> Click: Forward 30s');
         const newPosition = Math.min(this.duration, this.currentPosition + 30);
         this.playerService.seek(newPosition);
+        promptAction.showToast({
+          message: '快进 30 秒',
+          duration: 1000
+        });
       })
     }
     .width('100%')

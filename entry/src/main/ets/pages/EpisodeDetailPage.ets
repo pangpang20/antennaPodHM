@@ -67,9 +67,19 @@ struct EpisodeDetailPage {
     if (this.episode) {
       console.info(`======>>> Click: Play episode - ${this.episode.title}`);
       this.playerService.playEpisode(this.episode);
-      promptAction.showToast({
-        message: '开始播放',
-        duration: 2000
+      
+      // 跳转到播放页面
+      router.pushUrl({
+        url: 'pages/PlayerPage',
+        params: { episodeId: this.episode.id }
+      }).then(() => {
+        console.info('[EpisodeDetailPage] Navigation to PlayerPage success');
+      }).catch((err: Error) => {
+        console.error('[EpisodeDetailPage] Navigation to PlayerPage failed:', err);
+        promptAction.showToast({
+          message: '跳转失败',
+          duration: 2000
+        });
       });
     }
   }
@@ -268,18 +278,18 @@ struct EpisodeDetailPage {
         Row() {
           Text('▶')
             .fontSize(18)
-            .fontColor(Color.White)
+            .fontColor('#5C6BC0')
             .margin({ right: 8 })
 
           Text('播放')
             .fontSize(16)
-            .fontColor(Color.White)
+            .fontColor('#5C6BC0')
         }
       }
       .width('100%')
       .height(48)
-      .backgroundColor('#5C6BC0')
-      .borderRadius(24)
+      .backgroundColor(Color.Transparent)
+      .border({ width: 2, color: '#5C6BC0', radius: 24 })
       .onClick(() => {
         this.playEpisode();
       })
@@ -294,24 +304,24 @@ struct EpisodeDetailPage {
                 LoadingProgress()
                   .width(16)
                   .height(16)
-                  .color(Color.White)
+                  .color('#4CAF50')
                   .margin({ right: 6 })
               } else {
                 Text('⬇')
                   .fontSize(16)
-                  .fontColor(Color.White)
+                  .fontColor('#4CAF50')
                   .margin({ right: 6 })
               }
 
               Text(this.isDownloading ? `${this.downloadProgress}%` : '下载')
                 .fontSize(14)
-                .fontColor(Color.White)
+                .fontColor('#4CAF50')
             }
           }
           .layoutWeight(1)
           .height(44)
-          .backgroundColor('#4CAF50')
-          .borderRadius(22)
+          .backgroundColor(Color.Transparent)
+          .border({ width: 2, color: '#4CAF50', radius: 22 })
           .enabled(!this.isDownloading)
           .onClick(() => {
             this.downloadEpisode();
@@ -323,18 +333,18 @@ struct EpisodeDetailPage {
           Row() {
             Text('+')
               .fontSize(18)
-              .fontColor(Color.White)
+              .fontColor('#FF9800')
               .margin({ right: 6 })
 
             Text('待听')
               .fontSize(14)
-              .fontColor(Color.White)
+              .fontColor('#FF9800')
           }
         }
         .layoutWeight(1)
         .height(44)
-        .backgroundColor('#FF9800')
-        .borderRadius(22)
+        .backgroundColor(Color.Transparent)
+        .border({ width: 2, color: '#FF9800', radius: 22 })
         .margin({ left: this.episode?.downloadStatus !== DownloadStatus.DOWNLOADED ? 12 : 0 })
         .onClick(() => {
           this.addToQueue();
