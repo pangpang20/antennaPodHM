@@ -56,16 +56,23 @@ struct PodcastDetailPage {
             message: `无法连接到播客RSS地址，可能原因：
 
 1. 该播客服务器在国外，需要科学上网访问
-2. 网络连接不稳定或超时
+2. 网络连接不稳定或超时（15秒）
 3. RSS地址不可用
 
 建议：
-\u2022 开启科学上网工具后重试
-\u2022 检查网络连接
-\u2022 稍后再试`,
+• 开启科学上网工具后点击“重试”
+• 检查网络连接
+• 稍后再试`,
             buttons: [
-              { text: '知道了', color: '#007AFF' }
+              { text: '取消', color: '#999999' },
+              { text: '重试', color: '#007AFF' }
             ]
+          }).then((result: promptAction.ActionMenuSuccessResponse) => {
+            if (result.index === 1) {
+              // 用户点击“重试”
+              console.info('[PodcastDetailPage] User clicked retry, reloading podcast detail');
+              this.loadPodcastDetail();
+            }
           }).catch((err: Error) => {
             console.error('[PodcastDetailPage] Failed to show error dialog:', err);
           });
