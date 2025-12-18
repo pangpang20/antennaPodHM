@@ -2,7 +2,7 @@
     "string": [
         {
             "name": "module_desc",
-            "value": "AntennaPod entry module"
+            "value": "AntennaPodHM entry module"
         },
         {
             "name": "EntryAbility_desc",
@@ -10,7 +10,7 @@
         },
         {
             "name": "EntryAbility_label",
-            "value": "AntennaPod"
+            "value": "AntennaPodHM"
         },
         {
             "name": "permission_internet_reason",

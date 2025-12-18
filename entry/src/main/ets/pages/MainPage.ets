@@ -75,7 +75,7 @@ struct MainPage {
   @Builder
   buildHeader() {
     Row() {
-      Text('AntennaPod')
+      Text('AntennaPodHM')
         .fontSize(24)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary_light'))

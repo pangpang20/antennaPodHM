@@ -1,7 +1,8 @@
-import { router } from '@kit.ArkUI';
+import { router, promptAction } from '@kit.ArkUI';
 import { Episode } from '../model/Episode';
 import { PlayerService, PlayerState } from '../service/PlayerService';
 import { Constants } from '../common/Constants';
+import { DatabaseService } from '../service/DatabaseService';
 
 @Entry
 @Component
@@ -12,9 +13,11 @@ struct PlayerPage {
   @State duration: number = 0;
   @State playbackSpeed: number = 1.0;
   @State showSpeedSelector: boolean = false;
+  @State sleepTimerMinutes: number = 0;
   
   private playerService: PlayerService = PlayerService.getInstance();
   private updateTimer: number = -1;
+  private sleepTimerId: number = -1;
 
   aboutToAppear() {
     const params = router.getParams() as Record<string, Object>;
@@ -40,11 +43,27 @@ struct PlayerPage {
     if (this.updateTimer !== -1) {
       clearInterval(this.updateTimer);
     }
+    if (this.sleepTimerId !== -1) {
+      clearTimeout(this.sleepTimerId);
+      this.sleepTimerId = -1;
+    }
   }
 
   async loadEpisode(episodeId: string) {
-    // 加载Episode数据
-    // 这里简化处理，实际需要从数据库加载
+    try {
+      const db = DatabaseService.getInstance();
+      const episode = await db.getEpisodeById(episodeId);
+      if (!episode) {
+        console.warn('Episode not found for id:', episodeId);
+        return;
+      }
+
+      this.currentEpisode = episode;
+      this.currentPosition = episode.playbackPosition;
+      this.duration = episode.duration;
+    } catch (error) {
+      console.error('Failed to load episode:', error);
+    }
   }
 
   startUpdateTimer() {
@@ -230,7 +249,7 @@ struct PlayerPage {
           .fontSize(14)
       }
       .onClick(() => {
-        this.showSpeedSelector = true;
+        this.showSpeedSelectorMenu();
       })
 
       Blank()
@@ -241,6 +260,9 @@ struct PlayerPage {
           .fontSize(20)
       }
       .backgroundColor(Color.Transparent)
+      .onClick(() => {
+        this.showSleepTimerMenu();
+      })
 
       Blank()
 
@@ -250,9 +272,77 @@ struct PlayerPage {
           .fontSize(20)
       }
       .backgroundColor(Color.Transparent)
+      .onClick(() => {
+        if (!this.currentEpisode) {
+          console.warn('No current episode to add to queue');
+          return;
+        }
+        this.playerService.addToQueue(this.currentEpisode);
+        promptAction.showToast({ message: '已添加到待听列表', duration: 2000 });
+      })
     }
     .width('100%')
     .padding({ left: 40, right: 40, top: 40 })
+  }
+
+  showSpeedSelectorMenu(): void {
+    promptAction.showActionMenu({
+      title: '选择播放速度',
+      buttons: [
+        { text: '0.5x', color: '#000000' },
+        { text: '0.75x', color: '#000000' },
+        { text: '1.0x', color: '#000000' },
+        { text: '1.25x', color: '#000000' },
+        { text: '1.5x', color: '#000000' },
+        { text: '2.0x', color: '#000000' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      const speeds: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+      const selectedSpeed = speeds[result.index];
+      this.playbackSpeed = selectedSpeed;
+      this.playerService.setPlaybackSpeed(selectedSpeed);
+    }).catch((err: Error) => {
+      console.info('Speed selection cancelled');
+    });
+  }
+
+  showSleepTimerMenu(): void {
+    promptAction.showActionMenu({
+      title: '定时关闭',
+      buttons: [
+        { text: '关闭定时', color: '#000000' },
+        { text: '15 分钟', color: '#000000' },
+        { text: '30 分钟', color: '#000000' },
+        { text: '45 分钟', color: '#000000' },
+        { text: '60 分钟', color: '#000000' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      const minutesOptions: number[] = [0, 15, 30, 45, 60];
+      const minutes = minutesOptions[result.index];
+      this.setSleepTimer(minutes);
+      const msg = minutes > 0 ? `已设置定时关闭：${minutes} 分钟` : '已关闭定时播放';
+      promptAction.showToast({ message: msg, duration: 2000 });
+    }).catch((err: Error) => {
+      console.info('Sleep timer selection cancelled');
+    });
+  }
+
+  setSleepTimer(minutes: number): void {
+    if (this.sleepTimerId !== -1) {
+      clearTimeout(this.sleepTimerId);
+      this.sleepTimerId = -1;
+    }
+
+    this.sleepTimerMinutes = minutes;
+
+    if (minutes > 0) {
+      this.sleepTimerId = setTimeout(() => {
+        this.playerService.pause();
+        this.sleepTimerId = -1;
+        this.sleepTimerMinutes = 0;
+        promptAction.showToast({ message: '定时播放结束，已暂停', duration: 2000 });
+      }, minutes * 60 * 1000);
+    }
   }
 
   formatTime(milliseconds: number): string {

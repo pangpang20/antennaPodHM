@@ -1,10 +1,20 @@
 import router from '@ohos.router';
 import { Episode } from '../model/Episode';
+import { PlayerService } from '../service/PlayerService';
 
 @Entry
 @Component
 struct QueuePage {
   @State queueItems: Episode[] = [];
+  private playerService: PlayerService = PlayerService.getInstance();
+
+  aboutToAppear() {
+    this.loadQueue();
+  }
+
+  loadQueue() {
+    this.queueItems = this.playerService.getQueue();
+  }
 
   build() {
     Column() {
@@ -33,6 +43,7 @@ struct QueuePage {
 
       Button('清空')
         .onClick(() => {
+          this.playerService.clearQueue();
           this.queueItems = [];
         })
     }
@@ -104,7 +115,8 @@ struct QueuePage {
       Button('移除')
         .height(36)
         .onClick(() => {
-          this.queueItems.splice(index, 1);
+          this.playerService.removeFromQueue(index);
+          this.queueItems = this.playerService.getQueue();
         })
     }
     .width('100%')

@@ -377,6 +377,29 @@ export class PlayerService {
   }
 
   /**
+   * 播放队列相关
+   */
+  private playQueue: Episode[] = [];
+
+  addToQueue(episode: Episode): void {
+    this.playQueue.push(episode);
+  }
+
+  getQueue(): Episode[] {
+    return this.playQueue.slice();
+  }
+
+  clearQueue(): void {
+    this.playQueue = [];
+  }
+
+  removeFromQueue(index: number): void {
+    if (index >= 0 && index < this.playQueue.length) {
+      this.playQueue.splice(index, 1);
+    }
+  }
+
+  /**
    * 添加事件监听器
    */
   addEventListener(event: string, callback: Function): void {

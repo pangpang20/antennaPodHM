@@ -186,6 +186,29 @@ export class DatabaseService {
   }
 
   /**
+   * 根据ID查询单个Episode
+   */
+  async getEpisodeById(episodeId: string): Promise<Episode | null> {
+    if (!this.rdbStore) return null;
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_EPISODE);
+      predicates.equalTo('id', episodeId);
+
+      const resultSet = await this.rdbStore.query(predicates);
+      let episode: Episode | null = null;
+      if (resultSet.goToNextRow()) {
+        episode = this.parseEpisodeFromResultSet(resultSet);
+      }
+      resultSet.close();
+      return episode;
+    } catch (error) {
+      console.error('Failed to query episode by id:', error);
+      return null;
+    }
+  }
+
+  /**
    * 插入Episode
    */
   async insertEpisode(episode: Episode): Promise<number> {
