@@ -319,7 +319,7 @@ struct PlayerPage {
             if (this.sleepTimerRemaining > 0) {
               Text(this.formatSleepTimer(this.sleepTimerRemaining))
                 .fontSize(12)
-                .fontColor('#FF6B9D')
+                .fontColor('#5C6BC0')
                 .fontWeight(FontWeight.Medium)
                 .margin({ left: 4 })
             }

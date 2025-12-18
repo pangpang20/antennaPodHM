@@ -439,7 +439,7 @@ struct MainPage {
                   .width('100%')
                   .height(44)
                   .fontSize(14)
-                  .backgroundColor('#FF6B9D')
+                  .backgroundColor('#5C6BC0')
                   .fontColor(Color.White)
                   .onClick(() => {
                     console.info('======>>> Click: Load more episodes');
@@ -490,7 +490,7 @@ struct MainPage {
         Row() {
           Text(episode.getFormattedPubDate())
             .fontSize(12)
-            .fontColor('#FF6B9D')
+            .fontColor('#5C6BC0')
 
           Text(` · ${episode.getFormattedDuration()}`)
             .fontSize(12)
@@ -644,7 +644,7 @@ struct MainPage {
                   Button('▶ 播放')
                     .height(32)
                     .fontSize(12)
-                    .backgroundColor('#FF6B9D')
+                    .backgroundColor('#5C6BC0')
                     .fontColor(Color.White)
                     .onClick(() => {
                       console.info(`======>>> Click: Play downloaded - ${episode.title}`);
@@ -798,7 +798,7 @@ struct MainPage {
         Button('▶ 播放')
           .height(28)
           .fontSize(11)
-          .backgroundColor('#FF6B9D')
+          .backgroundColor('#5C6BC0')
           .fontColor(Color.White)
           .onClick(() => {
             console.info(`======>>> Click: Play episode - ${episode.title}`);
@@ -835,7 +835,7 @@ struct MainPage {
       Text(`${index + 1}`)
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#FF6B9D')
+        .fontColor('#5C6BC0')
         .width(28)
         .textAlign(TextAlign.Center)
 
@@ -869,7 +869,7 @@ struct MainPage {
         .width(34)
         .height(34)
         .fontSize(12)
-        .backgroundColor('#FF6B9D')
+        .backgroundColor('#5C6BC0')
         .fontColor(Color.White)
         .borderRadius(17)
         .flexShrink(0)
@@ -908,7 +908,7 @@ struct MainPage {
         Progress({ value: this.playProgress, total: 100, type: ProgressType.Linear })
           .width('100%')
           .height(2)
-          .color('#FF6B9D')
+          .color('#5C6BC0')
           .backgroundColor('#E0E0E0')
       }
       .width('100%')
@@ -958,7 +958,7 @@ struct MainPage {
                 .fontColor('#AAAAAA')
               Text(`⏰ ${this.formatSleepTimer(this.sleepTimerRemaining)}`)
                 .fontSize(11)
-                .fontColor('#FF6B9D')
+                .fontColor('#5C6BC0')
                 .fontWeight(FontWeight.Medium)
             }
           }
@@ -980,7 +980,7 @@ struct MainPage {
         }
         .width(40)
         .height(40)
-        .backgroundColor('#FF6B9D')
+        .backgroundColor('#5C6BC0')
         .borderRadius(20)
         .onClick(() => {
           console.info(`======>>> Click: Mini player play/pause - isPlaying: ${this.isPlaying}`);
