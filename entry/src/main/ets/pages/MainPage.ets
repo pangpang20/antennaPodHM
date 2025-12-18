@@ -883,7 +883,7 @@ struct MainPage {
         }
         .width(36)
         .height(36)
-        .backgroundColor('#5C6BC0')
+        .backgroundColor('#4854A8')  // 更深的紫色
         .borderRadius(18)
         .flexShrink(0)
         .onClick(() => {
@@ -895,11 +895,12 @@ struct MainPage {
         Button() {
           Text('🗑')
             .fontSize(16)
+            .fontColor('#D32F2F')  // 深红色文字
         }
         .width(36)
         .height(36)
-        .backgroundColor(Color.Transparent)
-        .border({ width: 1, color: '#FF5252', radius: 18 })
+        .backgroundColor('#FFEBEE')  // 淡红色背景
+        .border({ width: 1.5, color: '#D32F2F', radius: 18 })  // 深红色边框
         .margin({ left: 8 })
         .flexShrink(0)
         .onClick(() => {

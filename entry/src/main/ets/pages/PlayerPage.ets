@@ -225,7 +225,6 @@ struct PlayerPage {
         .fontWeight(FontWeight.Bold)
         .fontColor('#1a1a1a')
         .margin({ top: 28 })
-        .textAlign(TextAlign.Center)
         .allowScale(false)
 
       // 描述
