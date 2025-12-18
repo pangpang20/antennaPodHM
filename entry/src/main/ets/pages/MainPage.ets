@@ -935,21 +935,25 @@ struct MainPage {
         // 标题和描述
         Column() {
           Marquee({
-            start: this.isPlaying,
-            step: 3,
-            loop: -1,
+            start: true,  // 始终启用滚动
+            step: 5,  // 适中的滚动速度
+            loop: -1,  // 无限循环
             fromStart: true,
-            src: (this.currentEpisode?.title || '') + '          '
+            src: (this.currentEpisode?.title || '') + '                    '  // 添加更多空白间隔
           })
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
+            .allowScale(false)  // 禁止缩放
             .onStart(() => {
               console.info('[MiniPlayer] Marquee started');
             })
             .onBounce(() => {
               console.info('[MiniPlayer] Marquee bounced');
+            })
+            .onFinish(() => {
+              console.info('[MiniPlayer] Marquee finished');
             })
 
           Row() {
