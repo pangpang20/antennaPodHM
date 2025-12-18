@@ -230,6 +230,12 @@ export class PlayerService {
     this.avPlayer.on('stateChange', (state: string) => {
       console.info(`AVPlayer state changed to: ${state}`);
       this.updateState(state);
+      
+      // 监听播放完成事件
+      if (state === 'completed') {
+        console.info('[PlayerService] Playback completed');
+        this.handlePlaybackCompleted();
+      }
     });
 
     this.avPlayer.on('error', (err) => {
@@ -258,6 +264,55 @@ export class PlayerService {
         this.notifyListeners('durationUpdate', durationInSeconds);
       }
     });
+  }
+
+  /**
+   * 处理播放完成
+   */
+  private async handlePlaybackCompleted(): Promise<void> {
+    try {
+      console.info('[PlayerService] handlePlaybackCompleted start');
+      
+      // 检查是否开启了自动续播
+      const settingsService = SettingsService.getInstance();
+      const continuePlayback = settingsService.getContinuePlayback();
+      console.info(`[PlayerService] Continue playback setting: ${continuePlayback}`);
+      
+      if (!continuePlayback) {
+        console.info('[PlayerService] Auto-play is disabled, stopping');
+        this.notifyListeners('playbackCompleted', null);
+        return;
+      }
+      
+      // 获取待听队列中的下一个单集
+      const db = DatabaseService.getInstance();
+      const queueEpisodes = await db.getQueueEpisodes();
+      console.info(`[PlayerService] Queue has ${queueEpisodes.length} episodes`);
+      
+      if (queueEpisodes.length === 0) {
+        console.info('[PlayerService] Queue is empty, stopping');
+        this.notifyListeners('playbackCompleted', null);
+        return;
+      }
+      
+      // 播放队列中的第一个单集
+      const nextEpisode = queueEpisodes[0];
+      console.info(`[PlayerService] Playing next episode from queue: ${nextEpisode.title}`);
+      
+      // 从队列中移除
+      await db.removeFromQueue(nextEpisode.id);
+      console.info(`[PlayerService] Removed episode from queue: ${nextEpisode.id}`);
+      
+      // 播放下一个单集
+      await this.playEpisode(nextEpisode);
+      
+      // 通知监听者队列已更新
+      this.notifyListeners('queueUpdated', null);
+      console.info('[PlayerService] Auto-play next episode completed');
+    } catch (error) {
+      console.error('[PlayerService] Failed to handle playback completion:', error);
+      this.notifyListeners('playbackCompleted', null);
+    }
   }
 
   /**
