@@ -275,6 +275,8 @@ export class PlayerService {
         console.info('[PlayerService] Player is in error state, resetting...');
         await this.avPlayer.reset();
         await this.waitForState('idle', 3000);
+        // 重置后需要重新注册回调
+        this.setupPlayerCallbacks();
       }
 
       // 如果正在播放其他Episode,先停止
@@ -334,6 +336,17 @@ export class PlayerService {
       console.info('[PlayerService] Calling play()...');
       await this.avPlayer.play();
       console.info('[PlayerService] playEpisode completed successfully');
+      
+      // 打印 AVPlayer 信息
+      console.info(`[PlayerService] AVPlayer duration: ${this.avPlayer.duration}ms`);
+      console.info(`[PlayerService] AVPlayer currentTime: ${this.avPlayer.currentTime}ms`);
+      
+      // 测试：1秒后主动获取播放位置
+      setTimeout(() => {
+        if (this.avPlayer) {
+          console.info(`[PlayerService] Manual check - currentTime: ${this.avPlayer.currentTime}ms, duration: ${this.avPlayer.duration}ms`);
+        }
+      }, 1000);
     } catch (error) {
       console.error('[PlayerService] Failed to play episode:', error);
       this.state = PlayerState.ERROR;
