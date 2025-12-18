@@ -504,6 +504,31 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * 标记单集为已播放
+   */
+  async markEpisodeAsPlayed(episodeId: string): Promise<void> {
+    if (!this.rdbStore) {
+      console.error('[DatabaseService] rdbStore is null');
+      return;
+    }
+
+    try {
+      const valueBucket: relationalStore.ValuesBucket = {
+        isPlayed: 1
+      };
+
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_EPISODE);
+      predicates.equalTo('id', episodeId);
+
+      const rows = await this.rdbStore.update(valueBucket, predicates);
+      console.info(`[DatabaseService] Marked episode ${episodeId} as played, updated ${rows} rows`);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error('[DatabaseService] Failed to mark episode as played:', errMsg);
+    }
+  }
+
   private parsePodcastFromResultSet(resultSet: relationalStore.ResultSet): Podcast {
     let podcast = new Podcast();
     podcast.id = resultSet.getString(resultSet.getColumnIndex('id'));

@@ -5,6 +5,7 @@ import backgroundTaskManager from '@ohos.resourceschedule.backgroundTaskManager'
 import fs from '@ohos.file.fs';
 import { Episode } from '../model/Episode';
 import { SettingsService } from './SettingsService';
+import { DatabaseService } from './DatabaseService';
 
 /**
  * 播放器状态
@@ -357,6 +358,10 @@ export class PlayerService {
       console.info('[PlayerService] Calling play()...');
       await this.avPlayer.play();
       console.info('[PlayerService] playEpisode completed successfully');
+      
+      // 标记为已播放
+      await DatabaseService.getInstance().markEpisodeAsPlayed(episode.id);
+      console.info(`[PlayerService] Marked episode ${episode.id} as played`);
       
       // 打印 AVPlayer 信息
       console.info(`[PlayerService] AVPlayer duration: ${this.avPlayer.duration}ms`);
