@@ -260,6 +260,9 @@ struct MainPage {
       const position = this.playerService.getCurrentPosition();
       const duration = this.playerService.getDuration();
       this.playProgress = duration > 0 ? (position / duration) * 100 : 0;
+      
+      // 更新跑马灯文本，使用菱形符号分隔，确保可见性
+      this.marqueeText = `${this.currentEpisode.title}     ◆     `;
     }
     
     // 更新睡眠定时器剩余时间
@@ -941,17 +944,17 @@ struct MainPage {
         // 标题和描述
         Column() {
           Marquee({
-            start: true,  // 始终启用滚动
-            step: 4,  // 适中的滚动速度
-            loop: -1,  // 无限循环
+            start: true,
+            step: 4,
+            loop: -1,
             fromStart: true,
-            src: `${this.currentEpisode?.title || ''}     ◆     `  // 使用菱形符号分隔，更清晰
+            src: this.marqueeText || ' '
           })
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
-            .allowScale(false)  // 禁止缩放
+            .allowScale(false)
 
           Row() {
             Text('正在播放')
