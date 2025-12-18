@@ -6,7 +6,6 @@ import { Constants } from '../common/Constants';
 import { DatabaseService } from '../service/DatabaseService';
 import { DownloadService } from '../service/DownloadService';
 import { pasteboard } from '@kit.BasicServicesKit';
-import { wantConstant, Want, common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 
 @Entry
@@ -692,49 +691,23 @@ ${this.currentEpisode.description}
       return;
     }
     
-    try {
-      const shareText = `我正在听《${this.currentEpisode.title}》
-
-${this.currentEpisode.description}
-
-分享自 AntennaPodHM`;
-      
-      // 构建分享Intent
-      const want: Want = {
-        action: wantConstant.ACTION_SELECT,
-        type: 'text/plain',
-        parameters: {
-          'ability.params.stream': shareText
-        }
-      };
-      
-      // 获取UIAbility上下文
-      const context = getContext(this) as common.UIAbilityContext;
-      
-      // 启动系统分享面板
-      await context.startAbility(want);
-      
-      console.info('[PlayerPage] System share success:', shareText);
-    } catch (error) {
-      const err = error as BusinessError;
-      console.error(`[PlayerPage] System share failed: ${err.code}, ${err.message}`);
-      
-      // 如果系统分享失败，提供复制链接作为备选方案
-      promptAction.showDialog({
-        title: '分享失败',
-        message: '系统分享功能暂不可用，是否复制内容到剪贴板？',
-        buttons: [
-          { text: '取消', color: '#999999' },
-          { text: '复制', color: '#007AFF' }
-        ]
-      }).then((result: promptAction.ActionMenuSuccessResponse) => {
-        if (result.index === 1) {
-          this.copyShareLink();
-        }
-      }).catch((dialogErr: Error) => {
-        console.error('[PlayerPage] Share dialog error:', dialogErr);
-      });
-    }
+    // HarmonyOS 目前的系统分享API较为复杂，直接使用复制到剪贴板作为替代方案
+    promptAction.showDialog({
+      title: '分享',
+      message: '将分享内容复制到剪贴板，然后您可以粘贴到任何应用中分享。',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '复制', color: '#007AFF' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        this.copyShareLink();
+      }
+    }).catch((err: Error) => {
+      console.error('[PlayerPage] Share dialog error:', err);
+    });
+    
+    console.info('[PlayerPage] System share initiated');
   }
 
   /**
