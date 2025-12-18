@@ -3,6 +3,7 @@ oh_modules/
 .idea/
 build/
 entry/build/
+entry/.test/
 local.properties
 *.hap
 *.iml

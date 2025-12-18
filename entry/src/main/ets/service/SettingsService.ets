@@ -217,6 +217,13 @@ export class SettingsService {
   }
 
   /**
+   * 获取自动续播设置
+   */
+  getContinuePlayback(): boolean {
+    return this.settings.continuePlayback;
+  }
+
+  /**
    * 设置自动删除已播放
    */
   async setAutoDeletePlayed(enabled: boolean): Promise<void> {
