@@ -262,11 +262,27 @@ struct PodcastDetailPage {
       }
 
       Column() {
-        Text(episode.title)
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Row() {
+          Text(episode.title)
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .maxLines(2)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .fontColor(episode.isPlayed ? '#999999' : '#000000')
+            .layoutWeight(1)
+          
+          // 已听过标识
+          if (episode.isPlayed) {
+            Text('✓ 已听')
+              .fontSize(12)
+              .fontColor('#4CAF50')
+              .backgroundColor('#E8F5E9')
+              .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+              .borderRadius(4)
+              .margin({ left: 8 })
+          }
+        }
+        .width('100%')
 
         Row() {
           Text(episode.getFormattedDuration())
