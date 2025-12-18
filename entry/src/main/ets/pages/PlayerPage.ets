@@ -5,6 +5,9 @@ import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
 import { DatabaseService } from '../service/DatabaseService';
 import { DownloadService } from '../service/DownloadService';
+import { pasteboard } from '@kit.BasicServicesKit';
+import { wantConstant, Want, common } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 @Entry
 @Component
@@ -206,7 +209,7 @@ struct PlayerPage {
         .height(280)
         .borderRadius(16)
         .objectFit(ImageFit.Cover)
-        .margin({ top: 30 })
+        .margin({ top: 20 })
         .shadow({
           radius: 30,
           color: 'rgba(0, 0, 0, 0.25)',
@@ -226,7 +229,7 @@ struct PlayerPage {
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .fontColor('#1a1a1a')
-        .margin({ top: 28 })
+        .margin({ top: 20 })
         .allowScale(false)
 
       // 描述
@@ -279,7 +282,7 @@ struct PlayerPage {
         })
     }
     .width('100%')
-    .padding({ left: 32, right: 32, top: 35 })
+    .padding({ left: 32, right: 32, top: 25 })
   }
 
   @Builder
@@ -371,7 +374,7 @@ struct PlayerPage {
       }
     }
     .width('100%')
-    .padding({ left: 50, right: 50, top: 30 })
+    .padding({ left: 50, right: 50, top: 20 })
     .justifyContent(FlexAlign.Center)
   }
 
@@ -437,7 +440,7 @@ struct PlayerPage {
         })
       }
       .width('100%')
-      .margin({ top: 28 })
+      .margin({ top: 20 })
 
       // 第二行：添加到队列
       Button() {
@@ -590,12 +593,26 @@ ${this.currentEpisode.description}
    * 分享到微信好友
    */
   shareToWeChatFriend(): void {
-    // TODO: 集成微信 SDK 后实现
-    // 目前显示提示，后续集成微信分享 SDK
-    promptAction.showToast({
-      message: '即将打开微信分享',
-      duration: 2000
+    if (!this.currentEpisode) {
+      return;
+    }
+    
+    // HarmonyOS暂不支持直接调用微信SDK，需要通过系统分享或复制链接
+    promptAction.showDialog({
+      title: '分享到微信',
+      message: '由于系统限制，暂不支持直接分享到微信。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发送给好友',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '复制链接', color: '#007AFF' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        this.copyShareLink();
+      }
+    }).catch((err: Error) => {
+      console.error('[PlayerPage] Share dialog error:', err);
     });
+    
     console.info('[PlayerPage] Share to WeChat friend:', this.currentEpisode?.title);
   }
 
@@ -603,54 +620,121 @@ ${this.currentEpisode.description}
    * 分享到微信朋友圈
    */
   shareToWeChatMoments(): void {
-    // TODO: 集成微信 SDK 后实现
-    promptAction.showToast({
-      message: '即将打开朋友圈分享',
-      duration: 2000
+    if (!this.currentEpisode) {
+      return;
+    }
+    
+    // HarmonyOS暂不支持直接调用微信SDK，需要通过系统分享或复制链接
+    promptAction.showDialog({
+      title: '分享到朋友圈',
+      message: '由于系统限制，暂不支持直接分享到朋友圈。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发布到朋友圈',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '复制链接', color: '#007AFF' }
+      ]
+    }).then((result: promptAction.ActionMenuSuccessResponse) => {
+      if (result.index === 1) {
+        this.copyShareLink();
+      }
+    }).catch((err: Error) => {
+      console.error('[PlayerPage] Share dialog error:', err);
     });
+    
     console.info('[PlayerPage] Share to WeChat moments:', this.currentEpisode?.title);
   }
 
   /**
    * 复制分享链接
    */
-  copyShareLink(): void {
+  async copyShareLink(): Promise<void> {
     if (!this.currentEpisode) {
       return;
     }
     
-    const shareLink = `antennaPod://episode/${this.currentEpisode.id}`;
-    const shareText = `《${this.currentEpisode.title}》\n${shareLink}`;
-    
-    // 使用系统剪贴板 API（需要添加权限）
-    // TODO: 添加剪贴板权限后实现
-    promptAction.showToast({
-      message: '链接已复制',
-      duration: 2000
-    });
-    console.info('[PlayerPage] Copy share link:', shareText);
+    try {
+      const shareText = `我正在听《${this.currentEpisode.title}》
+
+${this.currentEpisode.description}
+
+分享自 AntennaPodHM`;
+      
+      // 创建剪贴板数据
+      const pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, shareText);
+      
+      // 获取系统剪贴板实例
+      const systemPasteboard = pasteboard.getSystemPasteboard();
+      
+      // 将数据写入剪贴板
+      await systemPasteboard.setData(pasteData);
+      
+      promptAction.showToast({
+        message: '内容已复制到剪贴板',
+        duration: 2000
+      });
+      
+      console.info('[PlayerPage] Copy share link success:', shareText);
+    } catch (error) {
+      const err = error as BusinessError;
+      console.error(`[PlayerPage] Copy share link failed: ${err.code}, ${err.message}`);
+      
+      promptAction.showToast({
+        message: '复制失败，请重试',
+        duration: 2000
+      });
+    }
   }
 
   /**
    * 系统分享
    */
-  systemShare(): void {
+  async systemShare(): Promise<void> {
     if (!this.currentEpisode) {
       return;
     }
     
-    const shareText = `我正在听《${this.currentEpisode.title}》
+    try {
+      const shareText = `我正在听《${this.currentEpisode.title}》
 
 ${this.currentEpisode.description}
 
 分享自 AntennaPodHM`;
-    
-    // TODO: 使用 HarmonyOS 系统分享 API
-    promptAction.showToast({
-      message: '打开系统分享面板',
-      duration: 2000
-    });
-    console.info('[PlayerPage] System share:', shareText);
+      
+      // 构建分享Intent
+      const want: Want = {
+        action: wantConstant.ACTION_SELECT,
+        type: 'text/plain',
+        parameters: {
+          'ability.params.stream': shareText
+        }
+      };
+      
+      // 获取UIAbility上下文
+      const context = getContext(this) as common.UIAbilityContext;
+      
+      // 启动系统分享面板
+      await context.startAbility(want);
+      
+      console.info('[PlayerPage] System share success:', shareText);
+    } catch (error) {
+      const err = error as BusinessError;
+      console.error(`[PlayerPage] System share failed: ${err.code}, ${err.message}`);
+      
+      // 如果系统分享失败，提供复制链接作为备选方案
+      promptAction.showDialog({
+        title: '分享失败',
+        message: '系统分享功能暂不可用，是否复制内容到剪贴板？',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '复制', color: '#007AFF' }
+        ]
+      }).then((result: promptAction.ActionMenuSuccessResponse) => {
+        if (result.index === 1) {
+          this.copyShareLink();
+        }
+      }).catch((dialogErr: Error) => {
+        console.error('[PlayerPage] Share dialog error:', dialogErr);
+      });
+    }
   }
 
   /**

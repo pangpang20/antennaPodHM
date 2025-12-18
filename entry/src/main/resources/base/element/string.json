@@ -33,6 +33,10 @@
             "value": "用于后台播放播客音频"
         },
         {
+            "name": "permission_notification_reason",
+            "value": "用于发送播客更新和下载完成的通知"
+        },
+        {
             "name": "tab_subscription",
             "value": "订阅"
         },
