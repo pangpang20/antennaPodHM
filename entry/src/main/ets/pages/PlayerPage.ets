@@ -331,13 +331,14 @@ struct PlayerPage {
       title: '定时关闭',
       buttons: [
         { text: '关闭定时', color: '#000000' },
+        { text: '5 分钟', color: '#000000' },
         { text: '15 分钟', color: '#000000' },
         { text: '30 分钟', color: '#000000' },
         { text: '45 分钟', color: '#000000' },
         { text: '60 分钟', color: '#000000' }
       ]
     }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const minutesOptions: number[] = [0, 15, 30, 45, 60];
+      const minutesOptions: number[] = [0, 5, 15, 30, 45, 60];
       const minutes = minutesOptions[result.index];
       this.setSleepTimer(minutes);
       const msg = minutes > 0 ? `已设置定时关闭：${minutes} 分钟` : '已关闭定时播放';
