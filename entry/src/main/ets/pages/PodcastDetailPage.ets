@@ -319,6 +319,20 @@ struct PodcastDetailPage {
       })
 
       if (!this.isSelectionMode) {
+        // 待听按钮
+        Button() {
+          Text('➕')
+            .fontSize(16)
+        }
+        .width(40)
+        .height(36)
+        .backgroundColor(Color.Transparent)
+        .onClick(() => {
+          console.info(`======>>> Click: Add to queue - ${episode.title}`);
+          this.addToQueue(episode);
+        })
+        .margin({ left: 8 })
+
         // 下载按钮
         Button() {
           if (episode.downloadStatus === 0) {
@@ -376,6 +390,27 @@ struct PodcastDetailPage {
       console.error('Download failed:', error);
       promptAction.showToast({
         message: '下载失败',
+        duration: 2000
+      });
+    }
+  }
+
+  /**
+   * 添加到待听队列
+   */
+  async addToQueue(episode: Episode) {
+    try {
+      const db = DatabaseService.getInstance();
+      await db.addToQueue(episode.id);
+      console.info(`[PodcastDetailPage] Added to queue: ${episode.title}`);
+      promptAction.showToast({
+        message: '已添加到待听队列',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('[PodcastDetailPage] Failed to add to queue:', error);
+      promptAction.showToast({
+        message: '添加失败',
         duration: 2000
       });
     }
