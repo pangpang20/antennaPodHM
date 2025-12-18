@@ -99,9 +99,10 @@ struct EpisodeDetailPage {
         this.isDownloading = true;
       } catch (error) {
         console.error('Download failed:', error);
+        const errorMsg = error instanceof Error ? error.message : '下载失败';
         promptAction.showToast({
-          message: '下载失败',
-          duration: 2000
+          message: errorMsg,
+          duration: 3000
         });
       }
     }

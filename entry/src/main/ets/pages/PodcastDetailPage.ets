@@ -293,6 +293,7 @@ struct PodcastDetailPage {
 
     const downloadService = DownloadService.getInstance();
     let count = 0;
+    let permissionDenied = false;
 
     for (const episodeId of this.selectedEpisodes) {
       const episode = this.episodes.find(e => e.id === episodeId);
@@ -302,14 +303,25 @@ struct PodcastDetailPage {
           count++;
         } catch (error) {
           console.error('Download failed for episode:', episode.title, error);
+          if (error instanceof Error && error.message.includes('权限')) {
+            permissionDenied = true;
+            break; // 权限被拒绝，停止继续下载
+          }
         }
       }
     }
 
-    promptAction.showToast({
-      message: `已加入 ${count} 个下载任务`,
-      duration: 2000
-    });
+    if (permissionDenied) {
+      promptAction.showToast({
+        message: '没有存储权限，无法下载。请在设置中开启存储权限。',
+        duration: 3000
+      });
+    } else {
+      promptAction.showToast({
+        message: `已加入 ${count} 个下载任务`,
+        duration: 2000
+      });
+    }
 
     this.isSelectionMode = false;
     this.selectedEpisodes.clear();
