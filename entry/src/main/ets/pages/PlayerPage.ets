@@ -206,7 +206,7 @@ struct PlayerPage {
         .height(280)
         .borderRadius(16)
         .objectFit(ImageFit.Cover)
-        .margin({ top: 30 })
+        .margin({ top: 20 })
         .shadow({
           radius: 30,
           color: 'rgba(0, 0, 0, 0.25)',
@@ -226,7 +226,7 @@ struct PlayerPage {
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
         .fontColor('#1a1a1a')
-        .margin({ top: 28 })
+        .margin({ top: 20 })
         .allowScale(false)
 
       // 描述
@@ -279,7 +279,7 @@ struct PlayerPage {
         })
     }
     .width('100%')
-    .padding({ left: 32, right: 32, top: 35 })
+    .padding({ left: 32, right: 32, top: 25 })
   }
 
   @Builder
@@ -371,7 +371,7 @@ struct PlayerPage {
       }
     }
     .width('100%')
-    .padding({ left: 50, right: 50, top: 30 })
+    .padding({ left: 50, right: 50, top: 20 })
     .justifyContent(FlexAlign.Center)
   }
 
@@ -437,7 +437,7 @@ struct PlayerPage {
         })
       }
       .width('100%')
-      .margin({ top: 28 })
+      .margin({ top: 20 })
 
       // 第二行：添加到队列
       Button() {
