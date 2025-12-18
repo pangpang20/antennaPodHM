@@ -141,14 +141,14 @@ export class DownloadService {
         episode.localPath = savePath;
         
         try {
-          // 更新数据库
-          await this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADED, 100, savePath);
+          // 更新数据库（包含文件大小）
+          await this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADED, 100, savePath, episode.fileSize);
           console.info(`[DownloadService] Database updated successfully for: ${episode.id}`);
           
           // 验证更新
           const updatedEpisode = await this.dbService.getEpisodeById(episode.id);
           if (updatedEpisode) {
-            console.info(`[DownloadService] Verification - Status: ${updatedEpisode.downloadStatus}, Progress: ${updatedEpisode.downloadProgress}, LocalPath: ${updatedEpisode.localPath}`);
+            console.info(`[DownloadService] Verification - Status: ${updatedEpisode.downloadStatus}, Progress: ${updatedEpisode.downloadProgress}, LocalPath: ${updatedEpisode.localPath}, FileSize: ${updatedEpisode.fileSize}`);
           }
         } catch (err) {
           console.error('[DownloadService] Failed to update database:', err);

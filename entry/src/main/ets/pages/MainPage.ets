@@ -402,29 +402,62 @@ struct MainPage {
         List({ space: 8 }) {
           ForEach(this.downloadedEpisodes, (episode: Episode) => {
             ListItem() {
-              Row() {
-                Column() {
-                  Text(episode.title)
-                    .fontSize(14)
-                    .maxLines(2)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+              Column() {
+                Row() {
+                  Column() {
+                    Text(episode.title)
+                      .fontSize(14)
+                      .maxLines(2)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-                  Text(episode.getFormattedFileSize())
-                    .fontSize(12)
-                    .fontColor($r('app.color.text_secondary_light'))
-                    .margin({ top: 4 })
+                    Text(episode.getFormattedFileSize())
+                      .fontSize(12)
+                      .fontColor($r('app.color.text_secondary_light'))
+                      .margin({ top: 4 })
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .layoutWeight(1)
                 }
-                .alignItems(HorizontalAlign.Start)
-                .layoutWeight(1)
+                .width('100%')
 
-                Button('删除')
-                  .height(32)
-                  .fontSize(12)
-                  .onClick(() => {
-                    console.info(`======>>> Click: Delete downloaded - ${episode.title}`);
-                    DownloadService.getInstance().deleteDownloadedFile(episode);
-                    this.loadDownloads();
-                  })
+                // 操作按钮行
+                Row() {
+                  Button('▶ 播放')
+                    .height(32)
+                    .fontSize(12)
+                    .backgroundColor('#FF6B9D')
+                    .fontColor(Color.White)
+                    .onClick(() => {
+                      console.info(`======>>> Click: Play downloaded - ${episode.title}`);
+                      this.playerService.playEpisode(episode);
+                    })
+
+                  Button('+ 待听')
+                    .height(32)
+                    .fontSize(12)
+                    .margin({ left: 8 })
+                    .backgroundColor('#4CAF50')
+                    .fontColor(Color.White)
+                    .onClick(() => {
+                      console.info(`======>>> Click: Add to queue - ${episode.title}`);
+                      // TODO: 添加到待听列表
+                    })
+
+                  Blank()
+
+                  Button('删除')
+                    .height(32)
+                    .fontSize(12)
+                    .backgroundColor('#FF5252')
+                    .fontColor(Color.White)
+                    .onClick(() => {
+                      console.info(`======>>> Click: Delete downloaded - ${episode.title}`);
+                      DownloadService.getInstance().deleteDownloadedFile(episode);
+                      this.loadDownloads();
+                    })
+                }
+                .width('100%')
+                .margin({ top: 8 })
               }
               .width('100%')
               .padding(12)

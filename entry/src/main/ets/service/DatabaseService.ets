@@ -472,7 +472,7 @@ export class DatabaseService {
   /**
    * 更新Episode下载状态
    */
-  async updateEpisodeDownloadStatus(episodeId: string, status: number, progress: number, localPath?: string): Promise<void> {
+  async updateEpisodeDownloadStatus(episodeId: string, status: number, progress: number, localPath?: string, fileSize?: number): Promise<void> {
     if (!this.rdbStore) {
       console.error('[DatabaseService] rdbStore is null');
       return;
@@ -488,11 +488,15 @@ export class DatabaseService {
         valueBucket.localPath = localPath;
       }
 
+      if (fileSize !== undefined && fileSize > 0) {
+        valueBucket.fileSize = fileSize;
+      }
+
       const predicates = new relationalStore.RdbPredicates(Constants.TABLE_EPISODE);
       predicates.equalTo('id', episodeId);
 
       const rows = await this.rdbStore.update(valueBucket, predicates);
-      console.info(`[DatabaseService] Updated ${rows} rows for episode ${episodeId}, status: ${status}, progress: ${progress}, localPath: ${localPath || 'none'}`);
+      console.info(`[DatabaseService] Updated ${rows} rows for episode ${episodeId}, status: ${status}, progress: ${progress}, localPath: ${localPath || 'none'}, fileSize: ${fileSize || 'none'}`);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('[DatabaseService] Failed to update episode download status:', errMsg);
