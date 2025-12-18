@@ -22,8 +22,11 @@ struct PodcastDetailPage {
   async loadPodcastDetail() {
     this.isLoading = true;
     try {
+      const db = DatabaseService.getInstance();
+      // 加载播客基本信息
+      this.podcast = await db.getPodcastById(this.podcastId);
       // 加载Episodes
-      this.episodes = await DatabaseService.getInstance().queryEpisodesByPodcastId(this.podcastId);
+      this.episodes = await db.queryEpisodesByPodcastId(this.podcastId);
     } catch (error) {
       console.error('Failed to load podcast detail:', error);
     } finally {

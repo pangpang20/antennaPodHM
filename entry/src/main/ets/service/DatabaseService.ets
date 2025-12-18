@@ -163,6 +163,29 @@ export class DatabaseService {
   }
 
   /**
+   * 根据ID查询单个播客
+   */
+  async getPodcastById(podcastId: string): Promise<Podcast | null> {
+    if (!this.rdbStore) return null;
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_PODCAST);
+      predicates.equalTo('id', podcastId);
+
+      const resultSet = await this.rdbStore.query(predicates);
+      let podcast: Podcast | null = null;
+      if (resultSet.goToNextRow()) {
+        podcast = this.parsePodcastFromResultSet(resultSet);
+      }
+      resultSet.close();
+      return podcast;
+    } catch (error) {
+      console.error('Failed to query podcast by id:', error);
+      return null;
+    }
+  }
+
+  /**
    * 插入Episode
    */
   async insertEpisode(episode: Episode): Promise<number> {

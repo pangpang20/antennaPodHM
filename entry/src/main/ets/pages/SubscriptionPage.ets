@@ -136,5 +136,13 @@ struct SubscriptionPage {
     .padding(12)
     .backgroundColor(Color.White)
     .borderRadius(8)
+    .onClick(() => {
+      router.pushUrl({
+        url: 'pages/PodcastDetailPage',
+        params: { podcastId: podcast.id }
+      }).catch((err: Error) => {
+        console.error('Navigation failed:', err);
+      });
+    })
   }
 }
