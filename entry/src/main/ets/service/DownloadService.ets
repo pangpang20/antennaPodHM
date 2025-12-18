@@ -122,18 +122,41 @@ export class DownloadService {
         const progress = Math.floor((receivedSize / totalSize) * 100);
         episode.downloadProgress = progress;
         episode.fileSize = totalSize;
-        this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADING, progress);
+        console.info(`[DownloadService] Progress: ${episode.title} - ${progress}%`);
+        this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADING, progress)
+          .catch((err: Error) => {
+            console.error('[DownloadService] Failed to update progress:', err.message);
+          });
       });
 
       // 监听下载完成
-      downloadTask.on('complete', () => {
+      downloadTask.on('complete', async () => {
         console.info(`[DownloadService] Download completed: ${episode.title}`);
+        console.info(`[DownloadService] Episode ID: ${episode.id}`);
+        console.info(`[DownloadService] Save path: ${savePath}`);
+        console.info(`[DownloadService] File size: ${episode.fileSize}`);
+        
         episode.downloadStatus = DownloadStatus.DOWNLOADED;
         episode.downloadProgress = 100;
         episode.localPath = savePath;
-        this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADED, 100, savePath);
+        
+        try {
+          // 更新数据库
+          await this.dbService.updateEpisodeDownloadStatus(episode.id, DownloadStatus.DOWNLOADED, 100, savePath);
+          console.info(`[DownloadService] Database updated successfully for: ${episode.id}`);
+          
+          // 验证更新
+          const updatedEpisode = await this.dbService.getEpisodeById(episode.id);
+          if (updatedEpisode) {
+            console.info(`[DownloadService] Verification - Status: ${updatedEpisode.downloadStatus}, Progress: ${updatedEpisode.downloadProgress}, LocalPath: ${updatedEpisode.localPath}`);
+          }
+        } catch (err) {
+          console.error('[DownloadService] Failed to update database:', err);
+        }
+        
         this.downloadTasks.delete(episode.id);
         this.activeDownloads--;
+        console.info(`[DownloadService] Active downloads: ${this.activeDownloads}`);
         // 继续处理队列
         this.processQueue();
       });
