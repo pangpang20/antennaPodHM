@@ -19,13 +19,18 @@ struct MainPage {
   @State sleepTimerRemaining: number = 0;  // 睡眠定时器剩余秒数
   @State downloadingEpisodes: Episode[] = [];
   @State downloadedEpisodes: Episode[] = [];
+  @State allEpisodes: Episode[] = [];  // 所有单集
+  @State queueEpisodes: Episode[] = [];  // 待听队列
   private playerService: PlayerService = PlayerService.getInstance();
+  private dbService: DatabaseService = DatabaseService.getInstance();
   private downloadUpdateTimer: number = -1;
   private playUpdateTimer: number = -1;
   private subscriptionUpdateTimer: number = -1;
 
   aboutToAppear() {
     this.loadSubscriptions();
+    this.loadAllEpisodes();
+    this.loadQueue();
     this.checkCurrentEpisode();
     this.loadDownloads();
     this.startPlayUpdateTimer();
@@ -66,8 +71,10 @@ struct MainPage {
   }
 
   onPageShow() {
-    // 页面通过路由返回时刷新订阅列表
+    // 页面通过路由返回时刷新列表
     this.loadSubscriptions();
+    this.loadAllEpisodes();
+    this.loadQueue();
     this.checkCurrentEpisode();
     this.loadDownloads();
   }
@@ -136,6 +143,56 @@ struct MainPage {
     if (this.subscriptionUpdateTimer !== -1) {
       clearInterval(this.subscriptionUpdateTimer);
       this.subscriptionUpdateTimer = -1;
+    }
+  }
+
+  /**
+   * 加载所有单集
+   */
+  async loadAllEpisodes() {
+    try {
+      this.allEpisodes = await this.dbService.getAllEpisodes();
+      console.info(`[MainPage] Loaded ${this.allEpisodes.length} episodes`);
+    } catch (error) {
+      console.error('[MainPage] Failed to load episodes:', error);
+    }
+  }
+
+  /**
+   * 加载待听队列
+   */
+  async loadQueue() {
+    try {
+      this.queueEpisodes = await this.dbService.getQueueEpisodes();
+      console.info(`[MainPage] Loaded ${this.queueEpisodes.length} queue items`);
+    } catch (error) {
+      console.error('[MainPage] Failed to load queue:', error);
+    }
+  }
+
+  /**
+   * 添加到待听队列
+   */
+  async addToQueue(episode: Episode) {
+    try {
+      await this.dbService.addToQueue(episode.id);
+      await this.loadQueue();
+      console.info(`[MainPage] Added to queue: ${episode.title}`);
+    } catch (error) {
+      console.error('[MainPage] Failed to add to queue:', error);
+    }
+  }
+
+  /**
+   * 从待听队列移除
+   */
+  async removeFromQueue(episode: Episode) {
+    try {
+      await this.dbService.removeFromQueue(episode.id);
+      await this.loadQueue();
+      console.info(`[MainPage] Removed from queue: ${episode.title}`);
+    } catch (error) {
+      console.error('[MainPage] Failed to remove from queue:', error);
     }
   }
 
@@ -327,7 +384,25 @@ struct MainPage {
   @Builder
   buildEpisodesTab() {
     Column() {
-      this.buildEmptyView('暂无单集', '订阅播客后将显示在这里');
+      if (this.allEpisodes.length === 0) {
+        this.buildEmptyView('暂无单集', '订阅播客后将显示在这里');
+      } else {
+        List({ space: 8 }) {
+          ForEach(this.allEpisodes, (episode: Episode) => {
+            ListItem() {
+              this.buildEpisodeItem(episode);
+            }
+          }, (episode: Episode) => episode.id)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .padding(16)
+      }
+
+      // 迷你播放器
+      if (this.hasCurrentEpisode && this.currentEpisode) {
+        this.buildMiniPlayer();
+      }
     }
     .width('100%')
     .height('100%')
@@ -339,7 +414,47 @@ struct MainPage {
   @Builder
   buildQueueTab() {
     Column() {
-      this.buildEmptyView('播放队列为空', '添加单集到队列');
+      if (this.queueEpisodes.length === 0) {
+        this.buildEmptyView('播放队列为空', '添加单集到队列');
+      } else {
+        // 队列操作栏
+        Row() {
+          Text(`待听 ${this.queueEpisodes.length} 集`)
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary_light'))
+
+          Blank()
+
+          Button('清空队列')
+            .height(32)
+            .fontSize(12)
+            .backgroundColor('#FF5252')
+            .fontColor(Color.White)
+            .onClick(async () => {
+              console.info('======>>> Click: Clear queue');
+              await this.dbService.clearQueue();
+              await this.loadQueue();
+            })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 12, bottom: 8 })
+
+        List({ space: 8 }) {
+          ForEach(this.queueEpisodes, (episode: Episode, index: number) => {
+            ListItem() {
+              this.buildQueueItem(episode, index);
+            }
+          }, (episode: Episode) => episode.id)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .padding({ left: 16, right: 16, bottom: 16 })
+      }
+
+      // 迷你播放器
+      if (this.hasCurrentEpisode && this.currentEpisode) {
+        this.buildMiniPlayer();
+      }
     }
     .width('100%')
     .height('100%')
@@ -440,7 +555,7 @@ struct MainPage {
                     .fontColor(Color.White)
                     .onClick(() => {
                       console.info(`======>>> Click: Add to queue - ${episode.title}`);
-                      // TODO: 添加到待听列表
+                      this.addToQueue(episode);
                     })
 
                   Blank()
@@ -533,6 +648,149 @@ struct MainPage {
   }
 
   /**
+   * 单集项
+   */
+  @Builder
+  buildEpisodeItem(episode: Episode) {
+    Column() {
+      Row() {
+        // 封面图
+        Image(episode.imageUrl)
+          .width(60)
+          .height(60)
+          .borderRadius(6)
+          .objectFit(ImageFit.Cover)
+          .alt($r('app.media.app_icon'))
+
+        // 单集信息
+        Column() {
+          Text(episode.title)
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .maxLines(2)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          Row() {
+            Text(episode.getFormattedDuration())
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary_light'))
+
+            if (episode.downloadStatus === 2) {
+              Text(' · 已下载')
+                .fontSize(12)
+                .fontColor('#4CAF50')
+            }
+          }
+          .margin({ top: 4 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+        .margin({ left: 12 })
+      }
+      .width('100%')
+
+      // 操作按钮
+      Row() {
+        Button('▶ 播放')
+          .height(28)
+          .fontSize(11)
+          .backgroundColor('#FF6B9D')
+          .fontColor(Color.White)
+          .onClick(() => {
+            console.info(`======>>> Click: Play episode - ${episode.title}`);
+            this.playerService.playEpisode(episode);
+          })
+
+        Button('+ 待听')
+          .height(28)
+          .fontSize(11)
+          .margin({ left: 8 })
+          .backgroundColor('#4CAF50')
+          .fontColor(Color.White)
+          .onClick(() => {
+            console.info(`======>>> Click: Add to queue - ${episode.title}`);
+            this.addToQueue(episode);
+          })
+      }
+      .width('100%')
+      .margin({ top: 8 })
+    }
+    .width('100%')
+    .padding(12)
+    .backgroundColor(Color.White)
+    .borderRadius(8)
+  }
+
+  /**
+   * 队列项
+   */
+  @Builder
+  buildQueueItem(episode: Episode, index: number) {
+    Row() {
+      // 序号
+      Text(`${index + 1}`)
+        .fontSize(16)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#FF6B9D')
+        .width(32)
+        .textAlign(TextAlign.Center)
+
+      // 封面图
+      Image(episode.imageUrl)
+        .width(50)
+        .height(50)
+        .borderRadius(6)
+        .objectFit(ImageFit.Cover)
+        .alt($r('app.media.app_icon'))
+
+      // 单集信息
+      Column() {
+        Text(episode.title)
+          .fontSize(14)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(episode.getFormattedDuration())
+          .fontSize(12)
+          .fontColor($r('app.color.text_secondary_light'))
+          .margin({ top: 4 })
+      }
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .margin({ left: 10 })
+
+      // 操作按钮
+      Button('▶')
+        .width(36)
+        .height(36)
+        .fontSize(14)
+        .backgroundColor('#FF6B9D')
+        .fontColor(Color.White)
+        .borderRadius(18)
+        .onClick(() => {
+          console.info(`======>>> Click: Play from queue - ${episode.title}`);
+          this.playerService.playEpisode(episode);
+        })
+
+      Button('×')
+        .width(32)
+        .height(32)
+        .fontSize(16)
+        .backgroundColor(Color.Transparent)
+        .fontColor('#999999')
+        .margin({ left: 4 })
+        .onClick(() => {
+          console.info(`======>>> Click: Remove from queue - ${episode.title}`);
+          this.removeFromQueue(episode);
+        })
+    }
+    .width('100%')
+    .padding(10)
+    .backgroundColor(Color.White)
+    .borderRadius(8)
+  }
+
+  /**
    * 构建迷你播放器 - QQ音乐风格
    */
   @Builder
@@ -569,12 +827,17 @@ struct MainPage {
 
         // 标题和描述
         Column() {
-          Text(this.currentEpisode?.title || '')
+          Marquee({
+            start: this.isPlaying,
+            step: 6,
+            loop: -1,
+            fromStart: true,
+            src: this.currentEpisode?.title || ''
+          })
+            .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
 
           Row() {
             Text('正在播放')

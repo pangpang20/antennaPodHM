@@ -543,4 +543,103 @@ export class DatabaseService {
     episode.addedToQueueDate = resultSet.getLong(resultSet.getColumnIndex('addedToQueueDate'));
     return episode;
   }
+
+  /**
+   * 添加到待听队列
+   */
+  async addToQueue(episodeId: string): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      // 检查是否已在队列中
+      const checkPredicates = new relationalStore.RdbPredicates(Constants.TABLE_QUEUE);
+      checkPredicates.equalTo('episodeId', episodeId);
+      const existResult = await this.rdbStore.query(checkPredicates);
+      const exists = existResult.rowCount > 0;
+      existResult.close();
+      
+      if (exists) {
+        console.info(`[DatabaseService] Episode ${episodeId} already in queue`);
+        return;
+      }
+
+      // 获取当前最大位置
+      const resultSet = await this.rdbStore.querySql(`SELECT MAX(position) as maxPos FROM ${Constants.TABLE_QUEUE}`);
+      let nextPosition = 0;
+      if (resultSet.goToFirstRow()) {
+        nextPosition = (resultSet.getLong(0) || 0) + 1;
+      }
+      resultSet.close();
+
+      const valueBucket: relationalStore.ValuesBucket = {
+        id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        episodeId: episodeId,
+        position: nextPosition,
+        addedDate: Date.now()
+      };
+
+      await this.rdbStore.insert(Constants.TABLE_QUEUE, valueBucket);
+      console.info(`[DatabaseService] Added episode ${episodeId} to queue at position ${nextPosition}`);
+    } catch (error) {
+      console.error('[DatabaseService] Failed to add to queue:', error);
+    }
+  }
+
+  /**
+   * 从队列中移除
+   */
+  async removeFromQueue(episodeId: string): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_QUEUE);
+      predicates.equalTo('episodeId', episodeId);
+      await this.rdbStore.delete(predicates);
+      console.info(`[DatabaseService] Removed episode ${episodeId} from queue`);
+    } catch (error) {
+      console.error('[DatabaseService] Failed to remove from queue:', error);
+    }
+  }
+
+  /**
+   * 获取队列中的所有Episode
+   */
+  async getQueueEpisodes(): Promise<Episode[]> {
+    if (!this.rdbStore) return [];
+
+    try {
+      // 联合查询获取队列中的Episode
+      const sql = `
+        SELECT e.* FROM ${Constants.TABLE_EPISODE} e
+        INNER JOIN ${Constants.TABLE_QUEUE} q ON e.id = q.episodeId
+        ORDER BY q.position ASC
+      `;
+      const resultSet = await this.rdbStore.querySql(sql);
+      const episodes: Episode[] = [];
+
+      while (resultSet.goToNextRow()) {
+        episodes.push(this.parseEpisodeFromResultSet(resultSet));
+      }
+
+      resultSet.close();
+      return episodes;
+    } catch (error) {
+      console.error('[DatabaseService] Failed to get queue episodes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 清空队列
+   */
+  async clearQueue(): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      await this.rdbStore.executeSql(`DELETE FROM ${Constants.TABLE_QUEUE}`);
+      console.info('[DatabaseService] Queue cleared');
+    } catch (error) {
+      console.error('[DatabaseService] Failed to clear queue:', error);
+    }
+  }
 }
