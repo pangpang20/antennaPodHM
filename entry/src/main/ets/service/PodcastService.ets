@@ -99,8 +99,10 @@ export class PodcastService {
    * 取消订阅播客
    */
   async unsubscribePodcast(podcastId: string): Promise<void> {
-    // 实现取消订阅逻辑
-    // 可以选择删除或标记为未订阅
+    // 删除播客相关的所有单集
+    await this.dbService.deleteEpisodesByPodcastId(podcastId);
+    // 删除播客
+    await this.dbService.deletePodcast(podcastId);
   }
 
   /**
@@ -108,20 +110,29 @@ export class PodcastService {
    */
   async updatePodcastEpisodes(podcastId: string): Promise<void> {
     try {
+      console.info(`[PodcastService] Starting to update episodes for podcast: ${podcastId}`);
+      
       // 从数据库获取播客信息，拿到 feedUrl
       const podcast = await this.dbService.getPodcastById(podcastId);
       if (!podcast || !podcast.feedUrl) {
-        console.warn('No podcast or feedUrl found for id:', podcastId);
+        console.warn('[PodcastService] No podcast or feedUrl found for id:', podcastId);
         return;
       }
 
-      // 拉取 RSS 内容
+      console.info(`[PodcastService] Fetching RSS from: ${podcast.feedUrl}`);
+      
+      // 拉取 RSS 内容（增加超时时间）
       const rssContent = await this.fetchRssFeed(podcast.feedUrl);
+      
+      console.info(`[PodcastService] RSS content fetched, length: ${rssContent.length}`);
 
       // 解析出单集列表
       const episodes = this.parseEpisodesFromRss(rssContent, podcastId);
+      console.info(`[PodcastService] Parsed ${episodes.length} episodes`);
+      
       if (!episodes.length) {
-        console.warn('No episodes parsed from rss for podcast:', podcastId);
+        console.warn('[PodcastService] No episodes parsed from rss for podcast:', podcastId);
+        // 即使没有解析到单集，也不抛异常，只记录日志
         return;
       }
 
@@ -133,8 +144,12 @@ export class PodcastService {
 
       // 更新播客的 episodeCount
       await this.dbService.updatePodcastEpisodeCount(podcastId, episodes.length);
+      
+      console.info(`[PodcastService] Successfully updated ${episodes.length} episodes for podcast: ${podcastId}`);
     } catch (error) {
-      console.error('Failed to update podcast episodes:', error);
+      console.error('[PodcastService] Failed to update podcast episodes:', error);
+      // 不抛异常，让调用者决定如何处理
+      throw error;
     }
   }
 

@@ -1,6 +1,7 @@
 import { router } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { PodcastService } from '../service/PodcastService';
+import { promptAction } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -46,6 +47,7 @@ struct SubscriptionPage {
             ListItem() {
               this.buildPodcastItem(podcast);
             }
+            .swipeAction({ end: this.buildDeleteButton(podcast) })
           }, (podcast: Podcast) => podcast.id)
         }
         .width('100%')
@@ -100,6 +102,39 @@ struct SubscriptionPage {
     .width('100%')
     .layoutWeight(1)
     .justifyContent(FlexAlign.Center)
+  }
+
+  @Builder
+  buildDeleteButton(podcast: Podcast) {
+    Button() {
+      Text('取消订阅')
+        .fontSize(14)
+        .fontColor(Color.White)
+    }
+    .width(80)
+    .height('100%')
+    .backgroundColor('#FF3B30')
+    .onClick(async () => {
+      await this.unsubscribePodcast(podcast);
+    })
+  }
+
+  async unsubscribePodcast(podcast: Podcast) {
+    try {
+      await PodcastService.getInstance().unsubscribePodcast(podcast.id);
+      promptAction.showToast({
+        message: '已取消订阅',
+        duration: 2000
+      });
+      // 刷新列表
+      await this.loadSubscriptions();
+    } catch (error) {
+      console.error('Unsubscribe failed:', error);
+      promptAction.showToast({
+        message: '取消订阅失败',
+        duration: 2000
+      });
+    }
   }
 
   @Builder

@@ -309,6 +309,21 @@ export class DatabaseService {
   }
 
   /**
+   * 删除播客
+   */
+  async deletePodcast(podcastId: string): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_PODCAST);
+      predicates.equalTo('id', podcastId);
+      await this.rdbStore.delete(predicates);
+    } catch (error) {
+      console.error('Failed to delete podcast:', error);
+    }
+  }
+
+  /**
    * 更新播客的Episode数量
    */
   async updatePodcastEpisodeCount(podcastId: string, count: number): Promise<void> {

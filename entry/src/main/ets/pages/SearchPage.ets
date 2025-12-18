@@ -14,6 +14,25 @@ struct SearchPage {
   @State isSubscribing: boolean = false;
   @State subscribingId: string = '';
   @State isAddingByUrl: boolean = false;
+  @State subscribedPodcastIds: Set<string> = new Set();
+
+  async aboutToAppear() {
+    await this.loadSubscribedIds();
+  }
+
+  onPageShow() {
+    // 每次显示页面时刷新已订阅列表
+    this.loadSubscribedIds();
+  }
+
+  async loadSubscribedIds() {
+    try {
+      const podcasts = await PodcastService.getInstance().getSubscribedPodcasts();
+      this.subscribedPodcastIds = new Set(podcasts.map(p => p.id));
+    } catch (error) {
+      console.error('Failed to load subscribed ids:', error);
+    }
+  }
 
   build() {
     Column() {
@@ -179,12 +198,20 @@ struct SearchPage {
       .margin({ left: 12 })
       .layoutWeight(1)
 
-      Button(this.subscribingId === podcast.id ? '订阅中...' : '订阅')
-        .height(36)
-        .enabled(!this.isSubscribing)
-        .onClick(() => {
-          this.subscribePodcast(podcast);
-        })
+      // 判断是否已订阅
+      if (this.subscribedPodcastIds.has(podcast.id)) {
+        Button('已订阅')
+          .height(36)
+          .enabled(false)
+          .backgroundColor('#E0E0E0')
+      } else {
+        Button(this.subscribingId === podcast.id ? '订阅中...' : '订阅')
+          .height(36)
+          .enabled(!this.isSubscribing)
+          .onClick(() => {
+            this.subscribePodcast(podcast);
+          })
+      }
     }
     .width('100%')
     .padding(12)
@@ -270,6 +297,15 @@ struct SearchPage {
       return;
     }
 
+    // 检查是否已订阅
+    if (this.subscribedPodcastIds.has(podcast.id)) {
+      promptAction.showToast({
+        message: '该播客已订阅',
+        duration: 2000
+      });
+      return;
+    }
+
     if (!podcast.feedUrl) {
       promptAction.showToast({
         message: '该播客没有有效的 RSS 地址',
@@ -285,14 +321,21 @@ struct SearchPage {
       // 先插入播客基本信息
       await PodcastService.getInstance().addPodcastFromSearchResult(podcast);
       
-      // 再拉取单集并更新计数
-      await PodcastService.getInstance().updatePodcastEpisodes(podcast.id);
+      // 再拉取单集并更新计数（在后台执行）
+      PodcastService.getInstance().updatePodcastEpisodes(podcast.id)
+        .catch(err => {
+          console.error('Background update episodes failed:', err);
+        });
+      
+      // 添加到已订阅列表
+      this.subscribedPodcastIds.add(podcast.id);
       
       promptAction.showToast({
-        message: '订阅成功',
+        message: '订阅成功，正在后台加载单集',
         duration: 2000
       });
-      router.back();
+      
+      // 不返回订阅页，留在搜索页继续操作
     } catch (error) {
       console.error('Subscribe failed:', error);
       promptAction.showToast({
