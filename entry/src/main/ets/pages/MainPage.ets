@@ -290,6 +290,43 @@ struct MainPage {
     }
   }
 
+  /**
+   * 播放下一个单集
+   */
+  async playNextEpisode() {
+    try {
+      // 如果队列为空，提示用户
+      if (this.queueEpisodes.length === 0) {
+        promptAction.showToast({
+          message: '队列为空，请添加单集到队列',
+          duration: 2000
+        });
+        return;
+      }
+
+      // 获取队列的第一个单集
+      const nextEpisode = this.queueEpisodes[0];
+      console.info(`[MainPage] Playing next episode: ${nextEpisode.title}`);
+      
+      // 播放下一个
+      await this.playerService.playEpisode(nextEpisode);
+      
+      // 从队列中移除
+      await this.removeFromQueue(nextEpisode);
+      
+      promptAction.showToast({
+        message: `正在播放：${nextEpisode.title}`,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('[MainPage] Failed to play next episode:', error);
+      promptAction.showToast({
+        message: '播放失败',
+        duration: 2000
+      });
+    }
+  }
+
   build() {
     Column() {
       // 顶部标题栏
@@ -1018,9 +1055,9 @@ struct MainPage {
           this.isPlaying = !this.isPlaying;
         })
 
-        // 下一首/列表按钮
+        // 下一首按钮
         Button() {
-          Text('☰')
+          Text('⏭')
             .fontSize(18)
             .fontColor('#FFFFFF')
         }
@@ -1029,8 +1066,8 @@ struct MainPage {
         .backgroundColor(Color.Transparent)
         .margin({ right: 8 })
         .onClick(() => {
-          console.info('======>>> Click: Mini player open full player');
-          this.openPlayerPage();
+          console.info('======>>> Click: Mini player next episode');
+          this.playNextEpisode();
         })
       }
       .width('100%')
