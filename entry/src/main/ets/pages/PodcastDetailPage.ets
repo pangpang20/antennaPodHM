@@ -13,7 +13,12 @@ struct PodcastDetailPage {
   @State isLoading: boolean = true;
   @State isSelectionMode: boolean = false;
   @State selectedEpisodes: Set<string> = new Set();
+  @State currentPage: number = 1;  // 当前页码
+  @State pageSize: number = 20;  // 每页数量
+  @State hasMore: boolean = false;  // 是否还有更多
+  @State isLoadingMore: boolean = false;  // 是否正在加载更多
   private podcastId: string = '';
+  private allEpisodes: Episode[] = [];  // 存储所有单集
 
   aboutToAppear() {
     const params = router.getParams() as Record<string, Object>;
@@ -32,13 +37,45 @@ struct PodcastDetailPage {
       this.podcast = await db.getPodcastById(this.podcastId);
       // 如果还没有单集，则尝试从 RSS 更新
       await service.updatePodcastEpisodes(this.podcastId);
-      // 加载Episodes
-      this.episodes = await db.queryEpisodesByPodcastId(this.podcastId);
+      // 加载所有Episodes
+      this.allEpisodes = await db.queryEpisodesByPodcastId(this.podcastId);
+      // 初始化分页数据
+      this.currentPage = 1;
+      this.updateDisplayedEpisodes();
     } catch (error) {
       console.error('Failed to load podcast detail:', error);
     } finally {
       this.isLoading = false;
     }
+  }
+
+  /**
+   * 更新显示的单集列表（分页）
+   */
+  updateDisplayedEpisodes() {
+    const startIndex = 0;
+    const endIndex = this.currentPage * this.pageSize;
+    this.episodes = this.allEpisodes.slice(startIndex, endIndex);
+    this.hasMore = endIndex < this.allEpisodes.length;
+    console.info(`[PodcastDetailPage] Displaying ${this.episodes.length}/${this.allEpisodes.length} episodes, hasMore: ${this.hasMore}`);
+  }
+
+  /**
+   * 加载更多单集
+   */
+  async loadMore() {
+    if (this.isLoadingMore || !this.hasMore) {
+      return;
+    }
+
+    this.isLoadingMore = true;
+    // 模拟网络延迟，提升用户体验
+    setTimeout(() => {
+      this.currentPage++;
+      this.updateDisplayedEpisodes();
+      this.isLoadingMore = false;
+      console.info(`[PodcastDetailPage] Loaded page ${this.currentPage}`);
+    }, 300);
   }
 
   build() {
@@ -155,6 +192,52 @@ struct PodcastDetailPage {
           this.buildEpisodeItem(episode);
         }
       }, (episode: Episode) => episode.id)
+
+      // 加载更多按钮
+      if (this.hasMore) {
+        ListItem() {
+          Button() {
+            if (this.isLoadingMore) {
+              Row() {
+                LoadingProgress()
+                  .width(20)
+                  .height(20)
+                  .color($r('app.color.primary'))
+                  .margin({ right: 8 })
+                Text('加载中...')
+                  .fontSize(14)
+                  .fontColor($r('app.color.primary'))
+              }
+            } else {
+              Text('加载更多')
+                .fontSize(14)
+                .fontColor($r('app.color.primary'))
+            }
+          }
+          .width('100%')
+          .height(44)
+          .backgroundColor(Color.White)
+          .borderRadius(8)
+          .enabled(!this.isLoadingMore)
+          .onClick(() => {
+            console.info('======>>> Click: Load more episodes');
+            this.loadMore();
+          })
+        }
+        .margin({ top: 8 })
+      }
+
+      // 已加载全部提示
+      if (!this.hasMore && this.episodes.length > 0) {
+        ListItem() {
+          Text(`已加载全部 ${this.allEpisodes.length} 集`)
+            .width('100%')
+            .fontSize(13)
+            .fontColor($r('app.color.text_secondary_light'))
+            .textAlign(TextAlign.Center)
+            .padding(16)
+        }
+      }
     }
     .width('100%')
     .layoutWeight(1)
