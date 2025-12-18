@@ -282,7 +282,12 @@ struct SearchPage {
     this.subscribingId = podcast.id;
 
     try {
+      // 先插入播客基本信息
       await PodcastService.getInstance().addPodcastFromSearchResult(podcast);
+      
+      // 再拉取单集并更新计数
+      await PodcastService.getInstance().updatePodcastEpisodes(podcast.id);
+      
       promptAction.showToast({
         message: '订阅成功',
         duration: 2000
