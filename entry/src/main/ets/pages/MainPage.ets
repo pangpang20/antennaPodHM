@@ -16,6 +16,8 @@ struct MainPage {
   @State currentEpisode: Episode | null = null;
   @State isPlaying: boolean = false;
   @State playProgress: number = 0;
+  @State currentPlayTime: number = 0;  // 当前播放时间（秒）
+  @State totalDuration: number = 0;  // 总时长（秒）
   @State sleepTimerRemaining: number = 0;  // 睡眠定时器剩余秒数
   @State marqueeText: string = '';  // 跑马灯文本
   @State downloadingEpisodes: Episode[] = [];
@@ -260,6 +262,10 @@ struct MainPage {
       const position = this.playerService.getCurrentPosition();
       const duration = this.playerService.getDuration();
       this.playProgress = duration > 0 ? (position / duration) * 100 : 0;
+      
+      // 更新播放时间
+      this.currentPlayTime = position;
+      this.totalDuration = duration;
       
       // 更新跑马灯文本，使用菱形符号分隔，确保可见性
       this.marqueeText = `${this.currentEpisode.title}     ◆     `;
@@ -966,7 +972,8 @@ struct MainPage {
             .allowScale(false)
 
           Row() {
-            Text('正在播放')
+            // 播放时间
+            Text(`${this.formatTime(this.currentPlayTime)} / ${this.formatTime(this.totalDuration)}`)
               .fontSize(11)
               .fontColor('#AAAAAA')
             
@@ -1053,6 +1060,22 @@ struct MainPage {
       return `${mins}:${secs.toString().padStart(2, '0')}`;
     } else {
       return `${secs}s`;
+    }
+  }
+
+  /**
+   * 格式化播放时间
+   */
+  formatTime(seconds: number): string {
+    const totalSeconds = Math.floor(seconds);
+    const mins = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(mins / 60);
+    const remainingSeconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${(mins % 60).toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    } else {
+      return `${mins}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
   }
 
