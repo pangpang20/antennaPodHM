@@ -385,7 +385,7 @@ struct MainPage {
               .backgroundColor(Color.White)
               .borderRadius(8)
             }
-          }, (episode: Episode) => episode.id)
+          }, (episode: Episode) => `${episode.id}_${episode.downloadProgress}`)
         }
         .width('100%')
         .padding({ left: 16, right: 16 })
