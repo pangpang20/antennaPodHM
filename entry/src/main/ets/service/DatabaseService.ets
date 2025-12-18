@@ -246,6 +246,39 @@ export class DatabaseService {
   }
 
   /**
+   * 删除指定播客的所有Episodes
+   */
+  async deleteEpisodesByPodcastId(podcastId: string): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_EPISODE);
+      predicates.equalTo('podcastId', podcastId);
+      await this.rdbStore.delete(predicates);
+    } catch (error) {
+      console.error('Failed to delete episodes by podcast id:', error);
+    }
+  }
+
+  /**
+   * 更新播客的Episode数量
+   */
+  async updatePodcastEpisodeCount(podcastId: string, count: number): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      const valueBucket: relationalStore.ValuesBucket = {
+        episodeCount: count
+      };
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_PODCAST);
+      predicates.equalTo('id', podcastId);
+      await this.rdbStore.update(valueBucket, predicates);
+    } catch (error) {
+      console.error('Failed to update podcast episode count:', error);
+    }
+  }
+
+  /**
    * 更新Episode下载状态
    */
   async updateEpisodeDownloadStatus(episodeId: string, status: number, progress: number, localPath?: string): Promise<void> {

@@ -2,6 +2,7 @@ import { router } from '@kit.ArkUI';
 import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { DatabaseService } from '../service/DatabaseService';
+import { PodcastService } from '../service/PodcastService';
 
 @Entry
 @Component
@@ -23,8 +24,11 @@ struct PodcastDetailPage {
     this.isLoading = true;
     try {
       const db = DatabaseService.getInstance();
+      const service = PodcastService.getInstance();
       // 加载播客基本信息
       this.podcast = await db.getPodcastById(this.podcastId);
+      // 如果还没有单集，则尝试从 RSS 更新
+      await service.updatePodcastEpisodes(this.podcastId);
       // 加载Episodes
       this.episodes = await db.queryEpisodesByPodcastId(this.podcastId);
     } catch (error) {

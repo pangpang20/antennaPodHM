@@ -107,7 +107,35 @@ export class PodcastService {
    * 更新播客的Episodes
    */
   async updatePodcastEpisodes(podcastId: string): Promise<void> {
-    // 实现更新逻辑
+    try {
+      // 从数据库获取播客信息，拿到 feedUrl
+      const podcast = await this.dbService.getPodcastById(podcastId);
+      if (!podcast || !podcast.feedUrl) {
+        console.warn('No podcast or feedUrl found for id:', podcastId);
+        return;
+      }
+
+      // 拉取 RSS 内容
+      const rssContent = await this.fetchRssFeed(podcast.feedUrl);
+
+      // 解析出单集列表
+      const episodes = this.parseEpisodesFromRss(rssContent, podcastId);
+      if (!episodes.length) {
+        console.warn('No episodes parsed from rss for podcast:', podcastId);
+        return;
+      }
+
+      // 先清空旧的单集，再插入新的
+      await this.dbService.deleteEpisodesByPodcastId(podcastId);
+      for (let i = 0; i < episodes.length; i++) {
+        await this.dbService.insertEpisode(episodes[i]);
+      }
+
+      // 更新播客的 episodeCount
+      await this.dbService.updatePodcastEpisodeCount(podcastId, episodes.length);
+    } catch (error) {
+      console.error('Failed to update podcast episodes:', error);
+    }
   }
 
   /**
@@ -130,6 +158,119 @@ export class PodcastService {
         httpRequest.destroy();
       });
     });
+  }
+
+  /**
+   * 解析RSS中的单集列表
+   */
+  private parseEpisodesFromRss(rssContent: string, podcastId: string): Episode[] {
+    const episodes: Episode[] = [];
+    if (!rssContent) {
+      return episodes;
+    }
+
+    // 粗略匹配 <item> ... </item>
+    const itemRegex = /<item[\s\S]*?<\/item>/g;
+    const items = rssContent.match(itemRegex);
+    if (!items || !Array.isArray(items)) {
+      return episodes;
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const episode = new Episode();
+      episode.id = this.generateId();
+      episode.podcastId = podcastId;
+
+      // 标题
+      const titleMatch = item.match(/<title>([\s\S]*?)<\/title>/);
+      if (titleMatch) {
+        episode.title = this.decodeHtmlEntities(titleMatch[1].trim());
+      }
+
+      // 描述
+      const descMatch = item.match(/<description>([\s\S]*?)<\/description>/);
+      if (descMatch) {
+        episode.description = this.decodeHtmlEntities(descMatch[1].trim());
+      }
+
+      // 链接
+      const linkMatch = item.match(/<link>([\s\S]*?)<\/link>/);
+      if (linkMatch) {
+        episode.link = linkMatch[1].trim();
+      }
+
+      // 音频地址（enclosure url）
+      const enclosureMatch = item.match(/<enclosure[^>]*url=\"(.*?)\"/);
+      if (enclosureMatch) {
+        episode.audioUrl = enclosureMatch[1];
+      } else if (episode.link) {
+        episode.audioUrl = episode.link;
+      }
+
+      // 单集图片
+      const imageMatch = item.match(/<itunes:image[^>]*href=\"(.*?)\"/);
+      if (imageMatch) {
+        episode.imageUrl = imageMatch[1];
+      }
+
+      // 时长 itunes:duration
+      const durationMatch = item.match(/<itunes:duration>(.*?)<\/itunes:duration>/);
+      if (durationMatch) {
+        episode.duration = this.parseDurationToSeconds(durationMatch[1].trim());
+      }
+
+      // 发布时间 pubDate
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+      if (pubDateMatch) {
+        const date = new Date(pubDateMatch[1]);
+        const time = date.getTime();
+        if (!isNaN(time)) {
+          episode.pubDate = time;
+        }
+      }
+
+      // 其他字段默认值
+      episode.fileSize = 0;
+      episode.downloadStatus = 0;
+      episode.downloadProgress = 0;
+      episode.localPath = '';
+      episode.playbackPosition = 0;
+      episode.isPlayed = false;
+      episode.isFavorite = false;
+      episode.addedToQueueDate = Date.now();
+
+      episodes.push(episode);
+    }
+
+    return episodes;
+  }
+
+  /**
+   * 将 HH:MM:SS 或 MM:SS 或 秒数字符串 转成秒
+   */
+  private parseDurationToSeconds(value: string): number {
+    if (!value) {
+      return 0;
+    }
+
+    const parts = value.split(':');
+    let seconds = 0;
+    if (parts.length === 3) {
+      seconds = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    } else if (parts.length === 2) {
+      seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    } else {
+      const num = parseInt(value);
+      if (!isNaN(num)) {
+        seconds = num;
+      }
+    }
+
+    if (isNaN(seconds) || seconds < 0) {
+      return 0;
+    }
+    return seconds;
   }
 
   /**
