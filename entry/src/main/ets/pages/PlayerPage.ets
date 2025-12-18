@@ -58,6 +58,11 @@ struct PlayerPage {
         return;
       }
 
+      console.info('[PlayerPage] Episode loaded:', episode.title);
+      console.info('[PlayerPage] audioUrl:', episode.audioUrl);
+      console.info('[PlayerPage] localPath:', episode.localPath);
+      console.info('[PlayerPage] duration:', episode.duration);
+
       this.currentEpisode = episode;
       this.currentPosition = episode.playbackPosition;
       this.duration = episode.duration;

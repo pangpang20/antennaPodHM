@@ -240,7 +240,12 @@ export class PlayerService {
    */
   async playEpisode(episode: Episode): Promise<void> {
     try {
+      console.info('[PlayerService] playEpisode start, episode:', episode.title);
+      console.info('[PlayerService] audioUrl:', episode.audioUrl);
+      console.info('[PlayerService] localPath:', episode.localPath);
+
       if (!this.avPlayer) {
+        console.info('[PlayerService] Initializing player...');
         await this.init();
       }
 
@@ -250,6 +255,7 @@ export class PlayerService {
 
       // 如果正在播放其他Episode,先停止
       if (this.currentEpisode && this.currentEpisode.id !== episode.id) {
+        console.info('[PlayerService] Stopping previous episode...');
         await this.stop();
       }
 
@@ -257,31 +263,44 @@ export class PlayerService {
 
       // 设置音频源
       const audioUrl = episode.localPath || episode.audioUrl;
+      if (!audioUrl || audioUrl.trim().length === 0) {
+        throw new Error('No valid audio URL found for episode');
+      }
+
+      console.info('[PlayerService] Setting audio URL:', audioUrl);
       this.avPlayer.url = audioUrl;
 
       // 等待播放器准备就绪
-      await this.waitForState('prepared');
+      console.info('[PlayerService] Waiting for prepared state...');
+      await this.waitForState('prepared', 10000);
+      console.info('[PlayerService] Player prepared successfully');
 
       // 如果有保存的播放进度,跳转到该位置
       if (episode.playbackPosition > 0) {
+        console.info('[PlayerService] Seeking to position:', episode.playbackPosition);
         await this.seek(episode.playbackPosition);
       }
 
       // 设置播放速度
       if (this.playbackSpeed !== 1.0) {
+        console.info('[PlayerService] Setting playback speed:', this.playbackSpeed);
         await this.setPlaybackSpeed(this.playbackSpeed);
       }
 
       // 开始后台任务
+      console.info('[PlayerService] Starting background task...');
       await this.startBackgroundTask();
 
       // 更新媒体信息
+      console.info('[PlayerService] Updating session metadata...');
       await this.updateSessionMetadata();
 
       // 开始播放
+      console.info('[PlayerService] Calling play()...');
       await this.avPlayer.play();
+      console.info('[PlayerService] playEpisode completed successfully');
     } catch (error) {
-      console.error('Failed to play episode:', error);
+      console.error('[PlayerService] Failed to play episode:', error);
       this.state = PlayerState.ERROR;
       this.notifyListeners('error', error);
     }
@@ -458,13 +477,18 @@ export class PlayerService {
   }
 
   /**
-   * 等待播放器到达指定状态
+   * 等待播放器到达指定状态（带超时）
    */
-  private waitForState(targetState: string): Promise<void> {
-    return new Promise<void>((resolve: () => void) => {
+  private waitForState(targetState: string, timeoutMs: number = 5000): Promise<void> {
+    return new Promise<void>((resolve: () => void, reject: (reason: Error) => void) => {
+      const startTime = Date.now();
       const checkState = (): void => {
         if (this.avPlayer?.state === targetState) {
           resolve();
+        } else if (Date.now() - startTime > timeoutMs) {
+          const error = new Error(`Timeout waiting for state: ${targetState}, current state: ${this.avPlayer?.state}`);
+          console.error('[PlayerService]', error.message);
+          reject(error);
         } else {
           setTimeout(checkState, 100);
         }
