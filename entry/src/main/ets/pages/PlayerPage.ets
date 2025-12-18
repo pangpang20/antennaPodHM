@@ -201,7 +201,7 @@ struct PlayerPage {
   @Builder
   buildPlaybackControls() {
     Row() {
-      // 后退15秒
+      // 后逘15秒
       Button() {
         Text('⏪')
           .fontSize(28)
@@ -210,12 +210,12 @@ struct PlayerPage {
       .height(60)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        const newPosition = Math.max(0, this.currentPosition - 15000);
+        const newPosition = Math.max(0, this.currentPosition - 15);
         this.playerService.seek(newPosition);
       })
-
+  
       Blank()
-
+  
       // 播放/暂停按钮
       Button() {
         Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
@@ -235,9 +235,9 @@ struct PlayerPage {
           this.playerService.playEpisode(this.currentEpisode);
         }
       })
-
+  
       Blank()
-
+  
       // 前进30秒
       Button() {
         Text('⏩')
@@ -247,7 +247,7 @@ struct PlayerPage {
       .height(60)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        const newPosition = Math.min(this.duration, this.currentPosition + 30000);
+        const newPosition = Math.min(this.duration, this.currentPosition + 30);
         this.playerService.seek(newPosition);
       })
     }
@@ -366,15 +366,16 @@ struct PlayerPage {
     }
   }
 
-  formatTime(milliseconds: number): string {
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
+  formatTime(seconds: number): string {
+    const totalSeconds = Math.floor(seconds);
+    const minutes = Math.floor(totalSeconds / 60);
     const hours = Math.floor(minutes / 60);
+    const remainingSeconds = totalSeconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${(minutes % 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+      return `${hours}:${(minutes % 60).toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     } else {
-      return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
+      return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
   }
 }
