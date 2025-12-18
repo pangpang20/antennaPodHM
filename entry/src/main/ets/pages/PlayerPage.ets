@@ -17,7 +17,6 @@ struct PlayerPage {
   
   private playerService: PlayerService = PlayerService.getInstance();
   private updateTimer: number = -1;
-  private sleepTimerId: number = -1;
 
   aboutToAppear() {
     const params = router.getParams() as Record<string, Object>;
@@ -42,18 +41,24 @@ struct PlayerPage {
       this.duration = duration;
     });
 
+    // 监听睡眠定时器结束
+    this.playerService.addEventListener('sleepTimerEnd', () => {
+      this.sleepTimerMinutes = 0;
+      promptAction.showToast({ message: '定时播放结束，已暂停', duration: 2000 });
+    });
+
     // 启动定时器更新进度
     this.startUpdateTimer();
+
+    // 同步睡眠定时器状态
+    this.sleepTimerMinutes = this.playerService.getSleepTimerMinutes();
   }
 
   aboutToDisappear() {
     if (this.updateTimer !== -1) {
       clearInterval(this.updateTimer);
     }
-    if (this.sleepTimerId !== -1) {
-      clearTimeout(this.sleepTimerId);
-      this.sleepTimerId = -1;
-    }
+    // 不再清除睡眠定时器，因为它已经在 PlayerService 中管理
   }
 
   async loadEpisode(episodeId: string) {
@@ -347,30 +352,13 @@ struct PlayerPage {
     }).then((result: promptAction.ActionMenuSuccessResponse) => {
       const minutesOptions: number[] = [0, 5, 15, 30, 45, 60];
       const minutes = minutesOptions[result.index];
-      this.setSleepTimer(minutes);
+      this.sleepTimerMinutes = minutes;
+      this.playerService.setSleepTimer(minutes);
       const msg = minutes > 0 ? `已设置定时关闭：${minutes} 分钟` : '已关闭定时播放';
       promptAction.showToast({ message: msg, duration: 2000 });
     }).catch((err: Error) => {
       console.info('Sleep timer selection cancelled');
     });
-  }
-
-  setSleepTimer(minutes: number): void {
-    if (this.sleepTimerId !== -1) {
-      clearTimeout(this.sleepTimerId);
-      this.sleepTimerId = -1;
-    }
-
-    this.sleepTimerMinutes = minutes;
-
-    if (minutes > 0) {
-      this.sleepTimerId = setTimeout(() => {
-        this.playerService.pause();
-        this.sleepTimerId = -1;
-        this.sleepTimerMinutes = 0;
-        promptAction.showToast({ message: '定时播放结束，已暂停', duration: 2000 });
-      }, minutes * 60 * 1000);
-    }
   }
 
   formatTime(seconds: number): string {

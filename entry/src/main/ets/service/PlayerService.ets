@@ -28,6 +28,8 @@ export class PlayerService {
   private listeners: Map<string, Function[]> = new Map();
   private context: Context | null = null;
   private isBackgroundRunning: boolean = false;
+  private sleepTimerId: number = -1;
+  private sleepTimerMinutes: number = 0;
 
   private constructor() {}
 
@@ -552,10 +554,56 @@ export class PlayerService {
   }
 
   /**
+   * 设置睡眠定时器
+   */
+  setSleepTimer(minutes: number): void {
+    console.info(`======>>> Set sleep timer: ${minutes} minutes`);
+    
+    // 清除之前的定时器
+    if (this.sleepTimerId !== -1) {
+      clearTimeout(this.sleepTimerId);
+      this.sleepTimerId = -1;
+    }
+
+    this.sleepTimerMinutes = minutes;
+
+    if (minutes > 0) {
+      this.sleepTimerId = setTimeout(() => {
+        console.info('======>>> Sleep timer triggered, pausing playback');
+        this.pause();
+        this.sleepTimerId = -1;
+        this.sleepTimerMinutes = 0;
+        this.notifyListeners('sleepTimerEnd', null);
+      }, minutes * 60 * 1000);
+    }
+  }
+
+  /**
+   * 获取当前睡眠定时器分钟数
+   */
+  getSleepTimerMinutes(): number {
+    return this.sleepTimerMinutes;
+  }
+
+  /**
+   * 清除睡眠定时器
+   */
+  clearSleepTimer(): void {
+    if (this.sleepTimerId !== -1) {
+      clearTimeout(this.sleepTimerId);
+      this.sleepTimerId = -1;
+    }
+    this.sleepTimerMinutes = 0;
+  }
+
+  /**
    * 释放资源
    */
   async release(): Promise<void> {
     try {
+      // 清除睡眠定时器
+      this.clearSleepTimer();
+
       // 停止后台任务
       await this.stopBackgroundTask();
 
