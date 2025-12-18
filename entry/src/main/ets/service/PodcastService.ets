@@ -147,9 +147,10 @@ export class PodcastService {
       
       console.info(`[PodcastService] Successfully updated ${episodes.length} episodes for podcast: ${podcastId}`);
     } catch (error) {
-      console.error('[PodcastService] Failed to update podcast episodes:', error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error('[PodcastService] Failed to update podcast episodes:', errMsg);
       // 不抛异常，让调用者决定如何处理
-      throw error;
+      throw new Error(`Failed to update podcast episodes: ${errMsg}`);
     }
   }
 

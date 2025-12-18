@@ -323,8 +323,8 @@ struct SearchPage {
       
       // 再拉取单集并更新计数（在后台执行）
       PodcastService.getInstance().updatePodcastEpisodes(podcast.id)
-        .catch(err => {
-          console.error('Background update episodes failed:', err);
+        .catch((err: Error) => {
+          console.error('Background update episodes failed:', err.message);
         });
       
       // 添加到已订阅列表
