@@ -7,11 +7,11 @@
         "material": {
           "certpath": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001A34286A891C8AE4FA44FF81640636499E06CAE8FD285400081AEF414DA1CA4B22F93D8FBDEDE9",
+          "keyPassword": "0000001A93D479B586F676738EC373F32042B98D0E9B42585FBEAF5F084C1586D9CD8DD28B95435AD4C2",
           "profile": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.p12",
-          "storePassword": "0000001A26B23273747179F94B4067E723B17E6E0E3CE1AE623607E30495D0B85BEC6B1462FA3EB7F965"
+          "storePassword": "0000001A76141244AED501A60B8B2B955104EDC5207216CEC1E2BDE139297528538BF73088A622A43126"
         }
       }
     ],
