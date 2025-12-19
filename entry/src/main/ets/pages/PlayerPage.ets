@@ -20,6 +20,7 @@ struct PlayerPage {
   @State sleepTimerMinutes: number = 0;
   @State sleepTimerRemaining: number = 0;  // 剩余秒数
   @State marqueeText: string = '';  // 跑马灯文本
+  @State showDescriptionDialog: boolean = false;  // 显示简介弹窗
   
   private playerService: PlayerService = PlayerService.getInstance();
   private updateTimer: number = -1;
@@ -203,11 +204,12 @@ struct PlayerPage {
   buildEpisodeInfo() {
     Column() {
       // 封面图 - 更大，带阴影
-      Image(this.currentEpisode?.imageUrl)
+      Image(this.currentEpisode?.imageUrl || '')
         .width(280)
         .height(280)
         .borderRadius(16)
         .objectFit(ImageFit.Cover)
+        .alt($r('app.media.app_icon'))
         .margin({ top: 20 })
         .shadow({
           radius: 30,
@@ -231,7 +233,7 @@ struct PlayerPage {
         .margin({ top: 20 })
         .allowScale(false)
 
-      // 描述
+      // 描述（点击显示完整内容）
       Text(this.currentEpisode?.description || '')
         .fontSize(13)
         .fontColor('#666666')
@@ -240,9 +242,41 @@ struct PlayerPage {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .width('85%')
         .textAlign(TextAlign.Center)
+        .onClick(() => {
+          if (this.currentEpisode?.description) {
+            this.showDescriptionDialog = true;
+          }
+        })
+        .bindSheet($$this.showDescriptionDialog, this.buildDescriptionSheet(), {
+          height: SheetSize.FIT_CONTENT,
+          dragBar: true,
+          showClose: true
+        })
     }
     .width('100%')
     .padding({ left: 20, right: 20 })
+  }
+
+  @Builder
+  buildDescriptionSheet() {
+    Column() {
+      Text('单集简介')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .margin({ bottom: 16 })
+
+      Scroll() {
+        Text(this.currentEpisode?.description || '')
+          .fontSize(15)
+          .fontColor('#333')
+          .lineHeight(24)
+      }
+      .scrollable(ScrollDirection.Vertical)
+      .scrollBar(BarState.Auto)
+      .constraintSize({ maxHeight: 400 })
+    }
+    .width('100%')
+    .padding(20)
   }
 
   @Builder
