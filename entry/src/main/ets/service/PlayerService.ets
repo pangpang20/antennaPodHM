@@ -6,6 +6,7 @@ import fs from '@ohos.file.fs';
 import { Episode } from '../model/Episode';
 import { SettingsService } from './SettingsService';
 import { DatabaseService } from './DatabaseService';
+import { DownloadService } from './DownloadService';
 
 /**
  * 播放器状态
@@ -273,8 +274,21 @@ export class PlayerService {
     try {
       console.info('[PlayerService] handlePlaybackCompleted start');
       
-      // 检查是否开启了自动续播
       const settingsService = SettingsService.getInstance();
+      
+      // 检查是否开启了自动删除已播放，并且当前单集是已下载的
+      const autoDeletePlayed = settingsService.getAutoDeletePlayed();
+      if (autoDeletePlayed && this.currentEpisode && this.currentEpisode.localPath) {
+        console.info(`[PlayerService] Auto-delete enabled, deleting played episode: ${this.currentEpisode.title}`);
+        try {
+          await DownloadService.getInstance().deleteDownloadedFile(this.currentEpisode);
+          console.info('[PlayerService] Deleted played episode file');
+        } catch (deleteError) {
+          console.error('[PlayerService] Failed to delete played episode:', deleteError);
+        }
+      }
+      
+      // 检查是否开启了自动续播
       const continuePlayback = settingsService.getContinuePlayback();
       console.info(`[PlayerService] Continue playback setting: ${continuePlayback}`);
       

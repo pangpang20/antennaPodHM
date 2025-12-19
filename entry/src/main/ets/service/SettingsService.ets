@@ -236,6 +236,13 @@ export class SettingsService {
   }
 
   /**
+   * 获取自动删除已播放设置
+   */
+  getAutoDeletePlayed(): boolean {
+    return this.settings.autoDeletePlayed;
+  }
+
+  /**
    * 设置启用通知
    */
   async setEnableNotifications(enabled: boolean): Promise<void> {
