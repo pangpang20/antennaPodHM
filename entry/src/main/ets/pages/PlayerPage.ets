@@ -293,6 +293,14 @@ struct PlayerPage {
   @Builder
   buildProgressBar() {
     Column() {
+      // 加载状态提示
+      if (this.playerState === PlayerState.LOADING) {
+        Text('正在连接，请稍候...')
+          .fontSize(14)
+          .fontColor('#5C6BC0')
+          .margin({ bottom: 12 })
+      }
+
       // 时间显示
       Row() {
         Text(this.formatTime(this.currentPosition))
@@ -360,9 +368,16 @@ struct PlayerPage {
   
       // 播放/暂停按钮 - 更大、更突出
       Button() {
-        Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
-          .fontSize(38)
-          .fontColor(Color.White)
+        if (this.playerState === PlayerState.LOADING) {
+          LoadingProgress()
+            .width(38)
+            .height(38)
+            .color(Color.White)
+        } else {
+          Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
+            .fontSize(38)
+            .fontColor(Color.White)
+        }
       }
       .width(72)
       .height(72)
@@ -374,6 +389,7 @@ struct PlayerPage {
         offsetX: 0,
         offsetY: 4
       })
+      .enabled(this.playerState !== PlayerState.LOADING)
       .onClick(() => {
         console.info(`[PlayerPage] Play/Pause, state: ${this.playerState}`);
         if (this.playerState === PlayerState.PLAYING) {

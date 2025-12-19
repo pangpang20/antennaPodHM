@@ -13,6 +13,7 @@ import { DownloadService } from './DownloadService';
  */
 export enum PlayerState {
   IDLE = 'idle',
+  LOADING = 'loading',
   PLAYING = 'playing',
   PAUSED = 'paused',
   STOPPED = 'stopped',
@@ -337,6 +338,10 @@ export class PlayerService {
       console.info('[PlayerService] playEpisode start, episode:', episode.title);
       console.info('[PlayerService] audioUrl:', episode.audioUrl);
       console.info('[PlayerService] localPath:', episode.localPath);
+
+      // 设置加载状态
+      this.state = PlayerState.LOADING;
+      this.notifyListeners('stateChange', this.state);
 
       if (!this.avPlayer) {
         console.info('[PlayerService] Initializing player...');
