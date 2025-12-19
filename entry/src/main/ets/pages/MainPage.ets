@@ -560,7 +560,7 @@ struct MainPage {
 
       // 搜索结果提示
       if (this.episodeSearchKeyword && this.searchTotal > 0) {
-        Text(`找到 ${this.searchTotal} 个单集`)
+        Text(`找到 ${this.searchTotal} 个单集（匹配标题或简介）`)
           .fontSize(12)
           .fontColor('#666')
           .width('100%')
