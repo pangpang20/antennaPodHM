@@ -59,26 +59,6 @@
         }
       },
       {
-        "name": "ohos.permission.WRITE_AUDIO",
-        "reason": "$string:permission_write_media_reason",
-        "usedScene": {
-          "abilities": [
-            "EntryAbility"
-          ],
-          "when": "always"
-        }
-      },
-      {
-        "name": "ohos.permission.READ_AUDIO",
-        "reason": "$string:permission_read_media_reason",
-        "usedScene": {
-          "abilities": [
-            "EntryAbility"
-          ],
-          "when": "always"
-        }
-      },
-      {
         "name": "ohos.permission.KEEP_BACKGROUND_RUNNING",
         "reason": "$string:permission_background_reason",
         "usedScene": {

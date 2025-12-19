@@ -4,8 +4,6 @@ import { DatabaseService } from './DatabaseService';
 import { Constants } from '../common/Constants';
 import fs from '@ohos.file.fs';
 import { common } from '@kit.AbilityKit';
-import abilityAccessCtrl, { Permissions } from '@ohos.abilityAccessCtrl';
-import bundleManager from '@ohos.bundle.bundleManager';
 import { BusinessError } from '@ohos.base';
 
 /**
@@ -49,13 +47,6 @@ export class DownloadService {
    * 下载Episode
    */
   async downloadEpisode(episode: Episode): Promise<void> {
-    // 检查存储权限
-    const hasPermission = await this.checkStoragePermission();
-    if (!hasPermission) {
-      console.error('[DownloadService] Storage permission denied');
-      throw new Error('没有存储权限，无法下载。请在设置中开启存储权限。');
-    }
-
     // 如果已经在下载或队列中，直接返回
     if (this.downloadTasks.has(episode.id) || this.downloadQueue.find(e => e.id === episode.id)) {
       console.warn('Episode is already downloading or in queue');
@@ -290,54 +281,5 @@ export class DownloadService {
    */
   getAllDownloadTasks(): DownloadTask[] {
     return Array.from(this.downloadTasks.values());
-  }
-
-  /**
-   * 检查存储权限
-   */
-  private async checkStoragePermission(): Promise<boolean> {
-    if (!this.context) {
-      console.error('[DownloadService] Context not set');
-      return false;
-    }
-
-    try {
-      const atManager = abilityAccessCtrl.createAtManager();
-      const bundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION);
-      const tokenId = bundleInfo.appInfo.accessTokenId;
-
-      // 检查写入权限
-      const writeStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_AUDIO');
-      const readStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_AUDIO');
-
-      const hasPermission = writeStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED &&
-                           readStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
-
-      if (!hasPermission) {
-        console.warn('[DownloadService] Storage permission not granted');
-        // 尝试请求权限
-        try {
-          await atManager.requestPermissionsFromUser(this.context, [
-            'ohos.permission.WRITE_AUDIO',
-            'ohos.permission.READ_AUDIO'
-          ]);
-          console.info('[DownloadService] Storage permission requested');
-          
-          // 再次检查
-          const newWriteStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_AUDIO');
-          const newReadStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_AUDIO');
-          return newWriteStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED &&
-                 newReadStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
-        } catch (err) {
-          console.error('[DownloadService] User denied permission request:', err);
-          return false;
-        }
-      }
-
-      return true;
-    } catch (error) {
-      console.error('[DownloadService] Failed to check permission:', error);
-      return false;
-    }
   }
 }
