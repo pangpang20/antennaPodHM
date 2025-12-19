@@ -266,7 +266,7 @@ struct PlayerPage {
         .margin({ bottom: 16 })
 
       Scroll() {
-        Text(this.currentEpisode?.description || '')
+        Text(this.formatDescription(this.currentEpisode?.description || ''))
           .fontSize(15)
           .fontColor('#333')
           .lineHeight(24)
@@ -277,6 +277,16 @@ struct PlayerPage {
     }
     .width('100%')
     .padding(20)
+  }
+
+  /**
+   * 格式化描述，在时间戳前换行
+   */
+  formatDescription(desc: string): string {
+    if (!desc) return '';
+    // 匹配时间格式: 02:02, 1:02:02, 02:02:02 等
+    // 在时间戳前添加换行符（除了开头）
+    return desc.replace(/(?<!^)(?<![\n\r])\s*(\d{1,2}:\d{2}(?::\d{2})?)/g, '\n$1');
   }
 
   @Builder

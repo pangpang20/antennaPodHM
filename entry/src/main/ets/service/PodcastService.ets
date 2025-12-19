@@ -404,8 +404,9 @@ export class PodcastService {
       return '';
     }
     let value = text;
-    // 去掉 CDATA 包裹
-    value = value.replace(/^<!\[CDATA\[/, '').replace(/]]>$/, '');
+    // 去掉 CDATA 包裹（处理各种情况）
+    value = value.replace(/<!\[CDATA\[/g, '');
+    value = value.replace(/\]\]>/g, '');
     // 去掉简单 HTML 标签
     value = value.replace(/<[^>]+>/g, '');
     // 解码 HTML 实体
