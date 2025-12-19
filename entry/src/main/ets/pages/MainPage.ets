@@ -397,6 +397,9 @@ struct MainPage {
       // 播放下一个
       await this.playerService.playEpisode(nextEpisode);
       
+      // 更新 mini 播放器状态
+      this.checkCurrentEpisode();
+      
       // 从队列中移除
       await this.removeFromQueue(nextEpisode);
       
@@ -946,9 +949,10 @@ struct MainPage {
                       .fontSize(12)
                       .backgroundColor('#5C6BC0')
                       .fontColor(Color.White)
-                      .onClick(() => {
+                      .onClick(async () => {
                         console.info(`[MainPage] Play: ${episode.title}`);
-                        this.playerService.playEpisode(episode);
+                        await this.playerService.playEpisode(episode);
+                        this.checkCurrentEpisode();
                       })
 
                     Button('+ 待听')
@@ -1098,9 +1102,10 @@ struct MainPage {
           .fontSize(11)
           .backgroundColor('#5C6BC0')
           .fontColor(Color.White)
-          .onClick(() => {
+          .onClick(async () => {
             console.info(`[MainPage] Play: ${episode.title}`);
-            this.playerService.playEpisode(episode);
+            await this.playerService.playEpisode(episode);
+            this.checkCurrentEpisode();
           })
 
         Button('+ 待听')
