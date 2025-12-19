@@ -1,4 +1,4 @@
-import { router, promptAction } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, RouteParams } from '../common/UIUtils';
 import { Episode, DownloadStatus } from '../model/Episode';
 import { PlayerService } from '../service/PlayerService';
 import { DownloadService } from '../service/DownloadService';
@@ -17,7 +17,7 @@ struct EpisodeDetailPage {
   private dbService: DatabaseService = DatabaseService.getInstance();
 
   async aboutToAppear() {
-    const params = router.getParams() as Record<string, Object>;
+    const params = UIUtils.getParams<Record<string, Object>>();
     if (params && params['episodeId']) {
       this.episodeId = params['episodeId'] as string;
       await this.loadEpisodeDetail();
@@ -69,18 +69,9 @@ struct EpisodeDetailPage {
       this.playerService.playEpisode(this.episode);
       
       // 跳转到播放页面
-      router.pushUrl({
-        url: 'pages/PlayerPage',
-        params: { episodeId: this.episode.id }
-      }).then(() => {
-        console.info('[EpisodeDetailPage] Navigation to PlayerPage success');
-      }).catch((err: Error) => {
-        console.error('[EpisodeDetailPage] Navigation to PlayerPage failed:', err);
-        promptAction.showToast({
-          message: '跳转失败',
-          duration: 2000
-        });
-      });
+      const params = new RouteParams();
+      params.episodeId = this.episode.id;
+      UIUtils.pushUrl('pages/PlayerPage', params);
     }
   }
 
@@ -92,18 +83,12 @@ struct EpisodeDetailPage {
       console.info(`======>>> Click: Download episode - ${this.episode.title}`);
       try {
         await this.downloadService.downloadEpisode(this.episode);
-        promptAction.showToast({
-          message: '已添加到下载队列',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('已添加到下载队列', 2000));
         this.isDownloading = true;
       } catch (error) {
         console.error('Download failed:', error);
         const errorMsg = error instanceof Error ? error.message : '下载失败';
-        promptAction.showToast({
-          message: errorMsg,
-          duration: 3000
-        });
+        UIUtils.showToast(new ToastOptions(errorMsg, 3000));
       }
     }
   }
@@ -116,16 +101,10 @@ struct EpisodeDetailPage {
       console.info(`======>>> Click: Add to queue - ${this.episode.title}`);
       try {
         await this.dbService.addToQueue(this.episode.id);
-        promptAction.showToast({
-          message: '已添加到待听队列',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('已添加到待听队列', 2000));
       } catch (error) {
         console.error('Add to queue failed:', error);
-        promptAction.showToast({
-          message: '添加失败',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('添加失败', 2000));
       }
     }
   }
@@ -185,7 +164,7 @@ struct EpisodeDetailPage {
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         console.info('======>>> Click: Back button (EpisodeDetail)');
-        router.back();
+        UIUtils.back();
       })
 
       Text('单集详情')

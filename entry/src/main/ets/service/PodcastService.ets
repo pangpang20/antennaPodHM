@@ -110,6 +110,7 @@ export class PodcastService {
 
   /**
    * 更新播客的Episodes
+   * 成功时更新 lastSuccessfulFetch，失败时标记 isFetchFailed
    */
   async updatePodcastEpisodes(podcastId: string): Promise<void> {
     try {
@@ -119,6 +120,12 @@ export class PodcastService {
       const podcast = await this.dbService.getPodcastById(podcastId);
       if (!podcast || !podcast.feedUrl) {
         console.warn('[PodcastService] No podcast or feedUrl found for id:', podcastId);
+        return;
+      }
+
+      // 如果已标记为获取失败，跳过刷新
+      if (podcast.isFetchFailed) {
+        console.info(`[PodcastService] Podcast ${podcastId} is marked as fetch failed, skipping refresh`);
         return;
       }
 
@@ -145,16 +152,29 @@ export class PodcastService {
         await this.dbService.insertEpisode(episodes[i]);
       }
 
-      // 更新播客的 episodeCount
+      // 更新播客的 episodeCount 和 lastSuccessfulFetch
       await this.dbService.updatePodcastEpisodeCount(podcastId, episodes.length);
+      await this.dbService.updatePodcastFetchStatus(podcastId, false, Date.now());
       
       console.info(`[PodcastService] Successfully updated ${episodes.length} episodes for podcast: ${podcastId}`);
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
       console.error('[PodcastService] Failed to update podcast episodes:', errMsg);
+      
+      // 标记播客为获取失败
+      await this.dbService.updatePodcastFetchStatus(podcastId, true);
+      
       // 不抛异常，让调用者决定如何处理
       throw new Error(`Failed to update podcast episodes: ${errMsg}`);
     }
+  }
+
+  /**
+   * 重置播客获取失败状态（允许重新刷新）
+   */
+  async resetPodcastFetchStatus(podcastId: string): Promise<void> {
+    await this.dbService.updatePodcastFetchStatus(podcastId, false);
+    console.info(`[PodcastService] Reset fetch status for podcast: ${podcastId}`);
   }
 
   /**

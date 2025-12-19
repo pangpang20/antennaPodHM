@@ -1,7 +1,6 @@
-import { router } from '@kit.ArkUI';
+import { UIUtils, ToastOptions } from '../common/UIUtils';
 import { Podcast } from '../model/Podcast';
 import { PodcastService } from '../service/PodcastService';
-import { promptAction } from '@kit.ArkUI';
 
 @Entry
 @Component
@@ -83,7 +82,7 @@ struct SearchPage {
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         console.info('======>>> Click: Back button (Search)');
-        router.back();
+        UIUtils.back();
       })
 
       Text('搜索播客')
@@ -372,10 +371,7 @@ struct SearchPage {
     // 简单验证 URL 格式
     const url = this.feedUrl.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      promptAction.showToast({
-        message: '请输入有效的 URL（以 http:// 或 https:// 开头）',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('请输入有效的 URL（以 http:// 或 https:// 开头）', 2000));
       return;
     }
 
@@ -383,19 +379,13 @@ struct SearchPage {
 
     try {
       await PodcastService.getInstance().addPodcastByUrl(url);
-      promptAction.showToast({
-        message: '播客添加成功',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('播客添加成功', 2000));
       this.feedUrl = '';
       this.showAddByUrl = false;
-      router.back();
+      UIUtils.back();
     } catch (error) {
       console.error('Add by RSS URL failed:', error);
-      promptAction.showToast({
-        message: '添加失败，请检查 URL 是否正确',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('添加失败，请检查 URL 是否正确', 2000));
     } finally {
       this.isAddingByUrl = false;
     }
@@ -411,18 +401,12 @@ struct SearchPage {
 
     // 检查是否已订阅
     if (this.subscribedPodcastIds.has(podcast.id)) {
-      promptAction.showToast({
-        message: '该播客已订阅',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('该播客已订阅', 2000));
       return;
     }
 
     if (!podcast.feedUrl) {
-      promptAction.showToast({
-        message: '该播客没有有效的 RSS 地址',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('该播客没有有效的 RSS 地址', 2000));
       return;
     }
 
@@ -442,18 +426,12 @@ struct SearchPage {
       // 添加到已订阅列表
       this.subscribedPodcastIds.add(podcast.id);
       
-      promptAction.showToast({
-        message: '订阅成功，正在后台加载单集',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('订阅成功，正在后台加载单集', 2000));
       
       // 不返回订阅页，留在搜索页继续操作
     } catch (error) {
       console.error('Subscribe failed:', error);
-      promptAction.showToast({
-        message: '订阅失败，请重试',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('订阅失败，请重试', 2000));
     } finally {
       this.isSubscribing = false;
       this.subscribingId = '';

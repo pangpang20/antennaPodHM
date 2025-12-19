@@ -4,7 +4,7 @@
 export class Constants {
   // 数据库常量
   static readonly DB_NAME: string = 'antennapod.db';
-  static readonly DB_VERSION: number = 1;
+  static readonly DB_VERSION: number = 2;
   
   // 表名
   static readonly TABLE_PODCAST: string = 'podcast';

@@ -1,4 +1,4 @@
-import { router, promptAction } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, DialogOptions, ButtonOptions, RouteParams } from '../common/UIUtils';
 import { Podcast } from '../model/Podcast';
 import { Episode } from '../model/Episode';
 import { DatabaseService } from '../service/DatabaseService';
@@ -21,7 +21,7 @@ struct PodcastDetailPage {
   private allEpisodes: Episode[] = [];  // 存储所有单集
 
   aboutToAppear() {
-    const params = router.getParams() as Record<string, Object>;
+    const params = UIUtils.getParams<Record<string, Object>>();
     if (params && params['podcastId']) {
       this.podcastId = params['podcastId'] as string;
       this.loadPodcastDetail();
@@ -51,30 +51,28 @@ struct PodcastDetailPage {
                               errMsg.includes('Failed to update');
         
         if (isNetworkError) {
-          promptAction.showDialog({
-            title: '网络连接失败',
-            message: `无法连接到播客RSS地址，可能原因：
+          const buttons: ButtonOptions[] = [
+            new ButtonOptions('取消', '#999999'),
+            new ButtonOptions('重试', '#007AFF')
+          ];
+          UIUtils.showDialog(new DialogOptions(
+            '网络连接失败',
+            `无法连接到播客RSS地址，可能原因：
 
 1. 该播客服务器在国外，需要科学上网访问
 2. 网络连接不稳定或超时（15秒）
 3. RSS地址不可用
 
 建议：
-• 开启科学上网工具后点击“重试”
+• 开启科学上网工具后点击"重试"
 • 检查网络连接
 • 稍后再试`,
-            buttons: [
-              { text: '取消', color: '#999999' },
-              { text: '重试', color: '#007AFF' }
-            ]
-          }).then((result: promptAction.ActionMenuSuccessResponse) => {
-            if (result.index === 1) {
-              // 用户点击“重试”
+            buttons
+          )).then((index: number) => {
+            if (index === 1) {
               console.info('[PodcastDetailPage] User clicked retry, reloading podcast detail');
               this.loadPodcastDetail();
             }
-          }).catch((err: Error) => {
-            console.error('[PodcastDetailPage] Failed to show error dialog:', err);
           });
         }
       }
@@ -86,10 +84,7 @@ struct PodcastDetailPage {
       this.updateDisplayedEpisodes();
     } catch (error) {
       console.error('[PodcastDetailPage] Failed to load podcast detail:', error);
-      promptAction.showToast({
-        message: '加载播客详情失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('加载播客详情失败', 2000));
     } finally {
       this.isLoading = false;
     }
@@ -163,7 +158,7 @@ struct PodcastDetailPage {
           this.isSelectionMode = false;
           this.selectedEpisodes.clear();
         } else {
-          router.back();
+          UIUtils.back();
         }
       })
 
@@ -224,10 +219,63 @@ struct PodcastDetailPage {
         .margin({ top: 12 })
         .maxLines(3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+      // 取消订阅按钮
+      Button('取消订阅')
+        .width('100%')
+        .height(44)
+        .fontSize(16)
+        .fontColor('#FF3B30')
+        .backgroundColor('#FFF0F0')
+        .borderRadius(8)
+        .margin({ top: 16 })
+        .onClick(() => {
+          console.info('======>>> Click: Unsubscribe button');
+          this.showUnsubscribeDialog();
+        })
     }
     .width('100%')
     .padding(20)
     .backgroundColor(Color.White)
+  }
+
+  /**
+   * 显示取消订阅确认对话框
+   */
+  showUnsubscribeDialog(): void {
+    if (!this.podcast) return;
+    
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('确定', '#FF3B30')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '取消订阅',
+      `确定要取消订阅《${this.podcast.title}》吗？\n\n取消订阅后，该播客的所有单集和下载内容都将被删除。`,
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
+        // 用户点击“确定”，执行取消订阅
+        this.unsubscribePodcast();
+      }
+    });
+  }
+
+  /**
+   * 执行取消订阅
+   */
+  async unsubscribePodcast(): Promise<void> {
+    if (!this.podcast) return;
+    
+    try {
+      await PodcastService.getInstance().unsubscribePodcast(this.podcast.id);
+      UIUtils.showToast(new ToastOptions('已取消订阅', 2000));
+      // 返回上一页
+      UIUtils.back();
+    } catch (error) {
+      console.error('Unsubscribe failed:', error);
+      UIUtils.showToast(new ToastOptions('取消订阅失败', 2000));
+    }
   }
 
   @Builder
@@ -371,12 +419,9 @@ struct PodcastDetailPage {
         // 非选择模式下，点击标题区域跳转到单集详情
         if (!this.isSelectionMode) {
           console.info(`======>>> Click: Episode detail - ${episode.title}`);
-          router.pushUrl({
-            url: 'pages/EpisodeDetailPage',
-            params: { episodeId: episode.id }
-          }).catch((err: Error) => {
-            console.error('Navigation failed:', err);
-          });
+          const params = new RouteParams();
+          params.episodeId = episode.id;
+          UIUtils.pushUrl('pages/EpisodeDetailPage', params);
         }
       })
 
@@ -426,12 +471,9 @@ struct PodcastDetailPage {
           .height(36)
           .onClick(() => {
             console.info(`======>>> Click: Play episode - ${episode.title}`);
-            router.pushUrl({
-              url: 'pages/PlayerPage',
-              params: { episodeId: episode.id }
-            }).catch((err: Error) => {
-              console.error('Navigation failed:', err);
-            });
+            const params = new RouteParams();
+            params.episodeId = episode.id;
+            UIUtils.pushUrl('pages/PlayerPage', params);
           })
       }
     }
@@ -444,16 +486,10 @@ struct PodcastDetailPage {
   async downloadEpisode(episode: Episode) {
     try {
       await DownloadService.getInstance().downloadEpisode(episode);
-      promptAction.showToast({
-        message: '已加入下载队列',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('已加入下载队列', 2000));
     } catch (error) {
       console.error('Download failed:', error);
-      promptAction.showToast({
-        message: '下载失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('下载失败', 2000));
     }
   }
 
@@ -465,16 +501,10 @@ struct PodcastDetailPage {
       const db = DatabaseService.getInstance();
       await db.addToQueue(episode.id);
       console.info(`[PodcastDetailPage] Added to queue: ${episode.title}`);
-      promptAction.showToast({
-        message: '已添加到待听队列',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('已添加到待听队列', 2000));
     } catch (error) {
       console.error('[PodcastDetailPage] Failed to add to queue:', error);
-      promptAction.showToast({
-        message: '添加失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('添加失败', 2000));
     }
   }
 
@@ -504,15 +534,9 @@ struct PodcastDetailPage {
     }
 
     if (permissionDenied) {
-      promptAction.showToast({
-        message: '没有存储权限，无法下载。请在设置中开启存储权限。',
-        duration: 3000
-      });
+      UIUtils.showToast(new ToastOptions('没有存储权限，无法下载。请在设置中开启存储权限。', 3000));
     } else {
-      promptAction.showToast({
-        message: `已加入 ${count} 个下载任务`,
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions(`已加入 ${count} 个下载任务`, 2000));
     }
 
     this.isSelectionMode = false;

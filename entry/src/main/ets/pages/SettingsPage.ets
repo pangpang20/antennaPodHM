@@ -1,4 +1,4 @@
-import { router, promptAction } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, DialogOptions, ButtonOptions } from '../common/UIUtils';
 import { AppSettings, ThemeMode } from '../model/AppSettings';
 import { SettingsService } from '../service/SettingsService';
 import { Constants } from '../common/Constants';
@@ -130,7 +130,7 @@ struct SettingsPage {
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         console.info('======>>> Click: Back button (Settings)');
-        router.back();
+        UIUtils.back();
       })
 
       Text('设置')
@@ -198,15 +198,16 @@ struct SettingsPage {
    * 确认启用通知
    */
   confirmEnableNotification(): void {
-    promptAction.showDialog({
-      title: '启用通知',
-      message: '开启通知后,应用将会在后台推送播客更新、下载完成等消息。\n\n是否允许启用通知功能?',
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '允许', color: '#007AFF' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('允许', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '启用通知',
+      '开启通知后,应用将会在后台推送播客更新、下载完成等消息。\n\n是否允许启用通知功能?',
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         // 用户点击"允许",申请通知权限
         console.info('======>>> User confirmed: Enable notifications');
         this.requestNotificationPermission();
@@ -215,8 +216,6 @@ struct SettingsPage {
         console.info('======>>> User cancelled: Enable notifications');
         this.settings.enableNotifications = false;
       }
-    }).catch((error: Error) => {
-      console.error('Failed to show notification dialog:', error);
     });
   }
   
@@ -233,10 +232,7 @@ struct SettingsPage {
         console.info('[SettingsPage] Notification permission already granted');
         this.settings.enableNotifications = true;
         this.settingsService.setEnableNotifications(true);
-        promptAction.showToast({
-          message: '通知已启用',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('通知已启用', 2000));
         return;
       }
   
@@ -251,17 +247,11 @@ struct SettingsPage {
         console.info('[SettingsPage] Notification permission granted');
         this.settings.enableNotifications = true;
         this.settingsService.setEnableNotifications(true);
-        promptAction.showToast({
-          message: '通知已启用',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('通知已启用', 2000));
       } else {
         console.warn('[SettingsPage] Notification permission denied by user');
         this.settings.enableNotifications = false;
-        promptAction.showToast({
-          message: '用户拒绝了通知权限',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('用户拒绝了通知权限', 2000));
       }
     } catch (error) {
       const err = error as BusinessError;
@@ -270,15 +260,9 @@ struct SettingsPage {
         
       // 用户取消了权限请求
       if (err.code === 1600004) {
-        promptAction.showToast({
-          message: '已取消通知权限申请',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('已取消通知权限申请', 2000));
       } else {
-        promptAction.showToast({
-          message: '通知权限申请失败',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('通知权限申请失败', 2000));
       }
     }
   }
@@ -287,15 +271,16 @@ struct SettingsPage {
    * 确认启用新单集通知
    */
   confirmEnableNewEpisodeNotification(): void {
-    promptAction.showDialog({
-      title: '新单集通知',
-      message: '开启后,当订阅的播客发布新单集时,将会收到通知提醒。\n\n是否允许新单集通知?',
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '允许', color: '#007AFF' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('允许', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '新单集通知',
+      '开启后,当订阅的播客发布新单集时,将会收到通知提醒。\n\n是否允许新单集通知?',
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         // 用户点击"允许",检查并启用新单集通知
         console.info('======>>> User confirmed: Enable new episode notifications');
         this.checkAndEnableNewEpisodeNotification();
@@ -304,8 +289,6 @@ struct SettingsPage {
         console.info('======>>> User cancelled: Enable new episode notifications');
         this.settings.notifyNewEpisodes = false;
       }
-    }).catch((error: Error) => {
-      console.error('Failed to show new episode notification dialog:', error);
     });
   }
 
@@ -319,13 +302,14 @@ struct SettingsPage {
       
       if (!isEnabled) {
         // 主通知未启用,提示用户需要先启用主通知
-        promptAction.showDialog({
-          title: '需要启用通知',
-          message: '启用新单集通知需要先开启主通知功能。\n\n请先在"启用通知"选项中开启通知权限。',
-          buttons: [
-            { text: '知道了', color: '#007AFF' }
-          ]
-        }).then(() => {
+        const dialogButtons: ButtonOptions[] = [
+          new ButtonOptions('知道了', '#007AFF')
+        ];
+        UIUtils.showDialog(new DialogOptions(
+          '需要启用通知',
+          '启用新单集通知需要先开启主通知功能。\n\n请先在"启用通知"选项中开启通知权限。',
+          dialogButtons
+        )).then(() => {
           this.settings.notifyNewEpisodes = false;
         });
         return;
@@ -335,18 +319,12 @@ struct SettingsPage {
       console.info('[SettingsPage] Enabling new episode notifications');
       this.settings.notifyNewEpisodes = true;
       this.settingsService.setNotifyNewEpisodes(true);
-      promptAction.showToast({
-        message: '新单集通知已启用',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('新单集通知已启用', 2000));
     } catch (error) {
       const err = error as BusinessError;
       console.error(`[SettingsPage] Failed to check notification permission: ${err.code}, ${err.message}`);
       this.settings.notifyNewEpisodes = false;
-      promptAction.showToast({
-        message: '检查通知权限失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('检查通知权限失败', 2000));
     }
   }
 
@@ -354,25 +332,27 @@ struct SettingsPage {
    * 显示应用详情
    */
   showAppDetailInfo(): void {
-    promptAction.showDialog({
-      title: 'AntennaPodHM',
-      message: 'AntennaPod for HarmonyOS\n\n名称来源：\n• AntennaPod - 知名的开源播客应用\n• HM - HarmonyOS（鸿蒙）的缩写\n\n这是一款基于 HarmonyOS ArkTS 开发的播客应用，致敬经典的 AntennaPod。\n\n作者：陈云亮\n邮箱：676814828@qq.com',
-      buttons: [
-        { text: '确定', color: '#007AFF' }
-      ]
-    });
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('确定', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      'AntennaPodHM',
+      'AntennaPod for HarmonyOS\n\n名称来源：\n• AntennaPod - 知名的开源播客应用\n• HM - HarmonyOS（鸿蒙）的缩写\n\n这是一款基于 HarmonyOS ArkTS 开发的播客应用，致敬经典的 AntennaPod。\n\n作者：陈云亮\n邮箱：676814828@qq.com',
+      buttons
+    ));
   }
 
   /**
    * 显示开源许可信息
    */
   showLicenseInfo(): void {
-    promptAction.showDialog({
-      title: 'MIT License',
-      message: 'MIT License\n\nCopyright (c) 2024 AntennaPodHM\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.',
-      buttons: [
-        { text: '确定', color: '#007AFF' }
-      ]
-    });
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('确定', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      'MIT License',
+      'MIT License\n\nCopyright (c) 2024 AntennaPodHM\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.',
+      buttons
+    ));
   }
 }

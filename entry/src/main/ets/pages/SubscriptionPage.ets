@@ -1,7 +1,6 @@
-import { router } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, DialogOptions, ButtonOptions, RouteParams } from '../common/UIUtils';
 import { Podcast } from '../model/Podcast';
 import { PodcastService } from '../service/PodcastService';
-import { promptAction } from '@kit.ArkUI';
 import { PlayerService } from '../service/PlayerService';
 
 @Entry
@@ -12,14 +11,15 @@ struct SubscriptionPage {
   @State hasCurrentEpisode: boolean = false;
   private refreshTimer: number = -1;
   private playerService: PlayerService = PlayerService.getInstance();
+  private podcastService: PodcastService = PodcastService.getInstance();
 
   aboutToAppear() {
     this.loadSubscriptions();
     // 检查是否有正在播放的单集
     this.checkCurrentEpisode();
-    // 启动定时器，每5秒刷新一次（检测后台更新）
+    // 启动定时器，每5秒检查一次是否需要刷新
     this.refreshTimer = setInterval(() => {
-      this.loadSubscriptions();
+      this.smartRefresh();
       this.checkCurrentEpisode();
     }, 5000);
   }
@@ -36,6 +36,41 @@ struct SubscriptionPage {
     // 从其他页面返回时刷新订阅列表
     this.loadSubscriptions();
     this.checkCurrentEpisode();
+  }
+
+  /**
+   * 智能刷新逻辑
+   * 新订阅1分钟内每5秒刷新，之后每2小时刷新一次
+   * 跳过已标记为获取失败的播客
+   */
+  async smartRefresh() {
+    try {
+      // 获取最新的播客列表
+      const podcasts = await this.podcastService.getSubscribedPodcasts();
+      
+      for (const podcast of podcasts) {
+        // 跳过已标记为获取失败的播客
+        if (podcast.isFetchFailed) {
+          continue;
+        }
+        
+        // 检查是否需要刷新
+        if (podcast.needsRefresh()) {
+          console.info(`[SubscriptionPage] Refreshing podcast: ${podcast.title}`);
+          try {
+            await this.podcastService.updatePodcastEpisodes(podcast.id);
+          } catch (error) {
+            console.error(`[SubscriptionPage] Failed to refresh podcast ${podcast.title}:`, error);
+            // 失败时不影响其他播客的刷新
+          }
+        }
+      }
+      
+      // 重新加载订阅列表以显示最新状态
+      await this.loadSubscriptions();
+    } catch (error) {
+      console.error('[SubscriptionPage] Smart refresh failed:', error);
+    }
   }
 
   async loadSubscriptions() {
@@ -62,12 +97,9 @@ struct SubscriptionPage {
   openPlayerPage() {
     const currentEpisode = this.playerService.getCurrentEpisode();
     if (currentEpisode) {
-      router.pushUrl({
-        url: 'pages/PlayerPage',
-        params: { episodeId: currentEpisode.id }
-      }).catch((err: Error) => {
-        console.error('Navigation failed:', err);
-      });
+      const params = new RouteParams();
+      params.episodeId = currentEpisode.id;
+      UIUtils.pushUrl('pages/PlayerPage', params);
     }
   }
 
@@ -145,7 +177,7 @@ struct SubscriptionPage {
       .backgroundColor(Color.Transparent)
       .onClick(() => {
         console.info('======>>> Click: Back button (Subscription)');
-        router.back();
+        UIUtils.back();
       })
 
       Text('我的订阅')
@@ -197,18 +229,12 @@ struct SubscriptionPage {
   async unsubscribePodcast(podcast: Podcast) {
     try {
       await PodcastService.getInstance().unsubscribePodcast(podcast.id);
-      promptAction.showToast({
-        message: '已取消订阅',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('已取消订阅', 2000));
       // 刷新列表
       await this.loadSubscriptions();
     } catch (error) {
       console.error('Unsubscribe failed:', error);
-      promptAction.showToast({
-        message: '取消订阅失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('取消订阅失败', 2000));
     }
   }
 
@@ -216,15 +242,16 @@ struct SubscriptionPage {
    * 显示取消订阅确认对话框
    */
   showUnsubscribeDialog(podcast: Podcast): void {
-    promptAction.showDialog({
-      title: '取消订阅',
-      message: `确定要取消订阅《${podcast.title}》吗？\n\n取消订阅后，该播客的所有单集和下载内容都将被删除。`,
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '确定', color: '#FF3B30' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('确定', '#FF3B30')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '取消订阅',
+      `确定要取消订阅《${podcast.title}》吗？\n\n取消订阅后，该播客的所有单集和下载内容都将被删除。`,
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         // 用户点击"确定"，执行取消订阅
         console.info(`======>>> Confirmed: Unsubscribe podcast - ${podcast.title}`);
         this.unsubscribePodcast(podcast);
@@ -232,8 +259,6 @@ struct SubscriptionPage {
         // 用户点击"取消"
         console.info(`======>>> Cancelled: Unsubscribe podcast - ${podcast.title}`);
       }
-    }).catch((err: Error) => {
-      console.error('Show unsubscribe dialog failed:', err);
     });
   }
 
@@ -258,10 +283,24 @@ struct SubscriptionPage {
           .fontColor($r('app.color.text_secondary_light'))
           .margin({ top: 4 })
 
-        Text(`${podcast.episodeCount} 集`)
-          .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
-          .margin({ top: 4 })
+        Row() {
+          Text(`${podcast.episodeCount} 集`)
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary_light'))
+          
+          // 如果获取失败，显示红色提示
+          if (podcast.isFetchFailed) {
+            Text('·')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary_light'))
+              .margin({ left: 6, right: 6 })
+            Text('无法获取')
+              .fontSize(12)
+              .fontColor('#FF3B30')
+              .fontWeight(FontWeight.Medium)
+          }
+        }
+        .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
       .margin({ left: 12 })
@@ -273,12 +312,9 @@ struct SubscriptionPage {
     .borderRadius(8)
     .onClick(() => {
       console.info(`======>>> Click: Podcast item (Subscription) - ${podcast.title}`);
-      router.pushUrl({
-        url: 'pages/PodcastDetailPage',
-        params: { podcastId: podcast.id }
-      }).catch((err: Error) => {
-        console.error('Navigation failed:', err);
-      });
+      const params = new RouteParams();
+      params.podcastId = podcast.id;
+      UIUtils.pushUrl('pages/PodcastDetailPage', params);
     })
     .gesture(
       LongPressGesture({ repeat: false })

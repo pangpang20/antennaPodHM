@@ -12,6 +12,7 @@ import { Constants } from '../common/Constants';
  * 
  * 版本历史:
  * - v1: 初始版本，创建 podcast, episode, queue 表
+ * - v2: 添加 podcast 表的 isFetchFailed 和 lastSuccessfulFetch 字段
  */
 
 /**
@@ -150,15 +151,22 @@ export class DatabaseService {
         await this.createTables();
         break;
 
-      // 未来版本示例:
-      // case 2:
-      //   // v2: 添加新字段
-      //   await this.rdbStore.executeSql('ALTER TABLE episode ADD COLUMN newField TEXT');
-      //   break;
-      // case 3:
-      //   // v3: 创建新表
-      //   await this.rdbStore.executeSql('CREATE TABLE IF NOT EXISTS newTable (id TEXT PRIMARY KEY)');
-      //   break;
+      case 2:
+        // v2: 添加 isFetchFailed 和 lastSuccessfulFetch 字段
+        try {
+          await this.rdbStore.executeSql('ALTER TABLE podcast ADD COLUMN isFetchFailed INTEGER DEFAULT 0');
+        } catch (e) {
+          // 字段可能已存在，忽略错误
+          console.warn('[DatabaseService] Column isFetchFailed may already exist');
+        }
+        try {
+          await this.rdbStore.executeSql('ALTER TABLE podcast ADD COLUMN lastSuccessfulFetch INTEGER DEFAULT 0');
+        } catch (e) {
+          // 字段可能已存在，忽略错误
+          console.warn('[DatabaseService] Column lastSuccessfulFetch may already exist');
+        }
+        console.info('[DatabaseService] Added isFetchFailed and lastSuccessfulFetch columns to podcast table');
+        break;
 
       default:
         console.warn(`[DatabaseService] Unknown migration version: ${version}`);
@@ -187,7 +195,9 @@ export class DatabaseService {
           subscribeDate INTEGER,
           lastUpdate INTEGER,
           episodeCount INTEGER,
-          isSubscribed INTEGER DEFAULT 1
+          isSubscribed INTEGER DEFAULT 1,
+          isFetchFailed INTEGER DEFAULT 0,
+          lastSuccessfulFetch INTEGER DEFAULT 0
         )
       `;
 
@@ -254,7 +264,9 @@ export class DatabaseService {
         subscribeDate: podcast.subscribeDate,
         lastUpdate: podcast.lastUpdate,
         episodeCount: podcast.episodeCount,
-        isSubscribed: podcast.isSubscribed ? 1 : 0
+        isSubscribed: podcast.isSubscribed ? 1 : 0,
+        isFetchFailed: podcast.isFetchFailed ? 1 : 0,
+        lastSuccessfulFetch: podcast.lastSuccessfulFetch
       };
 
       return await this.rdbStore.insert(Constants.TABLE_PODCAST, valueBucket);
@@ -470,6 +482,28 @@ export class DatabaseService {
   }
 
   /**
+   * 更新播客获取状态（成功/失败）
+   */
+  async updatePodcastFetchStatus(podcastId: string, isFetchFailed: boolean, lastSuccessfulFetch?: number): Promise<void> {
+    if (!this.rdbStore) return;
+
+    try {
+      const valueBucket: relationalStore.ValuesBucket = {
+        isFetchFailed: isFetchFailed ? 1 : 0
+      };
+      if (lastSuccessfulFetch !== undefined) {
+        valueBucket.lastSuccessfulFetch = lastSuccessfulFetch;
+      }
+      const predicates = new relationalStore.RdbPredicates(Constants.TABLE_PODCAST);
+      predicates.equalTo('id', podcastId);
+      await this.rdbStore.update(valueBucket, predicates);
+      console.info(`[DatabaseService] Updated podcast ${podcastId} fetch status: isFetchFailed=${isFetchFailed}`);
+    } catch (error) {
+      console.error('Failed to update podcast fetch status:', error);
+    }
+  }
+
+  /**
    * 更新Episode下载状态
    */
   async updateEpisodeDownloadStatus(episodeId: string, status: number, progress: number, localPath?: string, fileSize?: number): Promise<void> {
@@ -545,6 +579,15 @@ export class DatabaseService {
       podcast.lastUpdate = resultSet.getLong(resultSet.getColumnIndex('lastUpdate'));
       podcast.episodeCount = resultSet.getLong(resultSet.getColumnIndex('episodeCount'));
       podcast.isSubscribed = resultSet.getLong(resultSet.getColumnIndex('isSubscribed')) === 1;
+            // 安全获取新字段（兼容旧版数据库）
+            try {
+              podcast.isFetchFailed = resultSet.getLong(resultSet.getColumnIndex('isFetchFailed')) === 1;
+              podcast.lastSuccessfulFetch = resultSet.getLong(resultSet.getColumnIndex('lastSuccessfulFetch'));
+            } catch (e) {
+              // 旧版数据库可能没有这些字段
+              podcast.isFetchFailed = false;
+              podcast.lastSuccessfulFetch = 0;
+            }
     } catch (error) {
       console.error('[DatabaseService] Failed to parse podcast from result set:', error);
     }

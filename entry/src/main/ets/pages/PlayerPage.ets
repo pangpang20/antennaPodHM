@@ -1,4 +1,4 @@
-import { router, promptAction } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, DialogOptions, ActionMenuOptions, ButtonOptions, RouteParams } from '../common/UIUtils';
 import { Episode } from '../model/Episode';
 import { PlayerService, PlayerState } from '../service/PlayerService';
 import { SettingsService } from '../service/SettingsService';
@@ -25,7 +25,7 @@ struct PlayerPage {
   private updateTimer: number = -1;
 
   aboutToAppear() {
-    const params = router.getParams() as Record<string, Object>;
+    const params = UIUtils.getParams<Record<string, Object>>();
     if (params && params['episodeId']) {
       const episodeId = params['episodeId'] as string;
       this.loadEpisode(episodeId);
@@ -54,7 +54,7 @@ struct PlayerPage {
     // 监听睡眠定时器结束
     this.playerService.addEventListener('sleepTimerEnd', () => {
       this.sleepTimerMinutes = 0;
-      promptAction.showToast({ message: '定时播放结束，已暂停', duration: 2000 });
+      UIUtils.showToast(new ToastOptions('定时播放结束，已暂停', 2000));
     });
 
     // 启动定时器更新进度
@@ -174,7 +174,7 @@ struct PlayerPage {
       .borderRadius(22)
       .onClick(() => {
         console.info('======>>> Click: Back button (Player)');
-        router.back();
+        UIUtils.back();
       })
 
       Blank()
@@ -302,10 +302,7 @@ struct PlayerPage {
           console.info('======>>> Click: Rewind 15s');
           const newPosition = Math.max(0, this.currentPosition - 15);
           this.playerService.seek(newPosition);
-          promptAction.showToast({
-            message: '快退 15 秒',
-            duration: 1000
-          });
+          UIUtils.showToast(new ToastOptions('快退 15 秒', 1000));
         })
         
         Text('15秒')
@@ -360,10 +357,7 @@ struct PlayerPage {
           console.info('======>>> Click: Forward 30s');
           const newPosition = Math.min(this.duration, this.currentPosition + 30);
           this.playerService.seek(newPosition);
-          promptAction.showToast({
-            message: '快进 30 秒',
-            duration: 1000
-          });
+          UIUtils.showToast(new ToastOptions('快进 30 秒', 1000));
         })
         
         Text('30秒')
@@ -465,7 +459,7 @@ struct PlayerPage {
           return;
         }
         this.playerService.addToQueue(this.currentEpisode);
-        promptAction.showToast({ message: '已添加到队列', duration: 2000 });
+        UIUtils.showToast(new ToastOptions('已添加到队列', 2000));
       })
     }
     .width('100%')
@@ -486,46 +480,42 @@ struct PlayerPage {
   }
 
   showSpeedSelectorMenu(): void {
-    promptAction.showActionMenu({
-      title: '选择播放速度',
-      buttons: [
-        { text: '0.75x', color: '#000000' },
-        { text: '1.0x', color: '#000000' },
-        { text: '1.25x', color: '#000000' },
-        { text: '1.5x', color: '#000000' },
-        { text: '2.0x', color: '#000000' },
-        { text: '2.5x', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 2.5];
-      const selectedSpeed = speeds[result.index];
-      this.playbackSpeed = selectedSpeed;
-      this.playerService.setPlaybackSpeed(selectedSpeed);
-    }).catch((err: Error) => {
-      console.info('Speed selection cancelled');
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('0.75x', '#000000'),
+      new ButtonOptions('1.0x', '#000000'),
+      new ButtonOptions('1.25x', '#000000'),
+      new ButtonOptions('1.5x', '#000000'),
+      new ButtonOptions('2.0x', '#000000'),
+      new ButtonOptions('2.5x', '#000000')
+    ];
+    UIUtils.showActionMenu(new ActionMenuOptions('选择播放速度', buttons)).then((index: number) => {
+      if (index >= 0) {
+        const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 2.5];
+        const selectedSpeed = speeds[index];
+        this.playbackSpeed = selectedSpeed;
+        this.playerService.setPlaybackSpeed(selectedSpeed);
+      }
     });
   }
 
   showSleepTimerMenu(): void {
-    promptAction.showActionMenu({
-      title: '定时关闭',
-      buttons: [
-        { text: '关闭定时', color: '#000000' },
-        { text: '5 分钟', color: '#000000' },
-        { text: '15 分钟', color: '#000000' },
-        { text: '30 分钟', color: '#000000' },
-        { text: '45 分钟', color: '#000000' },
-        { text: '60 分钟', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      const minutesOptions: number[] = [0, 5, 15, 30, 45, 60];
-      const minutes = minutesOptions[result.index];
-      this.sleepTimerMinutes = minutes;
-      this.playerService.setSleepTimer(minutes);
-      const msg = minutes > 0 ? `已设置定时关闭：${minutes} 分钟` : '已关闭定时播放';
-      promptAction.showToast({ message: msg, duration: 2000 });
-    }).catch((err: Error) => {
-      console.info('Sleep timer selection cancelled');
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('关闭定时', '#000000'),
+      new ButtonOptions('5 分钟', '#000000'),
+      new ButtonOptions('15 分钟', '#000000'),
+      new ButtonOptions('30 分钟', '#000000'),
+      new ButtonOptions('45 分钟', '#000000'),
+      new ButtonOptions('60 分钟', '#000000')
+    ];
+    UIUtils.showActionMenu(new ActionMenuOptions('定时关闭', buttons)).then((index: number) => {
+      if (index >= 0) {
+        const minutesOptions: number[] = [0, 5, 15, 30, 45, 60];
+        const minutes = minutesOptions[index];
+        this.sleepTimerMinutes = minutes;
+        this.playerService.setSleepTimer(minutes);
+        const msg = minutes > 0 ? `已设置定时关闭：${minutes} 分钟` : '已关闭定时播放';
+        UIUtils.showToast(new ToastOptions(msg, 2000));
+      }
     });
   }
 
@@ -556,35 +546,29 @@ ${this.currentEpisode.description}
 
 分享自 AntennaPodHM`;
     
-    promptAction.showActionMenu({
-      title: '分享到',
-      buttons: [
-        { text: '微信好友', color: '#000000' },
-        { text: '微信朋友圈', color: '#000000' },
-        { text: '复制链接', color: '#000000' },
-        { text: '更多分享方式', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      switch (result.index) {
-        case 0:
-          // 分享到微信好友
-          this.shareToWeChatFriend();
-          break;
-        case 1:
-          // 分享到微信朋友圈
-          this.shareToWeChatMoments();
-          break;
-        case 2:
-          // 复制链接
-          this.copyShareLink();
-          break;
-        case 3:
-          // 系统分享
-          this.systemShare();
-          break;
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('微信好友', '#000000'),
+      new ButtonOptions('微信朋友圈', '#000000'),
+      new ButtonOptions('复制链接', '#000000'),
+      new ButtonOptions('更多分享方式', '#000000')
+    ];
+    UIUtils.showActionMenu(new ActionMenuOptions('分享到', buttons)).then((index: number) => {
+      if (index >= 0) {
+        switch (index) {
+          case 0:
+            this.shareToWeChatFriend();
+            break;
+          case 1:
+            this.shareToWeChatMoments();
+            break;
+          case 2:
+            this.copyShareLink();
+            break;
+          case 3:
+            this.systemShare();
+            break;
+        }
       }
-    }).catch((err: Error) => {
-      console.info('Share menu cancelled');
     });
   }
 
@@ -597,19 +581,18 @@ ${this.currentEpisode.description}
     }
     
     // HarmonyOS暂不支持直接调用微信SDK，需要通过系统分享或复制链接
-    promptAction.showDialog({
-      title: '分享到微信',
-      message: '由于系统限制，暂不支持直接分享到微信。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发送给好友',
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '复制链接', color: '#007AFF' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('复制链接', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '分享到微信',
+      '由于系统限制，暂不支持直接分享到微信。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发送给好友',
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         this.copyShareLink();
       }
-    }).catch((err: Error) => {
-      console.error('[PlayerPage] Share dialog error:', err);
     });
     
     console.info('[PlayerPage] Share to WeChat friend:', this.currentEpisode?.title);
@@ -624,19 +607,18 @@ ${this.currentEpisode.description}
     }
     
     // HarmonyOS暂不支持直接调用微信SDK，需要通过系统分享或复制链接
-    promptAction.showDialog({
-      title: '分享到朋友圈',
-      message: '由于系统限制，暂不支持直接分享到朋友圈。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发布到朋友圈',
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '复制链接', color: '#007AFF' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('复制链接', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '分享到朋友圈',
+      '由于系统限制，暂不支持直接分享到朋友圈。\n\n建议操作：\n1. 点击"复制链接"复制分享内容\n2. 手动打开微信发布到朋友圈',
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         this.copyShareLink();
       }
-    }).catch((err: Error) => {
-      console.error('[PlayerPage] Share dialog error:', err);
     });
     
     console.info('[PlayerPage] Share to WeChat moments:', this.currentEpisode?.title);
@@ -666,20 +648,14 @@ ${this.currentEpisode.description}
       // 将数据写入剪贴板
       await systemPasteboard.setData(pasteData);
       
-      promptAction.showToast({
-        message: '内容已复制到剪贴板',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('内容已复制到剪贴板', 2000));
       
       console.info('[PlayerPage] Copy share link success:', shareText);
     } catch (error) {
       const err = error as BusinessError;
       console.error(`[PlayerPage] Copy share link failed: ${err.code}, ${err.message}`);
       
-      promptAction.showToast({
-        message: '复制失败，请重试',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('复制失败，请重试', 2000));
     }
   }
 
@@ -692,19 +668,18 @@ ${this.currentEpisode.description}
     }
     
     // HarmonyOS 目前的系统分享API较为复杂，直接使用复制到剪贴板作为替代方案
-    promptAction.showDialog({
-      title: '分享',
-      message: '将分享内容复制到剪贴板，然后您可以粘贴到任何应用中分享。',
-      buttons: [
-        { text: '取消', color: '#999999' },
-        { text: '复制', color: '#007AFF' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      if (result.index === 1) {
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('取消', '#999999'),
+      new ButtonOptions('复制', '#007AFF')
+    ];
+    UIUtils.showDialog(new DialogOptions(
+      '分享',
+      '将分享内容复制到剪贴板，然后您可以粘贴到任何应用中分享。',
+      buttons
+    )).then((index: number) => {
+      if (index === 1) {
         this.copyShareLink();
       }
-    }).catch((err: Error) => {
-      console.error('[PlayerPage] Share dialog error:', err);
     });
     
     console.info('[PlayerPage] System share initiated');
@@ -714,59 +689,45 @@ ${this.currentEpisode.description}
    * 显示更多选项菜单
    */
   showMoreOptionsMenu(): void {
-    promptAction.showActionMenu({
-      title: '更多选项',
-      buttons: [
-        { text: '查看单集详情', color: '#000000' },
-        { text: '分享这一集', color: '#000000' },
-        { text: '下载到本地', color: '#000000' }
-      ]
-    }).then((result: promptAction.ActionMenuSuccessResponse) => {
-      switch (result.index) {
-        case 0:
-          // 查看单集详情
-          if (this.currentEpisode) {
-            router.pushUrl({
-              url: 'pages/EpisodeDetailPage',
-              params: { episodeId: this.currentEpisode.id }
-            }).catch((err: Error) => {
-              console.error('Navigation failed:', err);
-            });
-          }
-          break;
-        case 1:
-          // 分享
-          if (this.currentEpisode) {
-            this.shareEpisode();
-          } else {
-            promptAction.showToast({ 
-              message: '暂无可分享的内容', 
-              duration: 2000 
-            });
-          }
-          break;
-        case 2:
-          // 下载
-          if (this.currentEpisode) {
-            DownloadService.getInstance().downloadEpisode(this.currentEpisode)
-              .then(() => {
-                promptAction.showToast({ 
-                  message: '已添加到下载队列', 
-                  duration: 2000 
+    const buttons: ButtonOptions[] = [
+      new ButtonOptions('查看单集详情', '#000000'),
+      new ButtonOptions('分享这一集', '#000000'),
+      new ButtonOptions('下载到本地', '#000000')
+    ];
+    UIUtils.showActionMenu(new ActionMenuOptions('更多选项', buttons)).then((index: number) => {
+      if (index >= 0) {
+        switch (index) {
+          case 0:
+            // 查看单集详情
+            if (this.currentEpisode) {
+              const params = new RouteParams();
+              params.episodeId = this.currentEpisode.id;
+              UIUtils.pushUrl('pages/EpisodeDetailPage', params);
+            }
+            break;
+          case 1:
+            // 分享
+            if (this.currentEpisode) {
+              this.shareEpisode();
+            } else {
+              UIUtils.showToast(new ToastOptions('暂无可分享的内容', 2000));
+            }
+            break;
+          case 2:
+            // 下载
+            if (this.currentEpisode) {
+              DownloadService.getInstance().downloadEpisode(this.currentEpisode)
+                .then(() => {
+                  UIUtils.showToast(new ToastOptions('已添加到下载队列', 2000));
+                })
+                .catch((err: Error) => {
+                  console.error('Download failed:', err);
+                  UIUtils.showToast(new ToastOptions('下载失败', 2000));
                 });
-              })
-              .catch((err: Error) => {
-                console.error('Download failed:', err);
-                promptAction.showToast({ 
-                  message: '下载失败', 
-                  duration: 2000 
-                });
-              });
-          }
-          break;
+            }
+            break;
+        }
       }
-    }).catch((err: Error) => {
-      console.info('More options menu cancelled');
     });
   }
 }

@@ -4,7 +4,7 @@ import { PodcastService } from '../service/PodcastService';
 import { DatabaseService } from '../service/DatabaseService';
 import { PlayerService } from '../service/PlayerService';
 import { DownloadService } from '../service/DownloadService';
-import { router, promptAction } from '@kit.ArkUI';
+import { UIUtils, ToastOptions, RouteParams } from '../common/UIUtils';
 
 @Entry
 @Component
@@ -243,16 +243,10 @@ struct MainPage {
       await this.dbService.addToQueue(episode.id);
       await this.loadQueue();
       console.info(`[MainPage] Added to queue: ${episode.title}`);
-      promptAction.showToast({
-        message: '已添加到队列',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('已添加到队列', 2000));
     } catch (error) {
       console.error('[MainPage] Failed to add to queue:', error);
-      promptAction.showToast({
-        message: '添加失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('添加失败', 2000));
     }
   }
 
@@ -314,12 +308,9 @@ struct MainPage {
   openPlayerPage() {
     const currentEpisode = this.playerService.getCurrentEpisode();
     if (currentEpisode) {
-      router.pushUrl({
-        url: 'pages/PlayerPage',
-        params: { episodeId: currentEpisode.id }
-      }).catch((err: Error) => {
-        console.error('Navigation failed:', err);
-      });
+      const params = new RouteParams();
+      params.episodeId = currentEpisode.id;
+      UIUtils.pushUrl('pages/PlayerPage', params);
     }
   }
 
@@ -330,10 +321,7 @@ struct MainPage {
     try {
       // 如果队列为空，提示用户
       if (this.queueEpisodes.length === 0) {
-        promptAction.showToast({
-          message: '队列为空，请添加单集到队列',
-          duration: 2000
-        });
+        UIUtils.showToast(new ToastOptions('队列为空，请添加单集到队列', 2000));
         return;
       }
 
@@ -347,16 +335,10 @@ struct MainPage {
       // 从队列中移除
       await this.removeFromQueue(nextEpisode);
       
-      promptAction.showToast({
-        message: `正在播放：${nextEpisode.title}`,
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions(`正在播放：${nextEpisode.title}`, 2000));
     } catch (error) {
       console.error('[MainPage] Failed to play next episode:', error);
-      promptAction.showToast({
-        message: '播放失败',
-        duration: 2000
-      });
+      UIUtils.showToast(new ToastOptions('播放失败', 2000));
     }
   }
 
@@ -433,9 +415,7 @@ struct MainPage {
       .onClick(() => {
         console.info('======>>> Click: Search button');
         // 跳转到搜索页面
-        router.pushUrl({ url: 'pages/SearchPage' }).catch((err: Error) => {
-          console.error('Navigation failed:', err);
-        });
+        UIUtils.pushUrl('pages/SearchPage');
       })
 
       // 设置按钮
@@ -449,9 +429,7 @@ struct MainPage {
       .onClick(() => {
         console.info('======>>> Click: Settings button');
         // 跳转到设置页面
-        router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
-          console.error('Navigation failed:', err);
-        });
+        UIUtils.pushUrl('pages/SettingsPage');
       })
     }
     .width('100%')
@@ -607,12 +585,9 @@ struct MainPage {
     .borderRadius(8)
     .onClick(() => {
       console.info(`======>>> Click: Episode item - ${episode.title}`);
-      router.pushUrl({ 
-        url: 'pages/EpisodeDetailPage', 
-        params: { episodeId: episode.id } 
-      }).catch((err: Error) => {
-        console.error('Navigation failed:', err);
-      });
+      const params = new RouteParams();
+      params.episodeId = episode.id;
+      UIUtils.pushUrl('pages/EpisodeDetailPage', params);
     })
   }
 
@@ -846,12 +821,9 @@ struct MainPage {
     .onClick(() => {
       console.info(`======>>> Click: Podcast item - ${podcast.title}`);
       // 跳转到播客详情页
-      router.pushUrl({
-        url: 'pages/PodcastDetailPage',
-        params: { podcastId: podcast.id }
-      }).catch((err: Error) => {
-        console.error('Navigation failed:', err);
-      });
+      const params = new RouteParams();
+      params.podcastId = podcast.id;
+      UIUtils.pushUrl('pages/PodcastDetailPage', params);
     })
   }
 
