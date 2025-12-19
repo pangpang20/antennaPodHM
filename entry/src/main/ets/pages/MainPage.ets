@@ -999,6 +999,11 @@ struct MainPage {
       if (this.downloadingEpisodes.length === 0 && this.downloadedEpisodes.length === 0) {
         this.buildEmptyView('暂无下载', '下载单集以便离线收听');
       }
+
+      // 迷你播放器
+      if (this.hasCurrentEpisode && this.currentEpisode) {
+        this.buildMiniPlayer();
+      }
     }
     .width('100%')
     .height('100%')
