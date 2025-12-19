@@ -284,9 +284,10 @@ struct PlayerPage {
    */
   formatDescription(desc: string): string {
     if (!desc) return '';
-    // 匹配时间格式: 02:02, 1:02:02, 02:02:02 等
-    // 在时间戳前添加换行符（除了开头）
-    return desc.replace(/(?<!^)(?<![\n\r])\s*(\d{1,2}:\d{2}(?::\d{2})?)/g, '\n$1');
+    // 匹配时间格式: 02:02, 1:02:02 等，在前面添加换行
+    let result = desc.replace(/(\d{1,2}:\d{2}(?::\d{2})?)/g, '\n$1');
+    // 去掉开头的换行符
+    return result.replace(/^\n/, '').trim();
   }
 
   @Builder

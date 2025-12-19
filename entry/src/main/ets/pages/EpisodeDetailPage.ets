@@ -346,7 +346,7 @@ struct EpisodeDetailPage {
         .width('100%')
         .margin({ bottom: 12 })
 
-      Text(this.episode?.description || '暂无简介')
+      Text(this.formatDescription(this.episode?.description || '暂无简介'))
         .fontSize(14)
         .fontColor($r('app.color.text_secondary_light'))
         .lineHeight(22)
@@ -357,6 +357,15 @@ struct EpisodeDetailPage {
     .margin({ top: 16 })
     .backgroundColor(Color.White)
     .borderRadius(12)
+  }
+
+  /**
+   * 格式化描述，在时间戳前换行
+   */
+  formatDescription(desc: string): string {
+    if (!desc) return '';
+    let result = desc.replace(/(\d{1,2}:\d{2}(?::\d{2})?)/g, '\n$1');
+    return result.replace(/^\n/, '').trim();
   }
 
   @Builder
