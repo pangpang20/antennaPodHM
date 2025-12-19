@@ -176,7 +176,7 @@ struct SubscriptionPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Back button (Subscription)');
+        console.info('[SubscriptionPage] Back');
         UIUtils.back();
       })
 
@@ -221,7 +221,7 @@ struct SubscriptionPage {
     .height('100%')
     .backgroundColor('#FF3B30')
     .onClick(async () => {
-      console.info(`======>>> Click: Unsubscribe podcast - ${podcast.title}`);
+      console.info(`[SubscriptionPage] Unsubscribe: ${podcast.title}`);
       await this.unsubscribePodcast(podcast);
     })
   }
@@ -253,11 +253,11 @@ struct SubscriptionPage {
     )).then((index: number) => {
       if (index === 1) {
         // 用户点击"确定"，执行取消订阅
-        console.info(`======>>> Confirmed: Unsubscribe podcast - ${podcast.title}`);
+        console.info(`[SubscriptionPage] Confirmed unsubscribe: ${podcast.title}`);
         this.unsubscribePodcast(podcast);
       } else {
         // 用户点击"取消"
-        console.info(`======>>> Cancelled: Unsubscribe podcast - ${podcast.title}`);
+        console.info(`[SubscriptionPage] Cancelled: ${podcast.title}`);
       }
     });
   }
@@ -311,7 +311,7 @@ struct SubscriptionPage {
     .backgroundColor(Color.White)
     .borderRadius(8)
     .onClick(() => {
-      console.info(`======>>> Click: Podcast item (Subscription) - ${podcast.title}`);
+      console.info(`[SubscriptionPage] Podcast: ${podcast.title}`);
       const params = new RouteParams();
       params.podcastId = podcast.id;
       UIUtils.pushUrl('pages/PodcastDetailPage', params);
@@ -319,7 +319,7 @@ struct SubscriptionPage {
     .gesture(
       LongPressGesture({ repeat: false })
         .onAction(() => {
-          console.info(`======>>> LongPress: Podcast item (Subscription) - ${podcast.title}`);
+          console.info(`[SubscriptionPage] LongPress: ${podcast.title}`);
           this.showUnsubscribeDialog(podcast);
         })
     )

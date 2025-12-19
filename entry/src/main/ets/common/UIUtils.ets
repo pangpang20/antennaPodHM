@@ -1,20 +1,13 @@
-/**
- * UI 工具类 - 封装 promptAction 和 router API
- * 解决废弃 API 告警和异常处理问题
- */
+// UI工具类 - 封装 promptAction/router API
 import { promptAction, router, UIContext } from '@kit.ArkUI';
 
-/**
- * 路由参数类
- */
+// 路由参数
 export class RouteParams {
   episodeId?: string;
   podcastId?: string;
 }
 
-/**
- * 按钮配置类
- */
+// 按钮配置
 export class ButtonOptions {
   text: string = '';
   color: string = '#000000';
@@ -25,9 +18,7 @@ export class ButtonOptions {
   }
 }
 
-/**
- * Toast 配置类
- */
+// Toast配置
 export class ToastOptions {
   message: string = '';
   duration: number = 2000;
@@ -38,9 +29,7 @@ export class ToastOptions {
   }
 }
 
-/**
- * Dialog 配置类
- */
+// Dialog配置
 export class DialogOptions {
   title: string = '';
   message: string = '';
@@ -53,9 +42,7 @@ export class DialogOptions {
   }
 }
 
-/**
- * ActionMenu 配置类
- */
+// ActionMenu配置
 export class ActionMenuOptions {
   title: string = '';
   buttons: ButtonOptions[] = [];
@@ -66,22 +53,14 @@ export class ActionMenuOptions {
   }
 }
 
-/**
- * UI 工具类
- */
 export class UIUtils {
   private static uiContext: UIContext | null = null;
 
-  /**
-   * 设置 UIContext（应在页面初始化时调用）
-   */
+  // 页面初始化时调用
   static setUIContext(context: UIContext): void {
     UIUtils.uiContext = context;
   }
 
-  /**
-   * 显示 Toast 提示
-   */
   static showToast(options: ToastOptions): void {
     try {
       if (UIUtils.uiContext) {
@@ -90,7 +69,7 @@ export class UIUtils {
           duration: options.duration
         });
       } else {
-        // 降级使用旧 API
+        // fallback
         promptAction.showToast({
           message: options.message,
           duration: options.duration
@@ -101,12 +80,9 @@ export class UIUtils {
     }
   }
 
-  /**
-   * 显示对话框
-   */
   static async showDialog(options: DialogOptions): Promise<number> {
     try {
-      // 将 ButtonOptions[] 转换为 promptAction 需要的类型
+      // 转换按钮类型
       const dialogButtons: promptAction.Button[] = options.buttons.map(btn => {
         const dialogBtn: promptAction.Button = {
           text: btn.text,
@@ -136,12 +112,9 @@ export class UIUtils {
     }
   }
 
-  /**
-   * 显示操作菜单
-   */
   static async showActionMenu(options: ActionMenuOptions): Promise<number> {
     try {
-      // 将 ButtonOptions[] 转换为 promptAction 需要的类型
+      // 转换按钮类型
       const actionButtons: promptAction.Button[] = options.buttons.map(btn => {
         const actionBtn: promptAction.Button = {
           text: btn.text,
@@ -169,12 +142,9 @@ export class UIUtils {
     }
   }
 
-  /**
-   * 路由跳转
-   */
   static pushUrl(url: string, params?: RouteParams): void {
     try {
-      // 将 RouteParams 转换为 router 需要的格式
+      // 转换参数格式
       let routerParams: Record<string, Object> | undefined = undefined;
       if (params) {
         routerParams = {};
@@ -196,9 +166,6 @@ export class UIUtils {
     }
   }
 
-  /**
-   * 路由返回
-   */
   static back(): void {
     try {
       router.back();
@@ -207,9 +174,6 @@ export class UIUtils {
     }
   }
 
-  /**
-   * 获取路由参数
-   */
   static getParams<T>(): T | null {
     try {
       return router.getParams() as T;

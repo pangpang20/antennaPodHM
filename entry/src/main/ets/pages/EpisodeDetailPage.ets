@@ -65,7 +65,7 @@ struct EpisodeDetailPage {
    */
   playEpisode() {
     if (this.episode) {
-      console.info(`======>>> Click: Play episode - ${this.episode.title}`);
+      console.info(`[EpisodeDetailPage] Play: ${this.episode.title}`);
       this.playerService.playEpisode(this.episode);
       
       // 跳转到播放页面
@@ -80,7 +80,7 @@ struct EpisodeDetailPage {
    */
   async downloadEpisode() {
     if (this.episode) {
-      console.info(`======>>> Click: Download episode - ${this.episode.title}`);
+      console.info(`[EpisodeDetailPage] Download: ${this.episode.title}`);
       try {
         await this.downloadService.downloadEpisode(this.episode);
         UIUtils.showToast(new ToastOptions('已添加到下载队列', 2000));
@@ -98,7 +98,7 @@ struct EpisodeDetailPage {
    */
   async addToQueue() {
     if (this.episode) {
-      console.info(`======>>> Click: Add to queue - ${this.episode.title}`);
+      console.info(`[EpisodeDetailPage] Add to queue: ${this.episode.title}`);
       try {
         await this.dbService.addToQueue(this.episode.id);
         UIUtils.showToast(new ToastOptions('已添加到待听队列', 2000));
@@ -163,7 +163,7 @@ struct EpisodeDetailPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Back button (EpisodeDetail)');
+        console.info('[EpisodeDetailPage] Back');
         UIUtils.back();
       })
 

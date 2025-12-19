@@ -173,7 +173,7 @@ struct PlayerPage {
       .backgroundColor('rgba(255, 255, 255, 0.9)')
       .borderRadius(22)
       .onClick(() => {
-        console.info('======>>> Click: Back button (Player)');
+        console.info('[PlayerPage] Back');
         UIUtils.back();
       })
 
@@ -190,7 +190,7 @@ struct PlayerPage {
       .backgroundColor('rgba(255, 255, 255, 0.9)')
       .borderRadius(22)
       .onClick(() => {
-        console.info('======>>> Click: More options');
+        console.info('[PlayerPage] More options');
         this.showMoreOptionsMenu();
       })
     }
@@ -299,7 +299,7 @@ struct PlayerPage {
         .backgroundColor('rgba(92, 107, 192, 0.1)')
         .borderRadius(28)
         .onClick(() => {
-          console.info('======>>> Click: Rewind 15s');
+          console.info('[PlayerPage] Rewind 15s');
           const newPosition = Math.max(0, this.currentPosition - 15);
           this.playerService.seek(newPosition);
           UIUtils.showToast(new ToastOptions('快退 15 秒', 1000));
@@ -330,7 +330,7 @@ struct PlayerPage {
         offsetY: 4
       })
       .onClick(() => {
-        console.info(`======>>> Click: Play/Pause - state: ${this.playerState}`);
+        console.info(`[PlayerPage] Play/Pause, state: ${this.playerState}`);
         if (this.playerState === PlayerState.PLAYING) {
           this.playerService.pause();
         } else if (this.playerState === PlayerState.PAUSED) {
@@ -354,7 +354,7 @@ struct PlayerPage {
         .backgroundColor('rgba(92, 107, 192, 0.1)')
         .borderRadius(28)
         .onClick(() => {
-          console.info('======>>> Click: Forward 30s');
+          console.info('[PlayerPage] Forward 30s');
           const newPosition = Math.min(this.duration, this.currentPosition + 30);
           this.playerService.seek(newPosition);
           UIUtils.showToast(new ToastOptions('快进 30 秒', 1000));
@@ -394,7 +394,7 @@ struct PlayerPage {
         .borderRadius(20)
         .border({ width: 1, color: 'rgba(92, 107, 192, 0.2)', radius: 20 })
         .onClick(() => {
-          console.info('======>>> Click: Playback speed selector');
+          console.info('[PlayerPage] Speed selector');
           this.showSpeedSelectorMenu();
         })
 
@@ -428,7 +428,7 @@ struct PlayerPage {
           radius: 20 
         })
         .onClick(() => {
-          console.info('======>>> Click: Sleep timer');
+          console.info('[PlayerPage] Sleep timer');
           this.showSleepTimerMenu();
         })
       }
@@ -453,7 +453,7 @@ struct PlayerPage {
       .border({ width: 1, color: 'rgba(0, 0, 0, 0.1)', radius: 22 })
       .margin({ top: 12 })
       .onClick(() => {
-        console.info(`======>>> Click: Add to queue - ${this.currentEpisode?.title || 'no episode'}`);
+        console.info(`[PlayerPage] Add to queue: ${this.currentEpisode?.title || 'none'}`);
         if (!this.currentEpisode) {
           console.warn('No current episode to add to queue');
           return;

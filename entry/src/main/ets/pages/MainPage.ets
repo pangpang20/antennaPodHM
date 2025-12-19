@@ -27,7 +27,11 @@ struct MainPage {
   @State episodesPageSize: number = 20;  // 每页数量
   @State episodesHasMore: boolean = false;  // 是否还有更多
   @State episodeSearchKeyword: string = '';  // 单集搜索关键词
-  @State filteredEpisodes: Episode[] = [];  // 过滤后的单集列表
+  @State filteredEpisodes: Episode[] = [];  // 过滤/搜索结果
+  @State searchTotal: number = 0;  // 搜索结果总数
+  @State searchPage: number = 1;  // 搜索结果当前页
+  @State isSearching: boolean = false;  // 是否正在搜索
+  @State searchHasMore: boolean = false;  // 搜索结果是否还有更多
   @State queueEpisodes: Episode[] = [];  // 待听队列
   private playerService: PlayerService = PlayerService.getInstance();
   private dbService: DatabaseService = DatabaseService.getInstance();
@@ -197,21 +201,61 @@ struct MainPage {
   }
 
   /**
-   * 过滤单集列表
+   * 过滤单集列表（无搜索关键词时）
    */
   filterEpisodes() {
+    this.filteredEpisodes = this.allEpisodes;
+  }
+
+  /**
+   * 搜索单集（数据库查询）
+   */
+  async searchEpisodes() {
     if (!this.episodeSearchKeyword || this.episodeSearchKeyword.trim() === '') {
-      // 没有搜索关键词，显示所有单集
-      this.filteredEpisodes = this.allEpisodes;
-    } else {
-      // 模糊搜索：匹配标题或描述
-      const keyword = this.episodeSearchKeyword.toLowerCase();
-      this.filteredEpisodes = this.allEpisodes.filter(episode => {
-        const titleMatch = episode.title.toLowerCase().includes(keyword);
-        const descMatch = episode.description.toLowerCase().includes(keyword);
-        return titleMatch || descMatch;
-      });
-      console.info(`[MainPage] Filtered ${this.filteredEpisodes.length}/${this.allEpisodes.length} episodes with keyword: ${this.episodeSearchKeyword}`);
+      return;
+    }
+    
+    this.isSearching = true;
+    try {
+      const result = await this.dbService.searchEpisodes(
+        this.episodeSearchKeyword.trim(),
+        0,
+        this.episodesPageSize
+      );
+      this.filteredEpisodes = result.episodes;
+      this.searchTotal = result.total;
+      this.searchPage = 1;
+      this.searchHasMore = result.episodes.length < result.total;
+      console.info(`[MainPage] Search: ${result.episodes.length}/${result.total}`);
+    } catch (error) {
+      console.error('[MainPage] Search failed:', error);
+    } finally {
+      this.isSearching = false;
+    }
+  }
+
+  /**
+   * 加载更多搜索结果
+   */
+  async loadMoreSearchResults() {
+    if (!this.searchHasMore || this.isSearching) return;
+    
+    this.isSearching = true;
+    try {
+      const offset = this.searchPage * this.episodesPageSize;
+      const result = await this.dbService.searchEpisodes(
+        this.episodeSearchKeyword.trim(),
+        offset,
+        this.episodesPageSize
+      );
+      this.filteredEpisodes = this.filteredEpisodes.concat(result.episodes);
+      this.searchPage++;
+      this.searchHasMore = this.filteredEpisodes.length < this.searchTotal;
+      console.info(`[MainPage] Load more search: ${this.filteredEpisodes.length}/${this.searchTotal}`);
+    } catch (error) {
+      console.error('[MainPage] Load more search failed:', error);
+    } finally {
+      this.isSearching = false;
     }
   }
 
@@ -220,7 +264,21 @@ struct MainPage {
    */
   onEpisodeSearchChange(value: string) {
     this.episodeSearchKeyword = value;
-    this.filterEpisodes();
+    if (!value || value.trim() === '') {
+      // 清空搜索，显示全部单集
+      this.searchHasMore = false;
+      this.searchTotal = 0;
+      this.filterEpisodes();
+    }
+  }
+
+  /**
+   * 执行搜索（用户点击搜索或回车）
+   */
+  onEpisodeSearchSubmit() {
+    if (this.episodeSearchKeyword && this.episodeSearchKeyword.trim() !== '') {
+      this.searchEpisodes();
+    }
   }
 
   /**
@@ -413,7 +471,7 @@ struct MainPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Search button');
+        console.info('[MainPage] Search clicked');
         // 跳转到搜索页面
         UIUtils.pushUrl('pages/SearchPage');
       })
@@ -427,7 +485,7 @@ struct MainPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Settings button');
+        console.info('[MainPage] Settings clicked');
         // 跳转到设置页面
         UIUtils.pushUrl('pages/SettingsPage');
       })
@@ -488,17 +546,30 @@ struct MainPage {
           .onChange((value: string) => {
             this.onEpisodeSearchChange(value);
           })
-          .onSubmit((value: string) => {
-            this.onEpisodeSearchChange(value);
+          .onSubmit(() => {
+            this.onEpisodeSearchSubmit();
           })
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 12, bottom: 8 })
 
-      if (this.allEpisodes.length === 0) {
+      // 搜索结果提示
+      if (this.episodeSearchKeyword && this.searchTotal > 0) {
+        Text(`找到 ${this.searchTotal} 个单集`)
+          .fontSize(12)
+          .fontColor('#666')
+          .width('100%')
+          .padding({ left: 16, bottom: 8 })
+      }
+
+      if (this.isSearching) {
+        LoadingProgress()
+          .width(40)
+          .height(40)
+          .margin({ top: 50 })
+      } else if (this.allEpisodes.length === 0 && !this.episodeSearchKeyword) {
         this.buildEmptyView('暂无单集', '订阅播客后将显示在这里');
       } else if (this.filteredEpisodes.length === 0 && this.episodeSearchKeyword) {
-        // 有搜索关键词但没有结果
         this.buildEmptyView('未找到匹配的单集', '尝试使用其他关键词');
       } else {
         List({ space: 8 }) {
@@ -508,8 +579,8 @@ struct MainPage {
             }
           }, (episode: Episode) => episode.id)
 
-          // 加载更多按钮（仅在没有搜索时显示）
-          if (this.episodesHasMore && !this.episodeSearchKeyword) {
+          // 加载更多按钮
+          if ((this.episodesHasMore && !this.episodeSearchKeyword) || this.searchHasMore) {
             ListItem() {
               Row() {
                 Button('加载更多')
@@ -519,8 +590,13 @@ struct MainPage {
                   .backgroundColor('#5C6BC0')
                   .fontColor(Color.White)
                   .onClick(() => {
-                    console.info('======>>> Click: Load more episodes');
-                    this.loadMoreEpisodes();
+                    if (this.episodeSearchKeyword) {
+                      console.info('[MainPage] Load more search results');
+                      this.loadMoreSearchResults();
+                    } else {
+                      console.info('[MainPage] Load more episodes');
+                      this.loadMoreEpisodes();
+                    }
                   })
               }
               .width('100%')
@@ -584,7 +660,7 @@ struct MainPage {
     .backgroundColor(Color.White)
     .borderRadius(8)
     .onClick(() => {
-      console.info(`======>>> Click: Episode item - ${episode.title}`);
+      console.info(`[MainPage] Episode: ${episode.title}`);
       const params = new RouteParams();
       params.episodeId = episode.id;
       UIUtils.pushUrl('pages/EpisodeDetailPage', params);
@@ -614,7 +690,7 @@ struct MainPage {
             .backgroundColor('#FF5252')
             .fontColor(Color.White)
             .onClick(async () => {
-              console.info('======>>> Click: Clear queue');
+              console.info('[MainPage] Clear queue');
               await this.dbService.clearQueue();
               await this.loadQueue();
             })
@@ -726,7 +802,7 @@ struct MainPage {
                     .backgroundColor('#5C6BC0')
                     .fontColor(Color.White)
                     .onClick(() => {
-                      console.info(`======>>> Click: Play downloaded - ${episode.title}`);
+                      console.info(`[MainPage] Play: ${episode.title}`);
                       this.playerService.playEpisode(episode);
                     })
 
@@ -737,7 +813,7 @@ struct MainPage {
                     .backgroundColor('#4CAF50')
                     .fontColor(Color.White)
                     .onClick(() => {
-                      console.info(`======>>> Click: Add to queue - ${episode.title}`);
+                      console.info(`[MainPage] Add to queue: ${episode.title}`);
                       this.addToQueue(episode);
                     })
 
@@ -749,7 +825,7 @@ struct MainPage {
                     .backgroundColor('#FF5252')
                     .fontColor(Color.White)
                     .onClick(() => {
-                      console.info(`======>>> Click: Delete downloaded - ${episode.title}`);
+                      console.info(`[MainPage] Delete: ${episode.title}`);
                       DownloadService.getInstance().deleteDownloadedFile(episode);
                       this.loadDownloads();
                     })
@@ -819,7 +895,7 @@ struct MainPage {
     .backgroundColor(Color.White)
     .borderRadius(8)
     .onClick(() => {
-      console.info(`======>>> Click: Podcast item - ${podcast.title}`);
+      console.info(`[MainPage] Podcast: ${podcast.title}`);
       // 跳转到播客详情页
       const params = new RouteParams();
       params.podcastId = podcast.id;
@@ -877,7 +953,7 @@ struct MainPage {
           .backgroundColor('#5C6BC0')
           .fontColor(Color.White)
           .onClick(() => {
-            console.info(`======>>> Click: Play episode - ${episode.title}`);
+            console.info(`[MainPage] Play: ${episode.title}`);
             this.playerService.playEpisode(episode);
           })
 
@@ -888,7 +964,7 @@ struct MainPage {
           .backgroundColor('#4CAF50')
           .fontColor(Color.White)
           .onClick(() => {
-            console.info(`======>>> Click: Add to queue - ${episode.title}`);
+            console.info(`[MainPage] Add to queue: ${episode.title}`);
             this.addToQueue(episode);
           })
       }
@@ -954,7 +1030,7 @@ struct MainPage {
         .borderRadius(18)
         .flexShrink(0)
         .onClick(() => {
-          console.info(`======>>> Click: Play from queue - ${episode.title}`);
+          console.info(`[MainPage] Queue play: ${episode.title}`);
           this.playerService.playEpisode(episode);
         })
 
@@ -971,7 +1047,7 @@ struct MainPage {
         .margin({ left: 8 })
         .flexShrink(0)
         .onClick(() => {
-          console.info(`======>>> Click: Remove from queue - ${episode.title}`);
+          console.info(`[MainPage] Queue remove: ${episode.title}`);
           this.removeFromQueue(episode);
         })
       }
@@ -1006,7 +1082,7 @@ struct MainPage {
           Circle()
             .width(50)
             .height(50)
-            .fill('#1a1a2e')
+            .fill('#5a5a7a')
           
           // 封面图
           Image(this.currentEpisode?.imageUrl || '')
@@ -1017,7 +1093,7 @@ struct MainPage {
         }
         .margin({ left: 12 })
         .onClick(() => {
-          console.info('======>>> Click: Mini player cover image');
+          console.info('[MainPage] Mini player cover tapped');
           this.openPlayerPage();
         })
 
@@ -1059,7 +1135,7 @@ struct MainPage {
         .layoutWeight(1)
         .margin({ left: 12, right: 12 })
         .onClick(() => {
-          console.info('======>>> Click: Mini player content');
+          console.info('[MainPage] Mini player tapped');
           this.openPlayerPage();
         })
 
@@ -1074,7 +1150,7 @@ struct MainPage {
         .backgroundColor('#5C6BC0')
         .borderRadius(20)
         .onClick(() => {
-          console.info(`======>>> Click: Mini player play/pause - isPlaying: ${this.isPlaying}`);
+          console.info(`[MainPage] Mini player toggle: ${this.isPlaying}`);
           if (this.isPlaying) {
             this.playerService.pause();
           } else {
@@ -1094,7 +1170,7 @@ struct MainPage {
         .backgroundColor(Color.Transparent)
         .margin({ right: 8 })
         .onClick(() => {
-          console.info('======>>> Click: Mini player next episode');
+          console.info('[MainPage] Mini player next');
           this.playNextEpisode();
         })
       }
@@ -1103,12 +1179,12 @@ struct MainPage {
       .alignItems(VerticalAlign.Center)
     }
     .width('94%')
-    .backgroundColor('#1a1a2e')
+    .backgroundColor('#4a4a6a')
     .borderRadius(12)
     .margin({ bottom: 16 })
     .shadow({
       radius: 16,
-      color: 'rgba(0, 0, 0, 0.3)',
+      color: 'rgba(0, 0, 0, 0.2)',
       offsetX: 0,
       offsetY: 4
     })

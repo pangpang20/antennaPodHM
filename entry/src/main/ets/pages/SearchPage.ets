@@ -81,7 +81,7 @@ struct SearchPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Back button (Search)');
+        console.info('[SearchPage] Back');
         UIUtils.back();
       })
 
@@ -113,7 +113,7 @@ struct SearchPage {
       Button('搜索')
         .margin({ left: 8 })
         .onClick(() => {
-          console.info(`======>>> Click: Search button - keyword: ${this.searchKeyword}`);
+          console.info(`[SearchPage] Search: ${this.searchKeyword}`);
           this.performSearch();
         })
     }
@@ -128,7 +128,7 @@ struct SearchPage {
         .width('100%')
         .type(ButtonType.Normal)
         .onClick(() => {
-          console.info(`======>>> Click: Toggle RSS URL input - ${this.showAddByUrl ? 'Hide' : 'Show'}`);
+          console.info(`[SearchPage] RSS input toggle: ${this.showAddByUrl ? 'hide' : 'show'}`);
           this.showAddByUrl = !this.showAddByUrl;
           if (!this.showAddByUrl) {
             this.feedUrl = '';
@@ -156,7 +156,7 @@ struct SearchPage {
         .margin({ top: 12 })
         .enabled(!this.isAddingByUrl && this.feedUrl.length > 0)
         .onClick(() => {
-          console.info(`======>>> Click: Add podcast by RSS URL - ${this.feedUrl}`);
+          console.info(`[SearchPage] Add RSS: ${this.feedUrl}`);
           this.addByRssUrl();
         })
     }
@@ -203,7 +203,7 @@ struct SearchPage {
             .borderRadius(20)
             .enabled(!this.isLoadingMore)
             .onClick(() => {
-              console.info('======>>> Click: Load more');
+              console.info('[SearchPage] Load more');
               this.loadMore();
             })
           }
@@ -263,7 +263,7 @@ struct SearchPage {
           .height(36)
           .enabled(!this.isSubscribing)
           .onClick(() => {
-            console.info(`======>>> Click: Subscribe podcast - ${podcast.title}`);
+            console.info(`[SearchPage] Subscribe: ${podcast.title}`);
             this.subscribePodcast(podcast);
           })
       }

@@ -129,7 +129,7 @@ struct SettingsPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Back button (Settings)');
+        console.info('[SettingsPage] Back');
         UIUtils.back();
       })
 
@@ -209,11 +209,11 @@ struct SettingsPage {
     )).then((index: number) => {
       if (index === 1) {
         // 用户点击"允许",申请通知权限
-        console.info('======>>> User confirmed: Enable notifications');
+        console.info('[SettingsPage] Notifications enabled');
         this.requestNotificationPermission();
       } else {
         // 用户点击"取消",保持关闭状态
-        console.info('======>>> User cancelled: Enable notifications');
+        console.info('[SettingsPage] Notifications cancelled');
         this.settings.enableNotifications = false;
       }
     });
@@ -282,11 +282,11 @@ struct SettingsPage {
     )).then((index: number) => {
       if (index === 1) {
         // 用户点击"允许",检查并启用新单集通知
-        console.info('======>>> User confirmed: Enable new episode notifications');
+        console.info('[SettingsPage] New episode notifications enabled');
         this.checkAndEnableNewEpisodeNotification();
       } else {
         // 用户点击"取消",保持关闭状态
-        console.info('======>>> User cancelled: Enable new episode notifications');
+        console.info('[SettingsPage] New episode notifications cancelled');
         this.settings.notifyNewEpisodes = false;
       }
     });

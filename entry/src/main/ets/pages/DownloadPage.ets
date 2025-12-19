@@ -203,7 +203,7 @@ struct DownloadPage {
       Button('删除')
         .height(36)
         .onClick(() => {
-          console.info(`======>>> Click: Delete downloaded episode - ${episode.title}`);
+          console.info(`[DownloadPage] Delete: ${episode.title}`);
           DownloadService.getInstance().deleteDownloadedFile(episode);
         })
     }

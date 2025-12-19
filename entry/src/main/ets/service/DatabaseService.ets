@@ -4,6 +4,17 @@ import { Episode } from '../model/Episode';
 import { QueueItem } from '../model/QueueItem';
 import { Constants } from '../common/Constants';
 
+// 搜索结果
+export class EpisodeSearchResult {
+  episodes: Episode[] = [];
+  total: number = 0;
+
+  constructor(episodes: Episode[], total: number) {
+    this.episodes = episodes;
+    this.total = total;
+  }
+}
+
 /**
  * 数据库版本历史
  * 每次修改数据库结构时，需要：
@@ -430,6 +441,41 @@ export class DatabaseService {
     } catch (error) {
       console.error('Failed to query all episodes:', error);
       return [];
+    }
+  }
+
+  /**
+   * 搜索单集（支持分页）
+   */
+  async searchEpisodes(keyword: string, offset: number, limit: number): Promise<EpisodeSearchResult> {
+    if (!this.rdbStore) return new EpisodeSearchResult([], 0);
+
+    try {
+      const searchKey = `%${keyword}%`;
+      
+      // 先查总数
+      const countSql = `SELECT COUNT(*) as cnt FROM ${Constants.TABLE_EPISODE} WHERE title LIKE ? OR description LIKE ?`;
+      const countResult = await this.rdbStore.querySql(countSql, [searchKey, searchKey]);
+      let total = 0;
+      if (countResult.goToFirstRow()) {
+        total = countResult.getLong(countResult.getColumnIndex('cnt'));
+      }
+      countResult.close();
+
+      // 查询分页数据
+      const sql = `SELECT * FROM ${Constants.TABLE_EPISODE} WHERE title LIKE ? OR description LIKE ? ORDER BY pubDate DESC LIMIT ? OFFSET ?`;
+      const resultSet = await this.rdbStore.querySql(sql, [searchKey, searchKey, limit, offset]);
+      const episodes: Episode[] = [];
+
+      while (resultSet.goToNextRow()) {
+        episodes.push(this.parseEpisodeFromResultSet(resultSet));
+      }
+
+      resultSet.close();
+      return new EpisodeSearchResult(episodes, total);
+    } catch (error) {
+      console.error('[DatabaseService] searchEpisodes failed:', error);
+      return new EpisodeSearchResult([], 0);
     }
   }
 

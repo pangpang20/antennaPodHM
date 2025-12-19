@@ -643,7 +643,7 @@ export class PlayerService {
    * 设置睡眠定时器
    */
   setSleepTimer(minutes: number): void {
-    console.info(`======>>> Set sleep timer: ${minutes} minutes`);
+    console.info(`[PlayerService] Sleep timer set: ${minutes}min`);
     
     // 清除之前的定时器
     if (this.sleepTimerId !== -1) {
@@ -656,7 +656,7 @@ export class PlayerService {
 
     if (minutes > 0) {
       this.sleepTimerId = setTimeout(() => {
-        console.info('======>>> Sleep timer triggered, pausing playback');
+        console.info('[PlayerService] Sleep timer fired, pausing');
         this.pause();
         this.sleepTimerId = -1;
         this.sleepTimerMinutes = 0;

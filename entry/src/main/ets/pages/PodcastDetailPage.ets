@@ -153,7 +153,7 @@ struct PodcastDetailPage {
       .height(40)
       .backgroundColor(Color.Transparent)
       .onClick(() => {
-        console.info('======>>> Click: Back/Cancel button (PodcastDetail)');
+        console.info('[PodcastDetailPage] Back/Cancel');
         if (this.isSelectionMode) {
           this.isSelectionMode = false;
           this.selectedEpisodes.clear();
@@ -175,7 +175,7 @@ struct PodcastDetailPage {
           .backgroundColor(Color.Transparent)
           .fontColor($r('app.color.primary'))
           .onClick(() => {
-            console.info('======>>> Click: Enable multi-selection mode');
+            console.info('[PodcastDetailPage] Multi-select mode');
             this.isSelectionMode = true;
           })
       } else {
@@ -183,7 +183,7 @@ struct PodcastDetailPage {
           .height(36)
           .enabled(this.selectedEpisodes.size > 0)
           .onClick(() => {
-            console.info(`======>>> Click: Download selected episodes - ${this.selectedEpisodes.size} episodes`);
+            console.info(`[PodcastDetailPage] Download ${this.selectedEpisodes.size} selected`);
             this.downloadSelectedEpisodes();
           })
       }
@@ -230,7 +230,7 @@ struct PodcastDetailPage {
         .borderRadius(8)
         .margin({ top: 16 })
         .onClick(() => {
-          console.info('======>>> Click: Unsubscribe button');
+          console.info('[PodcastDetailPage] Unsubscribe');
           this.showUnsubscribeDialog();
         })
     }
@@ -314,7 +314,7 @@ struct PodcastDetailPage {
           .borderRadius(8)
           .enabled(!this.isLoadingMore)
           .onClick(() => {
-            console.info('======>>> Click: Load more episodes');
+            console.info('[PodcastDetailPage] Load more');
             this.loadMore();
           })
         }
@@ -418,7 +418,7 @@ struct PodcastDetailPage {
       .onClick(() => {
         // 非选择模式下，点击标题区域跳转到单集详情
         if (!this.isSelectionMode) {
-          console.info(`======>>> Click: Episode detail - ${episode.title}`);
+          console.info(`[PodcastDetailPage] Episode: ${episode.title}`);
           const params = new RouteParams();
           params.episodeId = episode.id;
           UIUtils.pushUrl('pages/EpisodeDetailPage', params);
@@ -435,7 +435,7 @@ struct PodcastDetailPage {
         .height(36)
         .backgroundColor(Color.Transparent)
         .onClick(() => {
-          console.info(`======>>> Click: Add to queue - ${episode.title}`);
+          console.info(`[PodcastDetailPage] Add to queue: ${episode.title}`);
           this.addToQueue(episode);
         })
         .margin({ left: 8 })
@@ -461,7 +461,7 @@ struct PodcastDetailPage {
         .backgroundColor(Color.Transparent)
         .enabled(episode.downloadStatus === 0)
         .onClick(() => {
-          console.info(`======>>> Click: Download episode - ${episode.title}`);
+          console.info(`[PodcastDetailPage] Download: ${episode.title}`);
           this.downloadEpisode(episode);
         })
         .margin({ left: 8 })
@@ -470,7 +470,7 @@ struct PodcastDetailPage {
         Button('播放')
           .height(36)
           .onClick(() => {
-            console.info(`======>>> Click: Play episode - ${episode.title}`);
+            console.info(`[PodcastDetailPage] Play: ${episode.title}`);
             const params = new RouteParams();
             params.episodeId = episode.id;
             UIUtils.pushUrl('pages/PlayerPage', params);
