@@ -34,6 +34,8 @@ struct MainPage {
   @State isLoadingMore: boolean = false;  // 是否正在加载更多
   @State searchHasMore: boolean = false;  // 搜索结果是否还有更多
   @State queueEpisodes: Episode[] = [];  // 待听队列
+  @State isDownloadEditMode: boolean = false;  // 下载管理编辑模式
+  @State selectedDownloadIds: Set<string> = new Set();  // 已选中的下载项ID
   private playerService: PlayerService = PlayerService.getInstance();
   private dbService: DatabaseService = DatabaseService.getInstance();
   private downloadUpdateTimer: number = -1;
@@ -816,17 +818,110 @@ struct MainPage {
 
       // 已下载部分
       if (this.downloadedEpisodes.length > 0) {
-        Text('已下载')
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
+        Row() {
+          Text('已下载')
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .layoutWeight(1)
+
+          if (this.isDownloadEditMode) {
+            Text(this.selectedDownloadIds.size === this.downloadedEpisodes.length ? '取消全选' : '全选')
+              .fontSize(14)
+              .fontColor('#5C6BC0')
+              .onClick(() => {
+                if (this.selectedDownloadIds.size === this.downloadedEpisodes.length) {
+                  this.selectedDownloadIds = new Set();
+                } else {
+                  this.selectedDownloadIds = new Set(this.downloadedEpisodes.map(e => e.id));
+                }
+              })
+
+            Text('完成')
+              .fontSize(14)
+              .fontColor('#5C6BC0')
+              .margin({ left: 16 })
+              .onClick(() => {
+                this.isDownloadEditMode = false;
+                this.selectedDownloadIds = new Set();
+              })
+          } else {
+            Text('管理')
+              .fontSize(14)
+              .fontColor('#5C6BC0')
+              .onClick(() => {
+                this.isDownloadEditMode = true;
+              })
+          }
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 12, bottom: 8 })
+
+        // 批量操作栏
+        if (this.isDownloadEditMode && this.selectedDownloadIds.size > 0) {
+          Row() {
+            Text(`已选择 ${this.selectedDownloadIds.size} 项`)
+              .fontSize(14)
+              .fontColor('#666')
+              .layoutWeight(1)
+
+            Button('+ 待听')
+              .height(32)
+              .fontSize(12)
+              .backgroundColor('#4CAF50')
+              .fontColor(Color.White)
+              .onClick(async () => {
+                for (const id of this.selectedDownloadIds) {
+                  await this.dbService.addToQueue(id);
+                }
+                UIUtils.showToast(new ToastOptions(`已添加 ${this.selectedDownloadIds.size} 个单集到待听队列`, 2000));
+                this.selectedDownloadIds = new Set();
+                this.loadQueue();
+              })
+
+            Button('删除')
+              .height(32)
+              .fontSize(12)
+              .backgroundColor('#FF5252')
+              .fontColor(Color.White)
+              .margin({ left: 8 })
+              .onClick(async () => {
+                const downloadService = DownloadService.getInstance();
+                for (const id of this.selectedDownloadIds) {
+                  const episode = this.downloadedEpisodes.find(e => e.id === id);
+                  if (episode) {
+                    await downloadService.deleteDownloadedFile(episode);
+                  }
+                }
+                UIUtils.showToast(new ToastOptions(`已删除 ${this.selectedDownloadIds.size} 个下载`, 2000));
+                this.selectedDownloadIds = new Set();
+                this.loadDownloads();
+              })
+          }
           .width('100%')
-          .padding({ left: 16, top: 12, bottom: 8 })
+          .padding({ left: 16, right: 16, bottom: 8 })
+        }
         
         List({ space: 8 }) {
           ForEach(this.downloadedEpisodes, (episode: Episode) => {
             ListItem() {
               Column() {
                 Row() {
+                  // 编辑模式下显示选择框
+                  if (this.isDownloadEditMode) {
+                    Checkbox()
+                      .select(this.selectedDownloadIds.has(episode.id))
+                      .onChange((checked: boolean) => {
+                        if (checked) {
+                          this.selectedDownloadIds.add(episode.id);
+                        } else {
+                          this.selectedDownloadIds.delete(episode.id);
+                        }
+                        // 触发 UI 更新
+                        this.selectedDownloadIds = new Set(this.selectedDownloadIds);
+                      })
+                      .margin({ right: 12 })
+                  }
+
                   Column() {
                     Text(episode.title)
                       .fontSize(14)
@@ -843,44 +938,46 @@ struct MainPage {
                 }
                 .width('100%')
 
-                // 操作按钮行
-                Row() {
-                  Button('▶ 播放')
-                    .height(32)
-                    .fontSize(12)
-                    .backgroundColor('#5C6BC0')
-                    .fontColor(Color.White)
-                    .onClick(() => {
-                      console.info(`[MainPage] Play: ${episode.title}`);
-                      this.playerService.playEpisode(episode);
-                    })
+                // 非编辑模式下显示操作按钮
+                if (!this.isDownloadEditMode) {
+                  Row() {
+                    Button('▶ 播放')
+                      .height(32)
+                      .fontSize(12)
+                      .backgroundColor('#5C6BC0')
+                      .fontColor(Color.White)
+                      .onClick(() => {
+                        console.info(`[MainPage] Play: ${episode.title}`);
+                        this.playerService.playEpisode(episode);
+                      })
 
-                  Button('+ 待听')
-                    .height(32)
-                    .fontSize(12)
-                    .margin({ left: 8 })
-                    .backgroundColor('#4CAF50')
-                    .fontColor(Color.White)
-                    .onClick(() => {
-                      console.info(`[MainPage] Add to queue: ${episode.title}`);
-                      this.addToQueue(episode);
-                    })
+                    Button('+ 待听')
+                      .height(32)
+                      .fontSize(12)
+                      .margin({ left: 8 })
+                      .backgroundColor('#4CAF50')
+                      .fontColor(Color.White)
+                      .onClick(() => {
+                        console.info(`[MainPage] Add to queue: ${episode.title}`);
+                        this.addToQueue(episode);
+                      })
 
-                  Blank()
+                    Blank()
 
-                  Button('删除')
-                    .height(32)
-                    .fontSize(12)
-                    .backgroundColor('#FF5252')
-                    .fontColor(Color.White)
-                    .onClick(() => {
-                      console.info(`[MainPage] Delete: ${episode.title}`);
-                      DownloadService.getInstance().deleteDownloadedFile(episode);
-                      this.loadDownloads();
-                    })
+                    Button('删除')
+                      .height(32)
+                      .fontSize(12)
+                      .backgroundColor('#FF5252')
+                      .fontColor(Color.White)
+                      .onClick(() => {
+                        console.info(`[MainPage] Delete: ${episode.title}`);
+                        DownloadService.getInstance().deleteDownloadedFile(episode);
+                        this.loadDownloads();
+                      })
+                  }
+                  .width('100%')
+                  .margin({ top: 8 })
                 }
-                .width('100%')
-                .margin({ top: 8 })
               }
               .width('100%')
               .padding(12)

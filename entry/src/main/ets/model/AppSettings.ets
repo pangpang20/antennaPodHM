@@ -27,6 +27,6 @@ export class AppSettings {
   keepLastNEpisodes: number = 5;
 
   // 通知设置
-  enableNotifications: boolean = true;
-  notifyNewEpisodes: boolean = true;
+  enableNotifications: boolean = false;
+  notifyNewEpisodes: boolean = false;
 }
