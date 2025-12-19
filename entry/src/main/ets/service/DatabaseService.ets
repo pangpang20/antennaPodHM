@@ -451,11 +451,31 @@ export class DatabaseService {
     if (!this.rdbStore) return new EpisodeSearchResult([], 0);
 
     try {
-      const searchKey = `%${keyword}%`;
+      // 处理关键词：有空格时拆分为多个关键词（AND关系）
+      const keywords = keyword.trim().split(/\s+/).filter(k => k.length > 0);
+      
+      let whereClause = '';
+      const params: (string | number)[] = [];
+      
+      if (keywords.length === 1) {
+        // 单个关键词
+        const searchKey = `%${keywords[0]}%`;
+        whereClause = '(title LIKE ? OR description LIKE ?)';
+        params.push(searchKey, searchKey);
+      } else {
+        // 多个关键词，每个都要匹配
+        const conditions: string[] = [];
+        for (const kw of keywords) {
+          const searchKey = `%${kw}%`;
+          conditions.push('(title LIKE ? OR description LIKE ?)');
+          params.push(searchKey, searchKey);
+        }
+        whereClause = conditions.join(' AND ');
+      }
       
       // 先查总数
-      const countSql = `SELECT COUNT(*) as cnt FROM ${Constants.TABLE_EPISODE} WHERE title LIKE ? OR description LIKE ?`;
-      const countResult = await this.rdbStore.querySql(countSql, [searchKey, searchKey]);
+      const countSql = `SELECT COUNT(*) as cnt FROM ${Constants.TABLE_EPISODE} WHERE ${whereClause}`;
+      const countResult = await this.rdbStore.querySql(countSql, params);
       let total = 0;
       if (countResult.goToFirstRow()) {
         total = countResult.getLong(countResult.getColumnIndex('cnt'));
@@ -463,8 +483,9 @@ export class DatabaseService {
       countResult.close();
 
       // 查询分页数据
-      const sql = `SELECT * FROM ${Constants.TABLE_EPISODE} WHERE title LIKE ? OR description LIKE ? ORDER BY pubDate DESC LIMIT ? OFFSET ?`;
-      const resultSet = await this.rdbStore.querySql(sql, [searchKey, searchKey, limit, offset]);
+      const queryParams = [...params, limit, offset];
+      const sql = `SELECT * FROM ${Constants.TABLE_EPISODE} WHERE ${whereClause} ORDER BY pubDate DESC LIMIT ? OFFSET ?`;
+      const resultSet = await this.rdbStore.querySql(sql, queryParams);
       const episodes: Episode[] = [];
 
       while (resultSet.goToNextRow()) {
@@ -472,6 +493,7 @@ export class DatabaseService {
       }
 
       resultSet.close();
+      console.info(`[DatabaseService] searchEpisodes: keywords=${JSON.stringify(keywords)}, total=${total}`);
       return new EpisodeSearchResult(episodes, total);
     } catch (error) {
       console.error('[DatabaseService] searchEpisodes failed:', error);
