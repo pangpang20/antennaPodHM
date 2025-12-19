@@ -30,7 +30,8 @@ struct MainPage {
   @State filteredEpisodes: Episode[] = [];  // 过滤/搜索结果
   @State searchTotal: number = 0;  // 搜索结果总数
   @State searchPage: number = 1;  // 搜索结果当前页
-  @State isSearching: boolean = false;  // 是否正在搜索
+  @State isSearching: boolean = false;  // 是否正在搜索（首次）
+  @State isLoadingMore: boolean = false;  // 是否正在加载更多
   @State searchHasMore: boolean = false;  // 搜索结果是否还有更多
   @State queueEpisodes: Episode[] = [];  // 待听队列
   private playerService: PlayerService = PlayerService.getInstance();
@@ -238,9 +239,9 @@ struct MainPage {
    * 加载更多搜索结果
    */
   async loadMoreSearchResults() {
-    if (!this.searchHasMore || this.isSearching) return;
+    if (!this.searchHasMore || this.isLoadingMore) return;
     
-    this.isSearching = true;
+    this.isLoadingMore = true;
     try {
       const offset = this.searchPage * this.episodesPageSize;
       const result = await this.dbService.searchEpisodes(
@@ -255,7 +256,7 @@ struct MainPage {
     } catch (error) {
       console.error('[MainPage] Load more search failed:', error);
     } finally {
-      this.isSearching = false;
+      this.isLoadingMore = false;
     }
   }
 
@@ -583,23 +584,34 @@ struct MainPage {
           if ((this.episodesHasMore && !this.episodeSearchKeyword) || this.searchHasMore) {
             ListItem() {
               Row() {
-                Button('加载更多')
-                  .width('100%')
-                  .height(44)
-                  .fontSize(14)
-                  .backgroundColor('#5C6BC0')
-                  .fontColor(Color.White)
-                  .onClick(() => {
-                    if (this.episodeSearchKeyword) {
-                      console.info('[MainPage] Load more search results');
-                      this.loadMoreSearchResults();
-                    } else {
-                      console.info('[MainPage] Load more episodes');
-                      this.loadMoreEpisodes();
-                    }
-                  })
+                if (this.isLoadingMore) {
+                  LoadingProgress()
+                    .width(24)
+                    .height(24)
+                    .margin({ right: 8 })
+                  Text('加载中...')
+                    .fontSize(14)
+                    .fontColor('#666')
+                } else {
+                  Button('加载更多')
+                    .width('100%')
+                    .height(44)
+                    .fontSize(14)
+                    .backgroundColor('#5C6BC0')
+                    .fontColor(Color.White)
+                    .onClick(() => {
+                      if (this.episodeSearchKeyword) {
+                        console.info('[MainPage] Load more search results');
+                        this.loadMoreSearchResults();
+                      } else {
+                        console.info('[MainPage] Load more episodes');
+                        this.loadMoreEpisodes();
+                      }
+                    })
+                }
               }
               .width('100%')
+              .height(44)
               .justifyContent(FlexAlign.Center)
             }
           }
