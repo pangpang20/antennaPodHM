@@ -1,6 +1,6 @@
-import episodeTest from '../model/Episode.test';
-import podcastTest from '../model/Podcast.test';
-import appSettingsTest from '../model/AppSettings.test';
+import episodeTest from './Episode.test';
+import podcastTest from './Podcast.test';
+import appSettingsTest from './AppSettings.test';
 import abilityTest from './Ability.test';
 
 /**
@@ -12,7 +12,7 @@ export default function testsuite() {
   episodeTest();
   podcastTest();
   appSettingsTest();
-  
+
   // 能力测试
   abilityTest();
 }

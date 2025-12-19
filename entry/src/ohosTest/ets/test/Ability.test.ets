@@ -1,7 +1,7 @@
 import { describe, beforeAll, beforeEach, afterEach, afterAll, it, expect } from '@ohos/hypium';
 import { Driver, ON } from '@ohos.UiTest';
-import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
-import hilog from '@ohos.hilog';
+import { abilityDelegatorRegistry } from '@kit.TestKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
 const TAG = '[Sample_Ability_Test]';
 const DOMAIN = 0xF811;
@@ -29,8 +29,8 @@ export default function abilityTest() {
      */
     it(BUNDLE + 'StartAbility_001', 0, async (done: Function) => {
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'StartAbility_001 begin');
-      const delegator = AbilityDelegatorRegistry.getAbilityDelegator();
-      
+      const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+
       try {
         await delegator.startAbility({
           bundleName: 'com.pangpang.antennapodhm',
@@ -51,10 +51,10 @@ export default function abilityTest() {
      */
     it(BUNDLE + 'UIComponent_001', 0, async () => {
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'UIComponent_001 begin');
-      
+
       // 等待UI加载
       await driver.delayMs(1000);
-      
+
       // 验证主要UI组件存在
       try {
         const tabBar = await driver.findComponent(ON.type('Tabs'));
@@ -63,7 +63,7 @@ export default function abilityTest() {
       } catch (err) {
         hilog.warn(DOMAIN, TAG, 'TabBar component not found: %{public}s', JSON.stringify(err));
       }
-      
+
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'UIComponent_001 end');
     });
 
@@ -72,8 +72,8 @@ export default function abilityTest() {
      */
     it(BUNDLE + 'Lifecycle_001', 0, async () => {
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'Lifecycle_001 begin');
-      const delegator = AbilityDelegatorRegistry.getAbilityDelegator();
-      
+      const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+
       try {
         const ability = delegator.getCurrentTopAbility();
         expect(ability !== null).assertTrue();
@@ -81,7 +81,7 @@ export default function abilityTest() {
       } catch (err) {
         hilog.error(DOMAIN, TAG, 'Failed to get current ability: %{public}s', JSON.stringify(err));
       }
-      
+
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'Lifecycle_001 end');
     });
 
@@ -90,10 +90,10 @@ export default function abilityTest() {
      */
     it(BUNDLE + 'Permission_001', 0, async () => {
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'Permission_001 begin');
-      
+
       // 等待权限申请弹窗
       await driver.delayMs(2000);
-      
+
       hilog.info(DOMAIN, TAG, '%{public}s', 'Permission request completed');
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'Permission_001 end');
     });
@@ -103,8 +103,8 @@ export default function abilityTest() {
      */
     it(BUNDLE + 'TerminateAbility_001', 0, async () => {
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'TerminateAbility_001 begin');
-      const delegator = AbilityDelegatorRegistry.getAbilityDelegator();
-      
+      const delegator = abilityDelegatorRegistry.getAbilityDelegator();
+
       try {
         const ability = delegator.getCurrentTopAbility();
         if (ability) {
@@ -113,7 +113,7 @@ export default function abilityTest() {
       } catch (err) {
         hilog.error(DOMAIN, TAG, 'Ability check failed: %{public}s', JSON.stringify(err));
       }
-      
+
       hilog.info(DOMAIN, TAG, '%{public}s', BUNDLE + 'TerminateAbility_001 end');
     });
   });
