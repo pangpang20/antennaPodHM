@@ -97,12 +97,12 @@ export default class EntryAbility extends UIAbility {
       const bundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION);
       const tokenId = bundleInfo.appInfo.accessTokenId;
 
-      // 必要权限：联网、存储
+      // 必要权限：联网、音频读写
       const requiredPermissions: Permissions[] = [
         'ohos.permission.INTERNET',
         'ohos.permission.GET_NETWORK_INFO',
-        'ohos.permission.WRITE_MEDIA',
-        'ohos.permission.READ_MEDIA'
+        'ohos.permission.WRITE_AUDIO',
+        'ohos.permission.READ_AUDIO'
       ];
 
       // 可选权限：后台运行（用于后台播放）

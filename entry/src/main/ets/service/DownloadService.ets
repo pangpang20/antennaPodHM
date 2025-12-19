@@ -307,8 +307,8 @@ export class DownloadService {
       const tokenId = bundleInfo.appInfo.accessTokenId;
 
       // 检查写入权限
-      const writeStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_MEDIA');
-      const readStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_MEDIA');
+      const writeStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_AUDIO');
+      const readStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_AUDIO');
 
       const hasPermission = writeStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED &&
                            readStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
@@ -318,14 +318,14 @@ export class DownloadService {
         // 尝试请求权限
         try {
           await atManager.requestPermissionsFromUser(this.context, [
-            'ohos.permission.WRITE_MEDIA',
-            'ohos.permission.READ_MEDIA'
+            'ohos.permission.WRITE_AUDIO',
+            'ohos.permission.READ_AUDIO'
           ]);
           console.info('[DownloadService] Storage permission requested');
           
           // 再次检查
-          const newWriteStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_MEDIA');
-          const newReadStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_MEDIA');
+          const newWriteStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.WRITE_AUDIO');
+          const newReadStatus = await atManager.checkAccessToken(tokenId, 'ohos.permission.READ_AUDIO');
           return newWriteStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED &&
                  newReadStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
         } catch (err) {
