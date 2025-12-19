@@ -205,6 +205,10 @@ struct MainPage {
    * 过滤单集列表（无搜索关键词时）
    */
   filterEpisodes() {
+    // 如果有搜索关键词且有搜索结果，保持搜索结果不变
+    if (this.episodeSearchKeyword && this.episodeSearchKeyword.trim() !== '' && this.searchTotal > 0) {
+      return;
+    }
     this.filteredEpisodes = this.allEpisodes;
   }
 
