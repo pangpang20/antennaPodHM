@@ -453,6 +453,11 @@ struct MainPage {
         }
       })
       .layoutWeight(1)
+
+      // 迷你播放器（固定在底部）
+      if (this.hasCurrentEpisode && this.currentEpisode) {
+        this.buildMiniPlayer();
+      }
     }
     .width('100%')
     .height('100%')
@@ -530,11 +535,6 @@ struct MainPage {
         .width('100%')
         .layoutWeight(1)
         .padding(16)
-      }
-
-      // 正在播放迷你播放器
-      if (this.hasCurrentEpisode && this.currentEpisode) {
-        this.buildMiniPlayer();
       }
     }
     .width('100%')
@@ -628,11 +628,6 @@ struct MainPage {
         .width('100%')
         .layoutWeight(1)
         .padding(16)
-      }
-
-      // 迷你播放器
-      if (this.hasCurrentEpisode && this.currentEpisode) {
-        this.buildMiniPlayer();
       }
     }
     .width('100%')
@@ -729,11 +724,6 @@ struct MainPage {
         .width('100%')
         .layoutWeight(1)
         .padding({ left: 16, right: 16, bottom: 16 })
-      }
-
-      // 迷你播放器
-      if (this.hasCurrentEpisode && this.currentEpisode) {
-        this.buildMiniPlayer();
       }
     }
     .width('100%')
@@ -998,11 +988,6 @@ struct MainPage {
       // 空状态
       if (this.downloadingEpisodes.length === 0 && this.downloadedEpisodes.length === 0) {
         this.buildEmptyView('暂无下载', '下载单集以便离线收听');
-      }
-
-      // 迷你播放器
-      if (this.hasCurrentEpisode && this.currentEpisode) {
-        this.buildMiniPlayer();
       }
     }
     .width('100%')
