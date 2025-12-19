@@ -15,6 +15,7 @@ interface DownloadTask {
   episode: Episode;
   taskId: number;
   downloadTask: request.DownloadTask;
+  isPaused: boolean;
 }
 
 /**
@@ -117,7 +118,8 @@ export class DownloadService {
       this.downloadTasks.set(episode.id, {
         episode,
         taskId,
-        downloadTask
+        downloadTask,
+        isPaused: false
       });
 
       this.activeDownloads++;
@@ -200,6 +202,7 @@ export class DownloadService {
       const task = this.downloadTasks.get(episodeId);
       if (task) {
         await task.downloadTask.suspend();
+        task.isPaused = true;
       }
     } catch (error) {
       console.error('Failed to pause download:', error);
@@ -214,10 +217,19 @@ export class DownloadService {
       const task = this.downloadTasks.get(episodeId);
       if (task) {
         await task.downloadTask.restore();
+        task.isPaused = false;
       }
     } catch (error) {
       console.error('Failed to resume download:', error);
     }
+  }
+
+  /**
+   * 检查下载是否暂停
+   */
+  isDownloadPaused(episodeId: string): boolean {
+    const task = this.downloadTasks.get(episodeId);
+    return task ? task.isPaused : false;
   }
 
   /**

@@ -769,6 +769,39 @@ struct MainPage {
                 Progress({ value: episode.downloadProgress, total: 100, type: ProgressType.Linear })
                   .width('100%')
                   .margin({ top: 8 })
+
+                Row() {
+                  // 暂停/继续按钮
+                  Button(DownloadService.getInstance().isDownloadPaused(episode.id) ? '继续' : '暂停')
+                    .height(28)
+                    .fontSize(12)
+                    .backgroundColor(DownloadService.getInstance().isDownloadPaused(episode.id) ? '#4CAF50' : '#FF9800')
+                    .fontColor(Color.White)
+                    .onClick(async () => {
+                      const downloadService = DownloadService.getInstance();
+                      if (downloadService.isDownloadPaused(episode.id)) {
+                        await downloadService.resumeDownload(episode.id);
+                      } else {
+                        await downloadService.pauseDownload(episode.id);
+                      }
+                      this.loadDownloads();
+                    })
+
+                  // 取消按钮
+                  Button('取消')
+                    .height(28)
+                    .fontSize(12)
+                    .backgroundColor('#FF5252')
+                    .fontColor(Color.White)
+                    .margin({ left: 8 })
+                    .onClick(async () => {
+                      await DownloadService.getInstance().cancelDownload(episode.id);
+                      this.loadDownloads();
+                    })
+                }
+                .width('100%')
+                .margin({ top: 8 })
+                .justifyContent(FlexAlign.End)
               }
               .width('100%')
               .padding(12)
