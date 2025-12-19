@@ -7,8 +7,8 @@
     "icon": "$media:app_icon",
     "label": "$string:app_name",
     "description": "$string:app_description",
-    "minAPIVersion": 17,
-    "targetAPIVersion": 17,
+    "minAPIVersion": 12,
+    "targetAPIVersion": 12,
     "apiReleaseType": "Release1"
   }
 }
