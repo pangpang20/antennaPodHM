@@ -1,0 +1,4 @@
+{
+  "background": "$media:app_icon_background",
+  "foreground": "$media:app_icon_foreground"
+}
