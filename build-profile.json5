@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "storeFile": "D:/data/codes/antennaPodHM_certs/keystore4antennapodhm.p12",
-          "storePassword": "000000185284E41D3AB9B6BD12AA1E2C3EEAD6555C744D3A323539242B0639EE27556587A25DE403",
-          "keyAlias": "releasekey",
-          "keyPassword": "00000018B69A83FEAC0F60952E9B8EEDA985957DEA927DFAE5C9DE957B1320EF3C0358986C2B4370",
+          "certpath": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B50D45CA8261CE80DA4B04E29BE9E5EA766BB34FE82B69498AB56AF02EF112CD4D4B922CF4024A5",
+          "profile": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.p7b",
           "signAlg": "SHA256withECDSA",
-          "profile": "D:/data/codes/antennaPodHM_certs/profile4antennapodhmRelease.p7b",
-          "certpath": "D:/data/codes/antennaPodHM_certs/cert4antennapodhm.cer"
+          "storeFile": "C:\\Users\\67681\\.ohos\\config\\default_antennaPodHM_LPPWFXbzoEDLs5ShmtwNld8lyKahKB84iN6cx6cz77Y=.p12",
+          "storePassword": "0000001B76C42BCC67EA7FEB5E299CAA2349F5C2050BE40B33428948B99D494243515ADCE69A86258D5BB0"
         }
       }
     ],
