@@ -5,8 +5,6 @@
     "versionCode": 1000200,
     "versionName": "1.0.2",
     "icon": "$media:app_icon",
-    "iconForeground": "$media:app_icon_foreground",
-    "iconBackground": "$media:app_icon_background",
     "label": "$string:app_name",
     "description": "$string:app_description",
     "minAPIVersion": 12,
