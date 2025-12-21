@@ -32,9 +32,9 @@ struct PlayerPage {
       this.loadEpisode(episodeId);
     }
 
-    // 加载默认播放速度
-    const settingsService = SettingsService.getInstance();
-    this.playbackSpeed = settingsService.getPlaybackSpeed();
+    // 从 PlayerService 同步当前播放速度，确保一致性
+    this.playbackSpeed = this.playerService.getPlaybackSpeed();
+    console.info(`[PlayerPage] Synced playback speed from PlayerService: ${this.playbackSpeed}`);
 
     // 监听播放器状态
     this.playerService.addEventListener('stateChange', (state: PlayerState) => {
@@ -541,20 +541,29 @@ struct PlayerPage {
   }
 
   showSpeedSelectorMenu(): void {
+    // 符合业界标准的播放速度选项
+    // 参考：Apple Podcasts, Spotify, Overcast 等主流播客应用
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('0.75x', '#000000'),
-      new ButtonOptions('1.0x', '#000000'),
-      new ButtonOptions('1.25x', '#000000'),
-      new ButtonOptions('1.5x', '#000000'),
-      new ButtonOptions('2.0x', '#000000'),
-      new ButtonOptions('2.5x', '#000000')
+      new ButtonOptions('0.5x', '#000000'),   // 慢速学习
+      new ButtonOptions('0.75x', '#000000'),  // 较慢
+      new ButtonOptions('1.0x', '#000000'),   // 正常速度
+      new ButtonOptions('1.25x', '#000000'),  // 稍快
+      new ButtonOptions('1.5x', '#000000'),   // 较快
+      new ButtonOptions('1.75x', '#000000'),  // 很快
+      new ButtonOptions('2.0x', '#000000'),   // 2倍速
+      new ButtonOptions('2.5x', '#000000'),   // 极快
+      new ButtonOptions('3.0x', '#000000')    // 最快
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('选择播放速度', buttons)).then((index: number) => {
       if (index >= 0) {
-        const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 2.5];
+        const speeds: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
         const selectedSpeed = speeds[index];
         this.playbackSpeed = selectedSpeed;
         this.playerService.setPlaybackSpeed(selectedSpeed);
+        // 保存到设置中，下次启动时记住
+        const settingsService = SettingsService.getInstance();
+        settingsService.setPlaybackSpeed(selectedSpeed);
+        console.info(`[PlayerPage] Playback speed set to ${selectedSpeed}x and saved`);
       }
     });
   }

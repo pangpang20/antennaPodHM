@@ -467,6 +467,11 @@ export class PlayerService {
     try {
       if (this.avPlayer && this.state === PlayerState.PAUSED) {
         await this.avPlayer.play();
+        // 恢复播放时重新应用播放速度
+        if (this.playbackSpeed !== 1.0) {
+          await this.avPlayer.setSpeed(this.playbackSpeed);
+          console.info(`[PlayerService] Resume with speed: ${this.playbackSpeed}`);
+        }
       }
     } catch (error) {
       console.error('Failed to resume:', error);
@@ -507,7 +512,15 @@ export class PlayerService {
     if (this.avPlayer) {
       this.playbackSpeed = speed;
       await this.avPlayer.setSpeed(speed);
+      console.info(`[PlayerService] Playback speed set to: ${speed}`);
     }
+  }
+
+  /**
+   * 获取当前播放速度
+   */
+  getPlaybackSpeed(): number {
+    return this.playbackSpeed;
   }
 
   /**
