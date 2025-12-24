@@ -149,7 +149,7 @@ struct EpisodeDetailPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -177,7 +177,7 @@ struct EpisodeDetailPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -206,26 +206,26 @@ struct EpisodeDetailPage {
       Row() {
         Text(this.episode?.getFormattedPubDate() || '')
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
 
         Text('•')
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ left: 8, right: 8 })
 
         Text(this.episode?.getFormattedDuration() || '')
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
 
         if (this.episode?.fileSize && this.episode.fileSize > 0) {
           Text('•')
             .fontSize(14)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
             .margin({ left: 8, right: 8 })
 
           Text(this.episode.getFormattedFileSize())
             .fontSize(14)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
         }
       }
       .margin({ top: 12 })
@@ -236,12 +236,12 @@ struct EpisodeDetailPage {
         Row() {
           Text('✓')
             .fontSize(14)
-            .fontColor('#4CAF50')
+            .fontColor($r('app.color.accent_green'))
             .margin({ right: 4 })
 
           Text('已下载')
             .fontSize(14)
-            .fontColor('#4CAF50')
+            .fontColor($r('app.color.accent_green'))
         }
         .margin({ top: 8 })
       }
@@ -258,18 +258,18 @@ struct EpisodeDetailPage {
         Row() {
           Text('▶')
             .fontSize(18)
-            .fontColor('#5C6BC0')
+            .fontColor($r('app.color.primary'))
             .margin({ right: 8 })
 
           Text('播放')
             .fontSize(16)
-            .fontColor('#5C6BC0')
+            .fontColor($r('app.color.primary'))
         }
       }
       .width('100%')
       .height(48)
       .backgroundColor(Color.Transparent)
-      .border({ width: 2, color: '#5C6BC0', radius: 24 })
+      .border({ width: 2, color: $r('app.color.primary'), radius: 24 })
       .onClick(() => {
         this.playEpisode();
       })
@@ -284,24 +284,24 @@ struct EpisodeDetailPage {
                 LoadingProgress()
                   .width(16)
                   .height(16)
-                  .color('#4CAF50')
+                  .color($r('app.color.accent_green'))
                   .margin({ right: 6 })
               } else {
                 Text('⬇')
                   .fontSize(16)
-                  .fontColor('#4CAF50')
+                  .fontColor($r('app.color.accent_green'))
                   .margin({ right: 6 })
               }
 
               Text(this.isDownloading ? `${this.downloadProgress}%` : '下载')
                 .fontSize(14)
-                .fontColor('#4CAF50')
+                .fontColor($r('app.color.accent_green'))
             }
           }
           .layoutWeight(1)
           .height(44)
           .backgroundColor(Color.Transparent)
-          .border({ width: 2, color: '#4CAF50', radius: 22 })
+          .border({ width: 2, color: $r('app.color.accent_green'), radius: 22 })
           .enabled(!this.isDownloading)
           .onClick(() => {
             this.downloadEpisode();
@@ -313,18 +313,18 @@ struct EpisodeDetailPage {
           Row() {
             Text('+')
               .fontSize(18)
-              .fontColor('#FF9800')
+              .fontColor($r('app.color.accent_orange'))
               .margin({ right: 6 })
 
             Text('待听')
               .fontSize(14)
-              .fontColor('#FF9800')
+              .fontColor($r('app.color.accent_orange'))
           }
         }
         .layoutWeight(1)
         .height(44)
         .backgroundColor(Color.Transparent)
-        .border({ width: 2, color: '#FF9800', radius: 22 })
+        .border({ width: 2, color: $r('app.color.accent_orange'), radius: 22 })
         .margin({ left: this.episode?.downloadStatus !== DownloadStatus.DOWNLOADED ? 12 : 0 })
         .onClick(() => {
           this.addToQueue();
@@ -348,14 +348,14 @@ struct EpisodeDetailPage {
 
       Text(this.formatDescription(this.episode?.description || '暂无简介'))
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .lineHeight(22)
         .width('100%')
     }
     .width('100%')
     .padding(20)
     .margin({ top: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(12)
   }
 
@@ -373,7 +373,7 @@ struct EpisodeDetailPage {
     Column() {
       Text('未找到单集信息')
         .fontSize(16)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
     }
     .width('100%')
     .layoutWeight(1)

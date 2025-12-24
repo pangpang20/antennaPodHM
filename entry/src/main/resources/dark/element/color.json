@@ -2,51 +2,51 @@
     "color": [
         {
             "name": "start_window_background",
-            "value": "#FFFFFF"
+            "value": "#1C1C1E"
         },
         {
             "name": "primary",
-            "value": "#5C6BC0"
+            "value": "#6C7BD8"
         },
         {
             "name": "primary_dark",
-            "value": "#3F51B5"
+            "value": "#8B99E6"
         },
         {
             "name": "background",
-            "value": "#F5F5F5"
+            "value": "#1C1C1E"
         },
         {
             "name": "background_card",
-            "value": "#FFFFFF"
+            "value": "#2C2C2E"
         },
         {
             "name": "background_secondary",
-            "value": "#EEEEEE"
+            "value": "#3A3A3C"
         },
         {
             "name": "text_primary",
-            "value": "#000000"
+            "value": "#FFFFFF"
         },
         {
             "name": "text_secondary",
-            "value": "#666666"
+            "value": "#ABABAB"
         },
         {
             "name": "text_tertiary",
-            "value": "#999999"
+            "value": "#8E8E93"
         },
         {
             "name": "divider",
-            "value": "#E0E0E0"
+            "value": "#3A3A3C"
         },
         {
             "name": "button_primary",
-            "value": "#5C6BC0"
+            "value": "#6C7BD8"
         },
         {
             "name": "button_secondary",
-            "value": "#E0E0E0"
+            "value": "#3A3A3C"
         },
         {
             "name": "accent_green",
@@ -62,15 +62,15 @@
         },
         {
             "name": "search_background",
-            "value": "#FFFFFF"
+            "value": "#3A3A3C"
         },
         {
             "name": "progress_track",
-            "value": "#E0E0E0"
+            "value": "#3A3A3C"
         },
         {
             "name": "mini_player_background",
-            "value": "#4a4a6a"
+            "value": "#2C2C2E"
         },
         {
             "name": "text_on_primary",
@@ -82,27 +82,27 @@
         },
         {
             "name": "delete_button_bg",
-            "value": "#FFEBEE"
+            "value": "#3A2525"
         },
         {
             "name": "delete_button_text",
-            "value": "#D32F2F"
+            "value": "#FF6B6B"
         },
         {
             "name": "badge_green_bg",
-            "value": "#E8F5E9"
+            "value": "#1B3A1B"
         },
         {
             "name": "background_light",
-            "value": "#F5F5F5"
+            "value": "#1C1C1E"
         },
         {
             "name": "text_primary_light",
-            "value": "#000000"
+            "value": "#FFFFFF"
         },
         {
             "name": "text_secondary_light",
-            "value": "#666666"
+            "value": "#ABABAB"
         }
     ]
 }

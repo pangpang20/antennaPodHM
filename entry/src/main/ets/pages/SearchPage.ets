@@ -67,7 +67,7 @@ struct SearchPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -95,7 +95,7 @@ struct SearchPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -162,7 +162,7 @@ struct SearchPage {
     }
     .width('100%')
     .padding({ left: 16, right: 16, bottom: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
@@ -185,21 +185,21 @@ struct SearchPage {
                   LoadingProgress()
                     .width(20)
                     .height(20)
-                    .color(Color.White)
+                    .color($r('app.color.text_on_primary'))
                   Text('加载中...')
                     .fontSize(14)
-                    .fontColor(Color.White)
+                    .fontColor($r('app.color.text_on_primary'))
                     .margin({ left: 8 })
                 } else {
                   Text('点击加载更多')
                     .fontSize(14)
-                    .fontColor(Color.White)
+                    .fontColor($r('app.color.text_on_primary'))
                 }
               }
             }
             .width('80%')
             .height(40)
-            .backgroundColor('#007AFF')
+            .backgroundColor($r('app.color.primary'))
             .borderRadius(20)
             .enabled(!this.isLoadingMore)
             .onClick(() => {
@@ -215,7 +215,7 @@ struct SearchPage {
         ListItem() {
           Text('没有更多了')
             .fontSize(14)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
             .width('100%')
             .height(60)
             .textAlign(TextAlign.Center)
@@ -245,7 +245,7 @@ struct SearchPage {
 
         Text(podcast.author)
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -270,7 +270,7 @@ struct SearchPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
@@ -279,7 +279,7 @@ struct SearchPage {
     Column() {
       Text('未找到相关播客')
         .fontSize(16)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
     }
     .width('100%')
     .layoutWeight(1)

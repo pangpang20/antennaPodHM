@@ -94,7 +94,7 @@ struct DownloadPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -109,7 +109,7 @@ struct DownloadPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -118,7 +118,7 @@ struct DownloadPage {
       Column() {
         Text('暂无下载任务')
           .fontSize(16)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
       }
       .width('100%')
       .height('100%')
@@ -142,7 +142,7 @@ struct DownloadPage {
       Column() {
         Text('暂无已下载内容')
           .fontSize(16)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
       }
       .width('100%')
       .height('100%')
@@ -170,7 +170,7 @@ struct DownloadPage {
 
         Text(`${episode.downloadProgress}%`)
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
       }
       .width('100%')
 
@@ -180,7 +180,7 @@ struct DownloadPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
@@ -194,7 +194,7 @@ struct DownloadPage {
 
         Text(episode.getFormattedFileSize())
           .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -209,7 +209,7 @@ struct DownloadPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 }

@@ -136,7 +136,7 @@ struct SubscriptionPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -155,14 +155,14 @@ struct SubscriptionPage {
       .height(56)
       .type(ButtonType.Normal)
       .borderRadius(28)
-      .backgroundColor('#007AFF')
+      .backgroundColor($r('app.color.primary'))
       .onClick(() => {
         this.openPlayerPage();
       })
     }
     .width('100%')
     .padding({ left: 16, right: 16, bottom: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -190,7 +190,7 @@ struct SubscriptionPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -202,7 +202,7 @@ struct SubscriptionPage {
 
       Text('在搜索页面订阅感兴趣的播客')
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
     }
     .width('100%')
@@ -215,11 +215,11 @@ struct SubscriptionPage {
     Button() {
       Text('取消订阅')
         .fontSize(14)
-        .fontColor(Color.White)
+        .fontColor($r('app.color.text_on_primary'))
     }
     .width(80)
     .height('100%')
-    .backgroundColor('#FF3B30')
+    .backgroundColor($r('app.color.accent_red'))
     .onClick(async () => {
       console.info(`[SubscriptionPage] Unsubscribe: ${podcast.title}`);
       await this.unsubscribePodcast(podcast);
@@ -280,23 +280,23 @@ struct SubscriptionPage {
 
         Text(podcast.author)
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
 
         Row() {
           Text(`${podcast.episodeCount} 集`)
             .fontSize(12)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
           
           // 如果获取失败，显示红色提示
           if (podcast.isFetchFailed) {
             Text('·')
               .fontSize(12)
-              .fontColor($r('app.color.text_secondary_light'))
+              .fontColor($r('app.color.text_secondary'))
               .margin({ left: 6, right: 6 })
             Text('无法获取')
               .fontSize(12)
-              .fontColor('#FF3B30')
+              .fontColor($r('app.color.accent_red'))
               .fontWeight(FontWeight.Medium)
           }
         }
@@ -308,7 +308,7 @@ struct SubscriptionPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
     .onClick(() => {
       console.info(`[SubscriptionPage] Podcast: ${podcast.title}`);

@@ -112,7 +112,7 @@ struct SettingsPage {
         }
       }
       .layoutWeight(1)
-      .backgroundColor($r('app.color.background_light'))
+      .backgroundColor($r('app.color.background'))
     }
     .width('100%')
     .height('100%')
@@ -143,14 +143,14 @@ struct SettingsPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
   buildGroupHeader(title: string) {
     Text(title)
       .fontSize(14)
-      .fontColor($r('app.color.text_secondary_light'))
+      .fontColor($r('app.color.text_secondary'))
       .padding({ left: 16, top: 16, bottom: 8 })
   }
 
@@ -164,7 +164,7 @@ struct SettingsPage {
 
       Text(value)
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
 
       Text('›')
         .fontSize(20)
@@ -173,7 +173,7 @@ struct SettingsPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .onClick(onClick)
   }
 
@@ -191,7 +191,7 @@ struct SettingsPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   /**

@@ -29,7 +29,7 @@ struct QueuePage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -51,7 +51,7 @@ struct QueuePage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -68,7 +68,7 @@ struct QueuePage {
 
       Text('添加单集到队列')
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
     }
     .width('100%')
@@ -106,7 +106,7 @@ struct QueuePage {
 
         Text(episode.getFormattedDuration())
           .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -123,7 +123,7 @@ struct QueuePage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 }

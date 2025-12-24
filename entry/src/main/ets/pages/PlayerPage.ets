@@ -157,7 +157,7 @@ struct PlayerPage {
     .height('100%')
     .linearGradient({
       angle: 135,
-      colors: [['#f5f7fa', 0.0], ['#e8edf3', 0.5], ['#dce3ec', 1.0]]
+      colors: [[$r('app.color.background'), 0.0], [$r('app.color.background_secondary'), 0.5], [$r('app.color.background_secondary'), 1.0]]
     })
   }
 
@@ -167,11 +167,11 @@ struct PlayerPage {
       Button() {
         Text('←')
           .fontSize(22)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
       }
       .width(44)
       .height(44)
-      .backgroundColor('rgba(255, 255, 255, 0.9)')
+      .backgroundColor($r('app.color.background_card'))
       .borderRadius(22)
       .onClick(() => {
         console.info('[PlayerPage] Back');
@@ -184,11 +184,11 @@ struct PlayerPage {
       Button() {
         Text('⋮')
           .fontSize(22)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
       }
       .width(44)
       .height(44)
-      .backgroundColor('rgba(255, 255, 255, 0.9)')
+      .backgroundColor($r('app.color.background_card'))
       .borderRadius(22)
       .onClick(() => {
         console.info('[PlayerPage] More options');
@@ -229,14 +229,14 @@ struct PlayerPage {
         .width('85%')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#1a1a1a')
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 20 })
         .allowScale(false)
 
       // 描述（点击显示完整内容）
       Text(this.currentEpisode?.description || '')
         .fontSize(13)
-        .fontColor('#666666')
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -268,7 +268,7 @@ struct PlayerPage {
       Scroll() {
         Text(this.formatDescription(this.currentEpisode?.description || ''))
           .fontSize(15)
-          .fontColor('#333')
+          .fontColor($r('app.color.text_primary'))
           .lineHeight(24)
       }
       .scrollable(ScrollDirection.Vertical)
@@ -297,7 +297,7 @@ struct PlayerPage {
       if (this.playerState === PlayerState.LOADING) {
         Text('正在连接，请稍候...')
           .fontSize(14)
-          .fontColor('#5C6BC0')
+          .fontColor($r('app.color.primary'))
           .margin({ bottom: 12 })
       }
 
@@ -305,14 +305,14 @@ struct PlayerPage {
       Row() {
         Text(this.formatTime(this.currentPosition))
           .fontSize(13)
-          .fontColor('#666666')
+          .fontColor($r('app.color.text_secondary'))
           .fontWeight(FontWeight.Medium)
 
         Blank()
 
         Text(this.formatTime(this.duration))
           .fontSize(13)
-          .fontColor('#666666')
+          .fontColor($r('app.color.text_secondary'))
           .fontWeight(FontWeight.Medium)
       }
       .width('100%')
@@ -326,8 +326,8 @@ struct PlayerPage {
         style: SliderStyle.OutSet
       })
         .width('100%')
-        .trackColor('#E0E0E0')
-        .selectedColor('#5C6BC0')
+        .trackColor($r('app.color.progress_track'))
+        .selectedColor($r('app.color.primary'))
         .trackThickness(4)
         .onChange((value: number) => {
           this.playerService.seek(value);
@@ -345,7 +345,7 @@ struct PlayerPage {
         Button() {
           Text('⏪')
             .fontSize(24)
-            .fontColor('#5C6BC0')
+            .fontColor($r('app.color.primary'))
         }
         .width(56)
         .height(56)
@@ -360,7 +360,7 @@ struct PlayerPage {
         
         Text('15秒')
           .fontSize(11)
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 4 })
       }
   
@@ -372,16 +372,16 @@ struct PlayerPage {
           LoadingProgress()
             .width(38)
             .height(38)
-            .color(Color.White)
+            .color($r('app.color.text_on_primary'))
         } else {
           Text(this.playerState === PlayerState.PLAYING ? '⏸' : '▶')
             .fontSize(38)
-            .fontColor(Color.White)
+            .fontColor($r('app.color.text_on_primary'))
         }
       }
       .width(72)
       .height(72)
-      .backgroundColor('#5C6BC0')
+      .backgroundColor($r('app.color.primary'))
       .borderRadius(36)
       .shadow({
         radius: 12,
@@ -408,7 +408,7 @@ struct PlayerPage {
         Button() {
           Text('⏩')
             .fontSize(24)
-            .fontColor('#5C6BC0')
+            .fontColor($r('app.color.primary'))
         }
         .width(56)
         .height(56)
@@ -423,7 +423,7 @@ struct PlayerPage {
         
         Text('30秒')
           .fontSize(11)
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 4 })
       }
     }
@@ -445,7 +445,7 @@ struct PlayerPage {
               .margin({ right: 6 })
             Text(`${this.playbackSpeed}x`)
               .fontSize(14)
-              .fontColor('#5C6BC0')
+              .fontColor($r('app.color.primary'))
               .fontWeight(FontWeight.Medium)
           }
         }
@@ -470,12 +470,12 @@ struct PlayerPage {
             if (this.sleepTimerRemaining > 0) {
               Text(this.formatSleepTimer(this.sleepTimerRemaining))
                 .fontSize(14)
-                .fontColor('#FF6B6B')
+                .fontColor($r('app.color.accent_red'))
                 .fontWeight(FontWeight.Medium)
             } else {
               Text('定时')
                 .fontSize(14)
-                .fontColor('#666666')
+                .fontColor($r('app.color.text_secondary'))
             }
           }
         }
@@ -504,7 +504,7 @@ struct PlayerPage {
             .margin({ right: 6 })
           Text('添加到队列')
             .fontSize(14)
-            .fontColor('#666666')
+            .fontColor($r('app.color.text_secondary'))
         }
       }
       .width('100%')

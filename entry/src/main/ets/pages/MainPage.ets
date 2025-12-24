@@ -461,7 +461,7 @@ struct MainPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   /**
@@ -473,7 +473,7 @@ struct MainPage {
       Text('AntennaPodHM')
         .fontSize(24)
         .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary_light'))
+        .fontColor($r('app.color.text_primary'))
 
       Blank()
 
@@ -508,7 +508,7 @@ struct MainPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   /**
@@ -552,7 +552,7 @@ struct MainPage {
         Search({ placeholder: '搜索单集标题或描述', value: this.episodeSearchKeyword })
           .width('100%')
           .height(40)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.background_card'))
           .onChange((value: string) => {
             this.onEpisodeSearchChange(value);
           })
@@ -567,7 +567,7 @@ struct MainPage {
       if (this.episodeSearchKeyword && this.searchTotal > 0) {
         Text(`找到 ${this.searchTotal} 个单集（匹配标题或简介）`)
           .fontSize(12)
-          .fontColor('#666')
+          .fontColor($r('app.color.text_secondary'))
           .width('100%')
           .padding({ left: 16, bottom: 8 })
       }
@@ -600,14 +600,14 @@ struct MainPage {
                     .margin({ right: 8 })
                   Text('加载中...')
                     .fontSize(14)
-                    .fontColor('#666')
+                    .fontColor($r('app.color.text_secondary'))
                 } else {
                   Button('加载更多')
                     .width('100%')
                     .height(44)
                     .fontSize(14)
-                    .backgroundColor('#5C6BC0')
-                    .fontColor(Color.White)
+                    .backgroundColor($r('app.color.primary'))
+                    .fontColor($r('app.color.text_on_primary'))
                     .onClick(() => {
                       if (this.episodeSearchKeyword) {
                         console.info('[MainPage] Load more search results');
@@ -659,11 +659,11 @@ struct MainPage {
         Row() {
           Text(episode.getFormattedPubDate())
             .fontSize(12)
-            .fontColor('#5C6BC0')
+            .fontColor($r('app.color.primary'))
 
           Text(` · ${episode.getFormattedDuration()}`)
             .fontSize(12)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
         }
         .margin({ top: 4 })
       }
@@ -673,7 +673,7 @@ struct MainPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
     .onClick(() => {
       console.info(`[MainPage] Episode: ${episode.title}`);
@@ -696,15 +696,15 @@ struct MainPage {
         Row() {
           Text(`待听 ${this.queueEpisodes.length} 集`)
             .fontSize(14)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
 
           Blank()
 
           Button('清空队列')
             .height(32)
             .fontSize(12)
-            .backgroundColor('#FF5252')
-            .fontColor(Color.White)
+            .backgroundColor($r('app.color.accent_red'))
+            .fontColor($r('app.color.text_on_primary'))
             .onClick(async () => {
               console.info('[MainPage] Clear queue');
               await this.dbService.clearQueue();
@@ -757,7 +757,7 @@ struct MainPage {
 
                   Text(`${episode.downloadProgress}%`)
                     .fontSize(12)
-                    .fontColor($r('app.color.text_secondary_light'))
+                    .fontColor($r('app.color.text_secondary'))
                 }
                 .width('100%')
 
@@ -770,8 +770,8 @@ struct MainPage {
                   Button(DownloadService.getInstance().isDownloadPaused(episode.id) ? '继续' : '暂停')
                     .height(28)
                     .fontSize(12)
-                    .backgroundColor(DownloadService.getInstance().isDownloadPaused(episode.id) ? '#4CAF50' : '#FF9800')
-                    .fontColor(Color.White)
+                    .backgroundColor(DownloadService.getInstance().isDownloadPaused(episode.id) ? $r('app.color.accent_green') : $r('app.color.accent_orange'))
+                    .fontColor($r('app.color.text_on_primary'))
                     .onClick(async () => {
                       const downloadService = DownloadService.getInstance();
                       if (downloadService.isDownloadPaused(episode.id)) {
@@ -786,8 +786,8 @@ struct MainPage {
                   Button('取消')
                     .height(28)
                     .fontSize(12)
-                    .backgroundColor('#FF5252')
-                    .fontColor(Color.White)
+                    .backgroundColor($r('app.color.accent_red'))
+                    .fontColor($r('app.color.text_on_primary'))
                     .margin({ left: 8 })
                     .onClick(async () => {
                       await DownloadService.getInstance().cancelDownload(episode.id);
@@ -800,7 +800,7 @@ struct MainPage {
               }
               .width('100%')
               .padding(12)
-              .backgroundColor(Color.White)
+              .backgroundColor($r('app.color.background_card'))
               .borderRadius(8)
             }
           }, (episode: Episode) => `${episode.id}_${episode.downloadProgress}`)
@@ -820,7 +820,7 @@ struct MainPage {
           if (this.isDownloadEditMode) {
             Text(this.selectedDownloadIds.size === this.downloadedEpisodes.length ? '取消全选' : '全选')
               .fontSize(14)
-              .fontColor('#5C6BC0')
+              .fontColor($r('app.color.primary'))
               .onClick(() => {
                 if (this.selectedDownloadIds.size === this.downloadedEpisodes.length) {
                   this.selectedDownloadIds = new Set();
@@ -831,7 +831,7 @@ struct MainPage {
 
             Text('完成')
               .fontSize(14)
-              .fontColor('#5C6BC0')
+              .fontColor($r('app.color.primary'))
               .margin({ left: 16 })
               .onClick(() => {
                 this.isDownloadEditMode = false;
@@ -840,7 +840,7 @@ struct MainPage {
           } else {
             Text('管理')
               .fontSize(14)
-              .fontColor('#5C6BC0')
+              .fontColor($r('app.color.primary'))
               .onClick(() => {
                 this.isDownloadEditMode = true;
               })
@@ -854,14 +854,14 @@ struct MainPage {
           Row() {
             Text(`已选择 ${this.selectedDownloadIds.size} 项`)
               .fontSize(14)
-              .fontColor('#666')
+              .fontColor($r('app.color.text_secondary'))
               .layoutWeight(1)
 
             Button('+ 待听')
               .height(32)
               .fontSize(12)
-              .backgroundColor('#4CAF50')
-              .fontColor(Color.White)
+              .backgroundColor($r('app.color.accent_green'))
+              .fontColor($r('app.color.text_on_primary'))
               .onClick(async () => {
                 for (const id of this.selectedDownloadIds) {
                   await this.dbService.addToQueue(id);
@@ -874,8 +874,8 @@ struct MainPage {
             Button('删除')
               .height(32)
               .fontSize(12)
-              .backgroundColor('#FF5252')
-              .fontColor(Color.White)
+              .backgroundColor($r('app.color.accent_red'))
+              .fontColor($r('app.color.text_on_primary'))
               .margin({ left: 8 })
               .onClick(async () => {
                 const downloadService = DownloadService.getInstance();
@@ -923,7 +923,7 @@ struct MainPage {
 
                     Text(episode.getFormattedFileSize())
                       .fontSize(12)
-                      .fontColor($r('app.color.text_secondary_light'))
+                      .fontColor($r('app.color.text_secondary'))
                       .margin({ top: 4 })
                   }
                   .alignItems(HorizontalAlign.Start)
@@ -937,8 +937,8 @@ struct MainPage {
                     Button('▶ 播放')
                       .height(32)
                       .fontSize(12)
-                      .backgroundColor('#5C6BC0')
-                      .fontColor(Color.White)
+                      .backgroundColor($r('app.color.primary'))
+                      .fontColor($r('app.color.text_on_primary'))
                       .onClick(async () => {
                         console.info(`[MainPage] Play: ${episode.title}`);
                         await this.playerService.playEpisode(episode);
@@ -949,8 +949,8 @@ struct MainPage {
                       .height(32)
                       .fontSize(12)
                       .margin({ left: 8 })
-                      .backgroundColor('#4CAF50')
-                      .fontColor(Color.White)
+                      .backgroundColor($r('app.color.accent_green'))
+                      .fontColor($r('app.color.text_on_primary'))
                       .onClick(() => {
                         console.info(`[MainPage] Add to queue: ${episode.title}`);
                         this.addToQueue(episode);
@@ -961,8 +961,8 @@ struct MainPage {
                     Button('删除')
                       .height(32)
                       .fontSize(12)
-                      .backgroundColor('#FF5252')
-                      .fontColor(Color.White)
+                      .backgroundColor($r('app.color.accent_red'))
+                      .fontColor($r('app.color.text_on_primary'))
                       .onClick(() => {
                         console.info(`[MainPage] Delete: ${episode.title}`);
                         DownloadService.getInstance().deleteDownloadedFile(episode);
@@ -975,7 +975,7 @@ struct MainPage {
               }
               .width('100%')
               .padding(12)
-              .backgroundColor(Color.White)
+              .backgroundColor($r('app.color.background_card'))
               .borderRadius(8)
             }
           }, (episode: Episode) => episode.id)
@@ -1018,12 +1018,12 @@ struct MainPage {
 
         Text(podcast.author)
           .fontSize(14)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
 
         Text(`${podcast.episodeCount} 集`)
           .fontSize(12)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 4 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -1032,7 +1032,7 @@ struct MainPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
     .onClick(() => {
       console.info(`[MainPage] Podcast: ${podcast.title}`);
@@ -1069,12 +1069,12 @@ struct MainPage {
           Row() {
             Text(episode.getFormattedDuration())
               .fontSize(12)
-              .fontColor($r('app.color.text_secondary_light'))
+              .fontColor($r('app.color.text_secondary'))
 
             if (episode.downloadStatus === 2) {
               Text(' · 已下载')
                 .fontSize(12)
-                .fontColor('#4CAF50')
+                .fontColor($r('app.color.accent_green'))
             }
           }
           .margin({ top: 4 })
@@ -1090,8 +1090,8 @@ struct MainPage {
         Button('▶ 播放')
           .height(28)
           .fontSize(11)
-          .backgroundColor('#5C6BC0')
-          .fontColor(Color.White)
+          .backgroundColor($r('app.color.primary'))
+          .fontColor($r('app.color.text_on_primary'))
           .onClick(async () => {
             console.info(`[MainPage] Play: ${episode.title}`);
             await this.playerService.playEpisode(episode);
@@ -1102,8 +1102,8 @@ struct MainPage {
           .height(28)
           .fontSize(11)
           .margin({ left: 8 })
-          .backgroundColor('#4CAF50')
-          .fontColor(Color.White)
+          .backgroundColor($r('app.color.accent_green'))
+          .fontColor($r('app.color.text_on_primary'))
           .onClick(() => {
             console.info(`[MainPage] Add to queue: ${episode.title}`);
             this.addToQueue(episode);
@@ -1114,7 +1114,7 @@ struct MainPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
@@ -1128,7 +1128,7 @@ struct MainPage {
       Text(`${index + 1}`)
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#5C6BC0')
+        .fontColor($r('app.color.primary'))
         .width(28)
         .textAlign(TextAlign.Center)
 
@@ -1150,7 +1150,7 @@ struct MainPage {
 
         Text(episode.getFormattedDuration())
           .fontSize(11)
-          .fontColor($r('app.color.text_secondary_light'))
+          .fontColor($r('app.color.text_secondary'))
           .margin({ top: 2 })
       }
       .alignItems(HorizontalAlign.Start)
@@ -1163,11 +1163,11 @@ struct MainPage {
         Button() {
           Text('▶')
             .fontSize(14)
-            .fontColor(Color.White)
+            .fontColor($r('app.color.text_on_primary'))
         }
         .width(36)
         .height(36)
-        .backgroundColor('#4854A8')  // 更深的紫色
+        .backgroundColor($r('app.color.primary'))
         .borderRadius(18)
         .flexShrink(0)
         .onClick(() => {
@@ -1179,12 +1179,12 @@ struct MainPage {
         Button() {
           Text('🗑')
             .fontSize(16)
-            .fontColor('#D32F2F')  // 深红色文字
+            .fontColor($r('app.color.delete_button_text'))  // 深红色文字
         }
         .width(36)
         .height(36)
-        .backgroundColor('#FFEBEE')  // 淡红色背景
-        .border({ width: 1.5, color: '#D32F2F', radius: 18 })  // 深红色边框
+        .backgroundColor($r('app.color.delete_button_bg'))  // 淡红色背景
+        .border({ width: 1.5, color: $r('app.color.delete_button_text'), radius: 18 })  // 深红色边框
         .margin({ left: 8 })
         .flexShrink(0)
         .onClick(() => {
@@ -1195,7 +1195,7 @@ struct MainPage {
     }
     .width('100%')
     .padding(8)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
@@ -1210,8 +1210,8 @@ struct MainPage {
         Progress({ value: this.playProgress, total: 100, type: ProgressType.Linear })
           .width('100%')
           .height(2)
-          .color('#5C6BC0')
-          .backgroundColor('#E0E0E0')
+          .color($r('app.color.primary'))
+          .backgroundColor($r('app.color.progress_track'))
       }
       .width('100%')
 
@@ -1223,7 +1223,7 @@ struct MainPage {
           Circle()
             .width(50)
             .height(50)
-            .fill('#5a5a7a')
+            .fill($r('app.color.primary'))
           
           // 封面图
           Image(this.currentEpisode?.imageUrl || '')
@@ -1250,23 +1250,23 @@ struct MainPage {
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.text_on_primary'))
             .allowScale(false)
 
           Row() {
             // 播放时间
             Text(`${this.formatTime(this.currentPlayTime)} / ${this.formatTime(this.totalDuration)}`)
               .fontSize(11)
-              .fontColor('#AAAAAA')
+              .fontColor($r('app.color.text_on_primary_secondary'))
             
             // 睡眠定时器倒计时
             if (this.sleepTimerRemaining > 0) {
               Text(' · ')
                 .fontSize(11)
-                .fontColor('#AAAAAA')
+                .fontColor($r('app.color.text_on_primary_secondary'))
               Text(`⏰ ${this.formatSleepTimer(this.sleepTimerRemaining)}`)
                 .fontSize(11)
-                .fontColor('#5C6BC0')
+                .fontColor($r('app.color.primary'))
                 .fontWeight(FontWeight.Medium)
             }
           }
@@ -1284,11 +1284,11 @@ struct MainPage {
         Button() {
           Text(this.isPlaying ? '❚❚' : '▶')
             .fontSize(18)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.text_on_primary'))
         }
         .width(40)
         .height(40)
-        .backgroundColor('#5C6BC0')
+        .backgroundColor($r('app.color.primary'))
         .borderRadius(20)
         .onClick(() => {
           console.info(`[MainPage] Mini player toggle: ${this.isPlaying}`);
@@ -1304,7 +1304,7 @@ struct MainPage {
         Button() {
           Text('⏭')
             .fontSize(18)
-            .fontColor('#FFFFFF')
+            .fontColor($r('app.color.text_on_primary'))
         }
         .width(40)
         .height(40)
@@ -1320,7 +1320,7 @@ struct MainPage {
       .alignItems(VerticalAlign.Center)
     }
     .width('94%')
-    .backgroundColor('#4a4a6a')
+    .backgroundColor($r('app.color.mini_player_background'))
     .borderRadius(12)
     .margin({ bottom: 16 })
     .shadow({
@@ -1378,7 +1378,7 @@ struct MainPage {
 
       Text(message)
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
     }
     .width('100%')

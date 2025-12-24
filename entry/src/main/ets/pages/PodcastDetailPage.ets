@@ -139,7 +139,7 @@ struct PodcastDetailPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.background_light'))
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -191,7 +191,7 @@ struct PodcastDetailPage {
     .width('100%')
     .height(56)
     .padding({ left: 16, right: 16 })
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   @Builder
@@ -210,12 +210,12 @@ struct PodcastDetailPage {
 
       Text(this.podcast?.author || '')
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 8 })
 
       Text(this.podcast?.description || '')
         .fontSize(14)
-        .fontColor($r('app.color.text_secondary_light'))
+        .fontColor($r('app.color.text_secondary'))
         .margin({ top: 12 })
         .maxLines(3)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -225,8 +225,8 @@ struct PodcastDetailPage {
         .width('100%')
         .height(44)
         .fontSize(16)
-        .fontColor('#FF3B30')
-        .backgroundColor('#FFF0F0')
+        .fontColor($r('app.color.accent_red'))
+        .backgroundColor($r('app.color.delete_button_bg'))
         .borderRadius(8)
         .margin({ top: 16 })
         .onClick(() => {
@@ -236,7 +236,7 @@ struct PodcastDetailPage {
     }
     .width('100%')
     .padding(20)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
   }
 
   /**
@@ -310,7 +310,7 @@ struct PodcastDetailPage {
           }
           .width('100%')
           .height(44)
-          .backgroundColor(Color.White)
+          .backgroundColor($r('app.color.background_card'))
           .borderRadius(8)
           .enabled(!this.isLoadingMore)
           .onClick(() => {
@@ -327,7 +327,7 @@ struct PodcastDetailPage {
           Text(`已加载全部 ${this.allEpisodes.length} 集`)
             .width('100%')
             .fontSize(13)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
             .textAlign(TextAlign.Center)
             .padding(16)
         }
@@ -362,15 +362,15 @@ struct PodcastDetailPage {
             .fontWeight(FontWeight.Medium)
             .maxLines(2)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .fontColor(episode.isPlayed ? '#999999' : '#000000')
+            .fontColor(episode.isPlayed ? $r('app.color.text_tertiary') : $r('app.color.text_primary'))
             .layoutWeight(1)
           
           // 已听过标识
           if (episode.isPlayed) {
             Text('✓ 已听')
               .fontSize(12)
-              .fontColor('#4CAF50')
-              .backgroundColor('#E8F5E9')
+              .fontColor($r('app.color.accent_green'))
+              .backgroundColor($r('app.color.badge_green_bg'))
               .padding({ left: 6, right: 6, top: 2, bottom: 2 })
               .borderRadius(4)
               .margin({ left: 8 })
@@ -381,22 +381,22 @@ struct PodcastDetailPage {
         Row() {
           Text(episode.getFormattedDuration())
             .fontSize(12)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
 
           Text('•')
             .fontSize(12)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
             .margin({ left: 8, right: 8 })
 
           Text(new Date(episode.pubDate).toLocaleDateString())
             .fontSize(12)
-            .fontColor($r('app.color.text_secondary_light'))
+            .fontColor($r('app.color.text_secondary'))
 
           // 显示下载状态
           if (episode.downloadStatus === 1) {
             Text('•')
               .fontSize(12)
-              .fontColor($r('app.color.text_secondary_light'))
+              .fontColor($r('app.color.text_secondary'))
               .margin({ left: 8, right: 8 })
             Text(`${episode.downloadProgress}%`)
               .fontSize(12)
@@ -404,11 +404,11 @@ struct PodcastDetailPage {
           } else if (episode.downloadStatus === 2) {
             Text('•')
               .fontSize(12)
-              .fontColor($r('app.color.text_secondary_light'))
+              .fontColor($r('app.color.text_secondary'))
               .margin({ left: 8, right: 8 })
             Text('已下载')
               .fontSize(12)
-              .fontColor('#4CAF50')
+              .fontColor($r('app.color.accent_green'))
           }
         }
         .margin({ top: 8 })
@@ -453,7 +453,7 @@ struct PodcastDetailPage {
           } else {
             Text('✓')
               .fontSize(18)
-              .fontColor('#4CAF50')
+              .fontColor($r('app.color.accent_green'))
           }
         }
         .width(40)
@@ -479,7 +479,7 @@ struct PodcastDetailPage {
     }
     .width('100%')
     .padding(12)
-    .backgroundColor(Color.White)
+    .backgroundColor($r('app.color.background_card'))
     .borderRadius(8)
   }
 
