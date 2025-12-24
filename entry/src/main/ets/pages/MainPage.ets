@@ -419,22 +419,23 @@ struct MainPage {
       Tabs({ index: this.currentTabIndex }) {
         TabContent() {
           this.buildSubscriptionTab();
-        }.tabBar('订阅')
+        }.tabBar(this.TabBarBuilder('订阅', 0))
 
         TabContent() {
           this.buildEpisodesTab();
-        }.tabBar('单集')
+        }.tabBar(this.TabBarBuilder('单集', 1))
 
         TabContent() {
           this.buildQueueTab();
-        }.tabBar('队列')
+        }.tabBar(this.TabBarBuilder('队列', 2))
 
         TabContent() {
           this.buildDownloadsTab();
-        }.tabBar('下载')
+        }.tabBar(this.TabBarBuilder('下载', 3))
       }
       .barMode(BarMode.Fixed)
       .barHeight(56)
+      .barBackgroundColor($r('app.color.background_card'))
       .onChange((index: number) => {
         this.currentTabIndex = index;
         // 切换到订阅 tab 时启动订阅刷新定时器
@@ -462,6 +463,22 @@ struct MainPage {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.background'))
+  }
+
+  /**
+   * 构建头部
+   */
+  @Builder
+  TabBarBuilder(title: string, index: number) {
+    Column() {
+      Text(title)
+        .fontSize(16)
+        .fontWeight(this.currentTabIndex === index ? FontWeight.Bold : FontWeight.Normal)
+        .fontColor(this.currentTabIndex === index ? $r('app.color.primary') : $r('app.color.text_secondary'))
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
   }
 
   /**

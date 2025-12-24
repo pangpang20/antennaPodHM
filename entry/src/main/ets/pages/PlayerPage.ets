@@ -155,10 +155,7 @@ struct PlayerPage {
     }
     .width('100%')
     .height('100%')
-    .linearGradient({
-      angle: 135,
-      colors: [[$r('app.color.background'), 0.0], [$r('app.color.background_secondary'), 0.5], [$r('app.color.background_secondary'), 1.0]]
-    })
+    .backgroundColor($r('app.color.background'))
   }
 
   @Builder
@@ -349,7 +346,7 @@ struct PlayerPage {
         }
         .width(56)
         .height(56)
-        .backgroundColor('rgba(92, 107, 192, 0.1)')
+        .backgroundColor('rgba(92, 107, 192, 0.08)')
         .borderRadius(28)
         .onClick(() => {
           console.info('[PlayerPage] Rewind 15s');
@@ -412,7 +409,7 @@ struct PlayerPage {
         }
         .width(56)
         .height(56)
-        .backgroundColor('rgba(92, 107, 192, 0.1)')
+        .backgroundColor('rgba(92, 107, 192, 0.08)')
         .borderRadius(28)
         .onClick(() => {
           console.info('[PlayerPage] Forward 30s');
