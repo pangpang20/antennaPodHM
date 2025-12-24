@@ -168,8 +168,9 @@ struct PlayerPage {
       }
       .width(44)
       .height(44)
-      .backgroundColor($r('app.color.background_card'))
+      .backgroundColor($r('app.color.button_secondary_bg'))
       .borderRadius(22)
+      .border({ width: 1, color: $r('app.color.border_color'), radius: 22 })
       .onClick(() => {
         console.info('[PlayerPage] Back');
         UIUtils.back();
@@ -185,8 +186,9 @@ struct PlayerPage {
       }
       .width(44)
       .height(44)
-      .backgroundColor($r('app.color.background_card'))
+      .backgroundColor($r('app.color.button_secondary_bg'))
       .borderRadius(22)
+      .border({ width: 1, color: $r('app.color.border_color'), radius: 22 })
       .onClick(() => {
         console.info('[PlayerPage] More options');
         this.showMoreOptionsMenu();
