@@ -38,6 +38,7 @@ struct QueuePage {
       Text('播放队列')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
 
       Blank()
 
@@ -64,6 +65,7 @@ struct QueuePage {
       Text('播放队列为空')
         .fontSize(18)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 20 })
 
       Text('添加单集到队列')
@@ -96,11 +98,13 @@ struct QueuePage {
       Text(`${index + 1}`)
         .fontSize(16)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .width(32)
 
       Column() {
         Text(episode.title)
           .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 

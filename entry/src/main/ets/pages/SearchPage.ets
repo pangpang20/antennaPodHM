@@ -88,6 +88,7 @@ struct SearchPage {
       Text('搜索播客')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .margin({ left: 12 })
 
       Blank()
@@ -240,6 +241,7 @@ struct SearchPage {
         Text(podcast.title)
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.text_primary'))
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
@@ -257,7 +259,7 @@ struct SearchPage {
         Button('已订阅')
           .height(36)
           .enabled(false)
-          .backgroundColor('#E0E0E0')
+          .backgroundColor($r('app.color.background_secondary'))
       } else {
         Button(this.subscribingId === podcast.id ? '订阅中...' : '订阅')
           .height(36)

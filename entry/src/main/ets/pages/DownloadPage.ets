@@ -103,6 +103,7 @@ struct DownloadPage {
       Text('下载管理')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
 
       Blank()
     }
@@ -166,6 +167,7 @@ struct DownloadPage {
       Row() {
         Text(episode.title)
           .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
           .layoutWeight(1)
 
         Text(`${episode.downloadProgress}%`)
@@ -190,6 +192,7 @@ struct DownloadPage {
       Column() {
         Text(episode.title)
           .fontSize(16)
+          .fontColor($r('app.color.text_primary'))
           .maxLines(2)
 
         Text(episode.getFormattedFileSize())

@@ -170,6 +170,7 @@ struct EpisodeDetailPage {
       Text('单集详情')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .margin({ left: 12 })
 
       Blank()
@@ -198,6 +199,7 @@ struct EpisodeDetailPage {
       Text(this.episode?.title || '')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .width('100%')
         .textAlign(TextAlign.Center)
         .margin({ top: 20 })
@@ -343,6 +345,7 @@ struct EpisodeDetailPage {
       Text('节目简介')
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .width('100%')
         .margin({ bottom: 12 })
 

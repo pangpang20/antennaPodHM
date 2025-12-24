@@ -165,6 +165,7 @@ struct PodcastDetailPage {
       Text(this.isSelectionMode ? `已选择 ${this.selectedEpisodes.size} 集` : '播客详情')
         .fontSize(20)
         .fontWeight(FontWeight.Medium)
+        .fontColor($r('app.color.text_primary'))
         .margin({ left: 12 })
 
       Blank()
@@ -206,6 +207,7 @@ struct PodcastDetailPage {
       Text(this.podcast?.title || '')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .margin({ top: 16 })
 
       Text(this.podcast?.author || '')

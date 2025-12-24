@@ -260,6 +260,7 @@ struct PlayerPage {
       Text('单集简介')
         .fontSize(18)
         .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
         .margin({ bottom: 16 })
 
       Scroll() {
