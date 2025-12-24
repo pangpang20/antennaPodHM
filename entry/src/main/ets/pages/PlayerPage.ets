@@ -210,7 +210,7 @@ struct PlayerPage {
         .margin({ top: 20 })
         .shadow({
           radius: 30,
-          color: 'rgba(0, 0, 0, 0.25)',
+          color: $r('app.color.shadow_color'),
           offsetX: 0,
           offsetY: 10
         })
@@ -347,7 +347,7 @@ struct PlayerPage {
         }
         .width(56)
         .height(56)
-        .backgroundColor('rgba(92, 107, 192, 0.08)')
+        .backgroundColor($r('app.color.primary_button_bg'))
         .borderRadius(28)
         .onClick(() => {
           console.info('[PlayerPage] Rewind 15s');
@@ -383,7 +383,7 @@ struct PlayerPage {
       .borderRadius(36)
       .shadow({
         radius: 12,
-        color: 'rgba(92, 107, 192, 0.4)',
+        color: $r('app.color.shadow_color'),
         offsetX: 0,
         offsetY: 4
       })
@@ -410,7 +410,7 @@ struct PlayerPage {
         }
         .width(56)
         .height(56)
-        .backgroundColor('rgba(92, 107, 192, 0.08)')
+        .backgroundColor($r('app.color.primary_button_bg'))
         .borderRadius(28)
         .onClick(() => {
           console.info('[PlayerPage] Forward 30s');
@@ -438,9 +438,10 @@ struct PlayerPage {
         // 播放速度
         Button() {
           Row() {
-            Text('🚀')
-              .fontSize(16)
-              .margin({ right: 6 })
+            Text('▶')
+              .fontSize(14)
+              .fontColor($r('app.color.primary'))
+              .margin({ right: 4 })
             Text(`${this.playbackSpeed}x`)
               .fontSize(14)
               .fontColor($r('app.color.primary'))
@@ -449,9 +450,9 @@ struct PlayerPage {
         }
         .height(40)
         .padding({ left: 16, right: 16 })
-        .backgroundColor('rgba(92, 107, 192, 0.08)')
+        .backgroundColor($r('app.color.primary_button_bg'))
         .borderRadius(20)
-        .border({ width: 1, color: 'rgba(92, 107, 192, 0.2)', radius: 20 })
+        .border({ width: 1, color: $r('app.color.primary_border'), radius: 20 })
         .onClick(() => {
           console.info('[PlayerPage] Speed selector');
           this.showSpeedSelectorMenu();
@@ -462,9 +463,10 @@ struct PlayerPage {
         // 睡眠定时器
         Button() {
           Row() {
-            Text('⏰')
-              .fontSize(16)
-              .margin({ right: 6 })
+            Text('⏱')
+              .fontSize(14)
+              .fontColor(this.sleepTimerRemaining > 0 ? $r('app.color.accent_red') : $r('app.color.text_secondary'))
+              .margin({ right: 4 })
             if (this.sleepTimerRemaining > 0) {
               Text(this.formatSleepTimer(this.sleepTimerRemaining))
                 .fontSize(14)
@@ -479,11 +481,11 @@ struct PlayerPage {
         }
         .height(40)
         .padding({ left: 16, right: 16 })
-        .backgroundColor(this.sleepTimerRemaining > 0 ? 'rgba(255, 107, 107, 0.08)' : 'rgba(0, 0, 0, 0.05)')
+        .backgroundColor(this.sleepTimerRemaining > 0 ? $r('app.color.timer_active_bg') : $r('app.color.button_secondary_bg'))
         .borderRadius(20)
         .border({ 
           width: 1, 
-          color: this.sleepTimerRemaining > 0 ? 'rgba(255, 107, 107, 0.3)' : 'rgba(0, 0, 0, 0.1)', 
+          color: this.sleepTimerRemaining > 0 ? $r('app.color.timer_active_border') : $r('app.color.border_color'), 
           radius: 20 
         })
         .onClick(() => {
@@ -498,8 +500,9 @@ struct PlayerPage {
       Button() {
         Row() {
           Text('➕')
-            .fontSize(16)
-            .margin({ right: 6 })
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ right: 4 })
           Text('添加到队列')
             .fontSize(14)
             .fontColor($r('app.color.text_secondary'))
@@ -507,9 +510,9 @@ struct PlayerPage {
       }
       .width('100%')
       .height(44)
-      .backgroundColor('rgba(0, 0, 0, 0.05)')
+      .backgroundColor($r('app.color.button_secondary_bg'))
       .borderRadius(22)
-      .border({ width: 1, color: 'rgba(0, 0, 0, 0.1)', radius: 22 })
+      .border({ width: 1, color: $r('app.color.border_color'), radius: 22 })
       .margin({ top: 12 })
       .onClick(() => {
         console.info(`[PlayerPage] Add to queue: ${this.currentEpisode?.title || 'none'}`);

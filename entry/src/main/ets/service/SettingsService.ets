@@ -70,10 +70,10 @@ export class SettingsService {
       const autoDeletePlayed = await this.preferences.get('auto_delete_played', false);
       this.settings.autoDeletePlayed = autoDeletePlayed as boolean;
 
-      const enableNotifications = await this.preferences.get('enable_notifications', true);
+      const enableNotifications = await this.preferences.get('enable_notifications', false);
       this.settings.enableNotifications = enableNotifications as boolean;
 
-      const notifyNewEpisodes = await this.preferences.get('notify_new_episodes', true);
+      const notifyNewEpisodes = await this.preferences.get('notify_new_episodes', false);
       this.settings.notifyNewEpisodes = notifyNewEpisodes as boolean;
 
     } catch (error) {

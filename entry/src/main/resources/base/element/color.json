@@ -103,6 +103,34 @@
         {
             "name": "text_secondary_light",
             "value": "#666666"
+        },
+        {
+            "name": "button_secondary_bg",
+            "value": "#F0F0F0"
+        },
+        {
+            "name": "border_color",
+            "value": "#E0E0E0"
+        },
+        {
+            "name": "primary_button_bg",
+            "value": "#EEF0FA"
+        },
+        {
+            "name": "primary_border",
+            "value": "#D0D5F0"
+        },
+        {
+            "name": "timer_active_bg",
+            "value": "#FFEDED"
+        },
+        {
+            "name": "timer_active_border",
+            "value": "#FFCACA"
+        },
+        {
+            "name": "shadow_color",
+            "value": "#40000000"
         }
     ]
 }

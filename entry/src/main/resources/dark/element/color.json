@@ -30,11 +30,11 @@
         },
         {
             "name": "text_secondary",
-            "value": "#ABABAB"
+            "value": "#C8C8C8"
         },
         {
             "name": "text_tertiary",
-            "value": "#8E8E93"
+            "value": "#A0A0A5"
         },
         {
             "name": "divider",
@@ -103,6 +103,34 @@
         {
             "name": "text_secondary_light",
             "value": "#ABABAB"
+        },
+        {
+            "name": "button_secondary_bg",
+            "value": "#48484A"
+        },
+        {
+            "name": "border_color",
+            "value": "#5A5A5C"
+        },
+        {
+            "name": "primary_button_bg",
+            "value": "#2A2D4A"
+        },
+        {
+            "name": "primary_border",
+            "value": "#4A4D6A"
+        },
+        {
+            "name": "timer_active_bg",
+            "value": "#3A2525"
+        },
+        {
+            "name": "timer_active_border",
+            "value": "#5A3535"
+        },
+        {
+            "name": "shadow_color",
+            "value": "#00000000"
         }
     ]
 }
