@@ -106,11 +106,11 @@
         },
         {
             "name": "button_secondary_bg",
-            "value": "#48484A"
+            "value": "#58585A"
         },
         {
             "name": "border_color",
-            "value": "#5A5A5C"
+            "value": "#707075"
         },
         {
             "name": "primary_button_bg",

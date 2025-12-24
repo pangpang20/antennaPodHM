@@ -10,11 +10,11 @@ export class RouteParams {
 // 按钮配置
 export class ButtonOptions {
   text: string = '';
-  color: string = '#000000';
+  color?: string;
 
   constructor(text: string, color?: string) {
     this.text = text;
-    this.color = color || '#000000';
+    this.color = color; // 不指定时使用系统默认色，自动适配深色模式
   }
 }
 
@@ -86,7 +86,7 @@ export class UIUtils {
       const dialogButtons: promptAction.Button[] = options.buttons.map(btn => {
         const dialogBtn: promptAction.Button = {
           text: btn.text,
-          color: btn.color
+          color: btn.color || ''
         };
         return dialogBtn;
       });
@@ -118,7 +118,7 @@ export class UIUtils {
       const actionButtons: promptAction.Button[] = options.buttons.map(btn => {
         const actionBtn: promptAction.Button = {
           text: btn.text,
-          color: btn.color
+          color: btn.color || ''
         };
         return actionBtn;
       });

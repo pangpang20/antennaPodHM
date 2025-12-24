@@ -547,15 +547,15 @@ struct PlayerPage {
     // 符合业界标准的播放速度选项
     // 参考：Apple Podcasts, Spotify, Overcast 等主流播客应用
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('0.5x', '#000000'),   // 慢速学习
-      new ButtonOptions('0.75x', '#000000'),  // 较慢
-      new ButtonOptions('1.0x', '#000000'),   // 正常速度
-      new ButtonOptions('1.25x', '#000000'),  // 稍快
-      new ButtonOptions('1.5x', '#000000'),   // 较快
-      new ButtonOptions('1.75x', '#000000'),  // 很快
-      new ButtonOptions('2.0x', '#000000'),   // 2倍速
-      new ButtonOptions('2.5x', '#000000'),   // 极快
-      new ButtonOptions('3.0x', '#000000')    // 最快
+      new ButtonOptions('0.5x'),   // 慢速学习
+      new ButtonOptions('0.75x'),  // 较慢
+      new ButtonOptions('1.0x'),   // 正常速度
+      new ButtonOptions('1.25x'),  // 稍快
+      new ButtonOptions('1.5x'),   // 较快
+      new ButtonOptions('1.75x'),  // 很快
+      new ButtonOptions('2.0x'),   // 2倍速
+      new ButtonOptions('2.5x'),   // 极快
+      new ButtonOptions('3.0x')    // 最快
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('选择播放速度', buttons)).then((index: number) => {
       if (index >= 0) {
@@ -573,12 +573,12 @@ struct PlayerPage {
 
   showSleepTimerMenu(): void {
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('关闭定时', '#000000'),
-      new ButtonOptions('5 分钟', '#000000'),
-      new ButtonOptions('15 分钟', '#000000'),
-      new ButtonOptions('30 分钟', '#000000'),
-      new ButtonOptions('45 分钟', '#000000'),
-      new ButtonOptions('60 分钟', '#000000')
+      new ButtonOptions('关闭定时'),
+      new ButtonOptions('5 分钟'),
+      new ButtonOptions('15 分钟'),
+      new ButtonOptions('30 分钟'),
+      new ButtonOptions('45 分钟'),
+      new ButtonOptions('60 分钟')
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('定时关闭', buttons)).then((index: number) => {
       if (index >= 0) {
@@ -620,10 +620,10 @@ ${this.currentEpisode.description}
 分享自 AntennaPodHM`;
     
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('微信好友', '#000000'),
-      new ButtonOptions('微信朋友圈', '#000000'),
-      new ButtonOptions('复制链接', '#000000'),
-      new ButtonOptions('更多分享方式', '#000000')
+      new ButtonOptions('微信好友'),
+      new ButtonOptions('微信朋友圈'),
+      new ButtonOptions('复制链接'),
+      new ButtonOptions('更多分享方式')
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('分享到', buttons)).then((index: number) => {
       if (index >= 0) {
@@ -763,9 +763,9 @@ ${this.currentEpisode.description}
    */
   showMoreOptionsMenu(): void {
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('查看单集详情', '#000000'),
-      new ButtonOptions('分享这一集', '#000000'),
-      new ButtonOptions('下载到本地', '#000000')
+      new ButtonOptions('查看单集详情'),
+      new ButtonOptions('分享这一集'),
+      new ButtonOptions('下载到本地')
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('更多选项', buttons)).then((index: number) => {
       if (index >= 0) {
