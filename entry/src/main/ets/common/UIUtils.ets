@@ -86,7 +86,7 @@ export class UIUtils {
       const dialogButtons: promptAction.Button[] = options.buttons.map(btn => {
         const dialogBtn: promptAction.Button = {
           text: btn.text,
-          color: btn.color || ''
+          color: btn.color || '#007DFF' // 系统默认蓝色
         };
         return dialogBtn;
       });
@@ -114,25 +114,32 @@ export class UIUtils {
 
   static async showActionMenu(options: ActionMenuOptions): Promise<number> {
     try {
-      // 转换按钮类型
-      const actionButtons: promptAction.Button[] = options.buttons.map(btn => {
-        const actionBtn: promptAction.Button = {
-          text: btn.text,
-          color: btn.color || ''
-        };
-        return actionBtn;
-      });
+      if (options.buttons.length === 0) {
+        console.error('[UIUtils] showActionMenu: buttons array is empty');
+        return -1;
+      }
+      
+      // 构建按钮元组，至少需要一个按钮
+      const btn0: promptAction.Button = { text: options.buttons[0].text, color: options.buttons[0].color || '#007DFF' };
+      const btn1: promptAction.Button | undefined = options.buttons[1] ? { text: options.buttons[1].text, color: options.buttons[1].color || '#007DFF' } : undefined;
+      const btn2: promptAction.Button | undefined = options.buttons[2] ? { text: options.buttons[2].text, color: options.buttons[2].color || '#007DFF' } : undefined;
+      const btn3: promptAction.Button | undefined = options.buttons[3] ? { text: options.buttons[3].text, color: options.buttons[3].color || '#007DFF' } : undefined;
+      const btn4: promptAction.Button | undefined = options.buttons[4] ? { text: options.buttons[4].text, color: options.buttons[4].color || '#007DFF' } : undefined;
+      const btn5: promptAction.Button | undefined = options.buttons[5] ? { text: options.buttons[5].text, color: options.buttons[5].color || '#007DFF' } : undefined;
+      
+      const buttons: [promptAction.Button, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?] = 
+        [btn0, btn1, btn2, btn3, btn4, btn5];
       
       let result: promptAction.ActionMenuSuccessResponse;
       if (UIUtils.uiContext) {
         result = await UIUtils.uiContext.getPromptAction().showActionMenu({
           title: options.title,
-          buttons: actionButtons as [promptAction.Button, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?]
+          buttons: buttons
         });
       } else {
         result = await promptAction.showActionMenu({
           title: options.title,
-          buttons: actionButtons as [promptAction.Button, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?]
+          buttons: buttons
         });
       }
       return result.index;

@@ -544,26 +544,21 @@ struct PlayerPage {
   }
 
   showSpeedSelectorMenu(): void {
-    // 符合业界标准的播放速度选项
-    // 参考：Apple Podcasts, Spotify, Overcast 等主流播客应用
+    // 播放速度选项（ActionMenu最多支持6个按钮）
     const buttons: ButtonOptions[] = [
-      new ButtonOptions('0.5x'),   // 慢速学习
-      new ButtonOptions('0.75x'),  // 较慢
-      new ButtonOptions('1.0x'),   // 正常速度
-      new ButtonOptions('1.25x'),  // 稍快
-      new ButtonOptions('1.5x'),   // 较快
-      new ButtonOptions('1.75x'),  // 很快
-      new ButtonOptions('2.0x'),   // 2倍速
-      new ButtonOptions('2.5x'),   // 极快
-      new ButtonOptions('3.0x')    // 最快
+      new ButtonOptions('0.75x'),
+      new ButtonOptions('1.0x'),
+      new ButtonOptions('1.25x'),
+      new ButtonOptions('1.5x'),
+      new ButtonOptions('2.0x'),
+      new ButtonOptions('3.0x')
     ];
     UIUtils.showActionMenu(new ActionMenuOptions('选择播放速度', buttons)).then((index: number) => {
       if (index >= 0) {
-        const speeds: number[] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];
+        const speeds: number[] = [0.75, 1.0, 1.25, 1.5, 2.0, 3.0];
         const selectedSpeed = speeds[index];
         this.playbackSpeed = selectedSpeed;
         this.playerService.setPlaybackSpeed(selectedSpeed);
-        // 保存到设置中，下次启动时记住
         const settingsService = SettingsService.getInstance();
         settingsService.setPlaybackSpeed(selectedSpeed);
         console.info(`[PlayerPage] Playback speed set to ${selectedSpeed}x and saved`);
