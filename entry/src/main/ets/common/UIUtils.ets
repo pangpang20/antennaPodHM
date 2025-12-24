@@ -114,33 +114,45 @@ export class UIUtils {
 
   static async showActionMenu(options: ActionMenuOptions): Promise<number> {
     try {
-      if (options.buttons.length === 0) {
-        console.error('[UIUtils] showActionMenu: buttons array is empty');
+      const len = options.buttons.length;
+      if (len === 0 || len > 6) {
+        console.error('[UIUtils] showActionMenu: buttons length must be 1-6');
         return -1;
       }
       
-      // 构建按钮元组，至少需要一个按钮
-      const btn0: promptAction.Button = { text: options.buttons[0].text, color: options.buttons[0].color || '#007DFF' };
-      const btn1: promptAction.Button | undefined = options.buttons[1] ? { text: options.buttons[1].text, color: options.buttons[1].color || '#007DFF' } : undefined;
-      const btn2: promptAction.Button | undefined = options.buttons[2] ? { text: options.buttons[2].text, color: options.buttons[2].color || '#007DFF' } : undefined;
-      const btn3: promptAction.Button | undefined = options.buttons[3] ? { text: options.buttons[3].text, color: options.buttons[3].color || '#007DFF' } : undefined;
-      const btn4: promptAction.Button | undefined = options.buttons[4] ? { text: options.buttons[4].text, color: options.buttons[4].color || '#007DFF' } : undefined;
-      const btn5: promptAction.Button | undefined = options.buttons[5] ? { text: options.buttons[5].text, color: options.buttons[5].color || '#007DFF' } : undefined;
-      
-      const buttons: [promptAction.Button, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?, promptAction.Button?] = 
-        [btn0, btn1, btn2, btn3, btn4, btn5];
+      // 构建按钮，只包含实际存在的按钮
+      const makeBtn = (idx: number): promptAction.Button | undefined => {
+        if (idx < len) {
+          return { text: options.buttons[idx].text, color: options.buttons[idx].color || '#007DFF' };
+        }
+        return undefined;
+      };
       
       let result: promptAction.ActionMenuSuccessResponse;
+      const menuOptions: promptAction.ActionMenuOptions = {
+        title: options.title,
+        buttons: [makeBtn(0)!] as [promptAction.Button]
+      };
+      
+      // 根据按钮数量动态构建
+      if (len === 1) {
+        menuOptions.buttons = [makeBtn(0)!];
+      } else if (len === 2) {
+        menuOptions.buttons = [makeBtn(0)!, makeBtn(1)];
+      } else if (len === 3) {
+        menuOptions.buttons = [makeBtn(0)!, makeBtn(1), makeBtn(2)];
+      } else if (len === 4) {
+        menuOptions.buttons = [makeBtn(0)!, makeBtn(1), makeBtn(2), makeBtn(3)];
+      } else if (len === 5) {
+        menuOptions.buttons = [makeBtn(0)!, makeBtn(1), makeBtn(2), makeBtn(3), makeBtn(4)];
+      } else if (len === 6) {
+        menuOptions.buttons = [makeBtn(0)!, makeBtn(1), makeBtn(2), makeBtn(3), makeBtn(4), makeBtn(5)];
+      }
+      
       if (UIUtils.uiContext) {
-        result = await UIUtils.uiContext.getPromptAction().showActionMenu({
-          title: options.title,
-          buttons: buttons
-        });
+        result = await UIUtils.uiContext.getPromptAction().showActionMenu(menuOptions);
       } else {
-        result = await promptAction.showActionMenu({
-          title: options.title,
-          buttons: buttons
-        });
+        result = await promptAction.showActionMenu(menuOptions);
       }
       return result.index;
     } catch (error) {
